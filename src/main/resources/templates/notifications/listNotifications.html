@@ -4,6 +4,9 @@
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+<script defer type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 
 
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
@@ -47,7 +50,7 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         $('#notifications').DataTable({
             "order": [
                 [0, "desc"]

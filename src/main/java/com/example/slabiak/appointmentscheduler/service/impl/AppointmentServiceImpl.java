@@ -78,9 +78,27 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @PreAuthorize("#customerId == principal.id")
+    public List<Appointment> getAppointmentCalendarByCustomerId(int customerId, LocalDateTime start, LocalDateTime end) {
+        return appointmentRepository.findCalendarByCustomerId(customerId, start, end);
+    }
+
+    @Override
     @PreAuthorize("#providerId == principal.id")
     public List<Appointment> getAppointmentByProviderId(int providerId) {
         return appointmentRepository.findByProviderId(providerId);
+    }
+
+    @Override
+    @PreAuthorize("#providerId == principal.id")
+    public List<Appointment> getAppointmentCalendarByProviderId(int providerId, LocalDateTime start, LocalDateTime end) {
+        return appointmentRepository.findCalendarByProviderId(providerId, start, end);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Appointment> getAppointmentCalendar(LocalDateTime start, LocalDateTime end) {
+        return appointmentRepository.findCalendarEntries(start, end);
     }
 
     @Override

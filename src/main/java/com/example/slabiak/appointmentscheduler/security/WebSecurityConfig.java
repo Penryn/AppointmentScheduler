@@ -6,7 +6,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +34,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
+                .antMatchers("/actuator/health", "/actuator/info", "/actuator/metrics/**", "/actuator/prometheus").permitAll()
+                .antMatchers("/customers/new/**").permitAll()
                 .antMatchers("/").hasAnyRole("CUSTOMER", "PROVIDER", "ADMIN")
                 .antMatchers("/api/**").hasAnyRole("CUSTOMER", "PROVIDER", "ADMIN")
                 .antMatchers("/customers/all").hasRole("ADMIN")
@@ -59,11 +61,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout().logoutUrl("/perform_logout")
                 .and()
                 .exceptionHandling().accessDeniedPage("/access-denied");
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/customers/new/**");
     }
 
     @Bean

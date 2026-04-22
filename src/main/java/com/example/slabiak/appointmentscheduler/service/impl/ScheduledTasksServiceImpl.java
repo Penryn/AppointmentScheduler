@@ -4,9 +4,11 @@ package com.example.slabiak.appointmentscheduler.service.impl;
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.InvoiceService;
 import com.example.slabiak.appointmentscheduler.service.ScheduledTasksService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
@@ -22,15 +24,27 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Scheduled(fixedDelay = 30 * 60 * 1000)
     @Override
     public void updateAllAppointmentsStatuses() {
-        appointmentService.updateAppointmentsStatusesWithExpiredExchangeRequest();
-        appointmentService.updateAllAppointmentsStatuses();
+        log.debug("Starting scheduled appointment status update");
+        try {
+            appointmentService.updateAppointmentsStatusesWithExpiredExchangeRequest();
+            appointmentService.updateAllAppointmentsStatuses();
+        } catch (RuntimeException ex) {
+            log.error("Scheduled appointment status update failed", ex);
+            throw ex;
+        }
     }
 
     // runs on the first day of each month
     @Scheduled(cron = "0 0 0 1 * ?")
     @Override
     public void issueInvoicesForCurrentMonth() {
-        invoiceService.issueInvoicesForConfirmedAppointments();
+        log.debug("Starting scheduled invoice issuing task");
+        try {
+            invoiceService.issueInvoicesForConfirmedAppointments();
+        } catch (RuntimeException ex) {
+            log.error("Scheduled invoice issuing task failed", ex);
+            throw ex;
+        }
     }
 
 

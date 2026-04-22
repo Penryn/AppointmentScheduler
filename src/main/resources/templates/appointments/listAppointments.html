@@ -3,6 +3,9 @@
       th:replace="~{fragments/layout :: layout (~{::body},'appointments','Customer appointments')}">
 
 <body>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+<script defer type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 
 <!-- Page Content -->
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
@@ -63,7 +66,7 @@
     </div>
 
     <script>
-        $(document).ready(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             $('#appointments').DataTable({
                 "dom": '<"toolbar">lrtip',
                 "bFilter": true,

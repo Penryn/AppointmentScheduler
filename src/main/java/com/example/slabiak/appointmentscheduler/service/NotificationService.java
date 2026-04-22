@@ -19,6 +19,8 @@ public interface NotificationService {
 
     List<Notification> getUnreadNotifications(int userId);
 
+    long countUnreadNotifications(int userId);
+
     void newAppointmentFinishedNotification(Appointment appointment, boolean sendEmail);
 
     void newAppointmentRejectionRequestedNotification(Appointment appointment, boolean sendEmail);

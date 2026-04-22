@@ -3,6 +3,10 @@
 >
 
 <body>
+<link rel="stylesheet" th:href="@{/css/vendor/fullcalendar.css}"/>
+<script defer type="text/javascript" th:src="@{/js/vendor/moment.js}"></script>
+<script defer type="text/javascript" th:src="@{/js/vendor/fullcalendar.js}"></script>
+
 <div class="row mt-3">
     <div class="col">
 
@@ -16,7 +20,7 @@
 </div>
 
 <script th:inline="javascript">
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         $('#calendar').fullCalendar({
             defaultView: 'agendaWeek',
             header: {
@@ -32,7 +36,16 @@
             eventSources: [
 
                 {
-                    url: /*[[${'/api/user/'+user.id+'/appointments'}]]*/ '/api/user/1/appointments',
+                    events: function (start, end, timezone, callback) {
+                        $.ajax({
+                            url: /*[[${'/api/user/'+user.id+'/appointments'}]]*/ '/api/user/1/appointments',
+                            data: {
+                                start: start.toISOString(),
+                                end: end.toISOString()
+                            },
+                            success: callback
+                        });
+                    },
                     color: 'yellow',
                     textColor: 'black'
 

@@ -7,12 +7,16 @@ import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.google.common.collect.Lists;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,14 +34,30 @@ public class AjaxController {
 
 
     @GetMapping("/user/{userId}/appointments")
-    public List<Appointment> getAppointmentsForUser(@PathVariable("userId") int userId, @AuthenticationPrincipal CustomUserDetails currentUser) {
+    public List<Appointment> getAppointmentsForUser(@PathVariable("userId") int userId,
+                                                    @AuthenticationPrincipal CustomUserDetails currentUser,
+                                                    @RequestParam(value = "start", required = false) String start,
+                                                    @RequestParam(value = "end", required = false) String end) {
+        if (start != null && end != null) {
+            LocalDateTime windowStart = parseDateTime(start);
+            LocalDateTime windowEnd = parseDateTime(end);
+            if (currentUser.hasRole("ROLE_CUSTOMER")) {
+                return appointmentService.getAppointmentCalendarByCustomerId(userId, windowStart, windowEnd);
+            } else if (currentUser.hasRole("ROLE_PROVIDER")) {
+                return appointmentService.getAppointmentCalendarByProviderId(userId, windowStart, windowEnd);
+            } else if (currentUser.hasRole("ROLE_ADMIN")) {
+                return appointmentService.getAppointmentCalendar(windowStart, windowEnd);
+            }
+        }
+
         if (currentUser.hasRole("ROLE_CUSTOMER")) {
             return appointmentService.getAppointmentByCustomerId(userId);
-        } else if (currentUser.hasRole("ROLE_PROVIDER"))
+        } else if (currentUser.hasRole("ROLE_PROVIDER")) {
             return appointmentService.getAppointmentByProviderId(userId);
-        else if (currentUser.hasRole("ROLE_ADMIN"))
+        } else if (currentUser.hasRole("ROLE_ADMIN")) {
             return appointmentService.getAllAppointments();
-        else return Lists.newArrayList();
+        }
+        return Lists.newArrayList();
     }
 
     @GetMapping("/availableHours/{providerId}/{workId}/{date}")
@@ -50,8 +70,16 @@ public class AjaxController {
     }
 
     @GetMapping("/user/notifications")
-    public int getUnreadNotificationsCount(@AuthenticationPrincipal CustomUserDetails currentUser) {
-        return notificationService.getUnreadNotifications(currentUser.getId()).size();
+    public long getUnreadNotificationsCount(@AuthenticationPrincipal CustomUserDetails currentUser) {
+        return notificationService.countUnreadNotifications(currentUser.getId());
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        try {
+            return OffsetDateTime.parse(value).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+            return LocalDateTime.parse(value);
+        }
     }
 
 }

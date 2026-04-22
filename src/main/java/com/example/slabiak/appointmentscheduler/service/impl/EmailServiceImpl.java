@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 public class EmailServiceImpl implements EmailService {
 
+    private static final String MAIL_EXECUTOR = "mailExecutor";
+
     private final JavaMailSender javaMailSender;
     private final SpringTemplateEngine templateEngine;
     private final JwtTokenServiceImpl jwtTokenService;
@@ -39,7 +41,6 @@ public class EmailServiceImpl implements EmailService {
         this.baseUrl = baseUrl;
     }
 
-    @Async
     @Override
     public void sendEmail(String to, String subject, String templateName, Context templateContext, File attachment) {
         try {
@@ -67,7 +68,7 @@ public class EmailServiceImpl implements EmailService {
 
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendAppointmentFinishedNotification(Appointment appointment) {
         Context context = new Context();
@@ -76,7 +77,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getCustomer().getEmail(), "Finished appointment summary", "appointmentFinished", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendAppointmentRejectionRequestedNotification(Appointment appointment) {
         Context context = new Context();
@@ -85,7 +86,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getProvider().getEmail(), "Rejection requested", "appointmentRejectionRequested", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendNewAppointmentScheduledNotification(Appointment appointment) {
         Context context = new Context();
@@ -93,7 +94,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getProvider().getEmail(), "New appointment booked", "newAppointmentScheduled", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendAppointmentCanceledByCustomerNotification(Appointment appointment) {
         Context context = new Context();
@@ -102,7 +103,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getProvider().getEmail(), "Appointment canceled by Customer", "appointmentCanceled", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendAppointmentCanceledByProviderNotification(Appointment appointment) {
         Context context = new Context();
@@ -111,7 +112,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getCustomer().getEmail(), "Appointment canceled by Provider", "appointmentCanceled", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendInvoice(Invoice invoice) {
         Context context = new Context();
@@ -125,7 +126,7 @@ public class EmailServiceImpl implements EmailService {
 
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendAppointmentRejectionAcceptedNotification(Appointment appointment) {
         Context context = new Context();
@@ -133,7 +134,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(appointment.getCustomer().getEmail(), "Rejection request accepted", "appointmentRejectionAccepted", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendNewChatMessageNotification(ChatMessage chatMessage) {
         Context context = new Context();
@@ -144,7 +145,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(recipent.getEmail(), "New chat message", "newChatMessage", context, null);
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendNewExchangeRequestedNotification(Appointment oldAppointment, Appointment newAppointment) {
         Context context = new Context();
@@ -154,6 +155,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(newAppointment.getCustomer().getEmail(), "New Appointment Exchange Request", "newExchangeRequest", context, null);
     }
 
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendExchangeRequestAcceptedNotification(ExchangeRequest exchangeRequest) {
         Context context = new Context();
@@ -162,6 +164,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(exchangeRequest.getRequested().getCustomer().getEmail(), "Exchange request accepted", "exchangeRequestAccepted", context, null);
     }
 
+    @Async(MAIL_EXECUTOR)
     @Override
     public void sendExchangeRequestRejectedNotification(ExchangeRequest exchangeRequest) {
         Context context = new Context();

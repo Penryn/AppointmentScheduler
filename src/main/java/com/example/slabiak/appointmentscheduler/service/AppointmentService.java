@@ -32,6 +32,12 @@ public interface AppointmentService {
 
     List<Appointment> getAppointmentByProviderId(int providerId);
 
+    List<Appointment> getAppointmentCalendarByCustomerId(int customerId, LocalDateTime start, LocalDateTime end);
+
+    List<Appointment> getAppointmentCalendarByProviderId(int providerId, LocalDateTime start, LocalDateTime end);
+
+    List<Appointment> getAppointmentCalendar(LocalDateTime start, LocalDateTime end);
+
     List<Appointment> getAppointmentsByProviderAtDay(int providerId, LocalDate day);
 
     List<Appointment> getAppointmentsByCustomerAtDay(int providerId, LocalDate day);

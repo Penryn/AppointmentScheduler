@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS `appointments` (
 	KEY `id_canceler` (`id_canceler`),
   KEY `id_provider` (`id_provider`),
   KEY `id_customer` (`id_customer`),
+  KEY `idx_appointments_provider_start` (`id_provider`,`start`),
+  KEY `idx_appointments_customer_start` (`id_customer`,`start`),
   KEY `id_work` (`id_work`),
 	KEY `id_invoice` (`id_invoice`),
 	CONSTRAINT `appointments_users_canceler` FOREIGN KEY (`id_canceler`) REFERENCES `users` (`id`)
@@ -227,6 +229,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `id_user` INT(11),
   PRIMARY KEY (`id`),
 	KEY `id_user` (`id_user`),
+  KEY `idx_notifications_user_read_created` (`id_user`,`is_read`,`created_at`),
 
 	CONSTRAINT `FK_notification_user` FOREIGN KEY (`id_user`)
   REFERENCES `users` (`id`)

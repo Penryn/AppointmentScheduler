@@ -16,6 +16,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("select a from Appointment a where a.provider.id = :providerId")
     List<Appointment> findByProviderId(@Param("providerId") int providerId);
 
+    @Query("select a from Appointment a join fetch a.work where a.customer.id = :customerId and a.start >= :windowStart and a.start < :windowEnd order by a.start")
+    List<Appointment> findCalendarByCustomerId(@Param("customerId") int customerId, @Param("windowStart") LocalDateTime windowStart, @Param("windowEnd") LocalDateTime windowEnd);
+
+    @Query("select a from Appointment a join fetch a.work where a.provider.id = :providerId and a.start >= :windowStart and a.start < :windowEnd order by a.start")
+    List<Appointment> findCalendarByProviderId(@Param("providerId") int providerId, @Param("windowStart") LocalDateTime windowStart, @Param("windowEnd") LocalDateTime windowEnd);
+
+    @Query("select a from Appointment a join fetch a.work where a.start >= :windowStart and a.start < :windowEnd order by a.start")
+    List<Appointment> findCalendarEntries(@Param("windowStart") LocalDateTime windowStart, @Param("windowEnd") LocalDateTime windowEnd);
+
     @Query("select a from Appointment a where a.canceler.id = :userId")
     List<Appointment> findCanceledByUser(@Param("userId") int userId);
 

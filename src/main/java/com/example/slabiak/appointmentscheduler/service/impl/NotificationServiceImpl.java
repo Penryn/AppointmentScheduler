@@ -5,9 +5,9 @@ import com.example.slabiak.appointmentscheduler.entity.*;
 import com.example.slabiak.appointmentscheduler.entity.user.User;
 import com.example.slabiak.appointmentscheduler.service.EmailService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
-import com.example.slabiak.appointmentscheduler.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -16,14 +16,12 @@ import java.util.List;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final UserService userService;
     private final EmailService emailService;
     private final boolean mailingEnabled;
 
-    public NotificationServiceImpl(@Value("${mailing.enabled}") boolean mailingEnabled, NotificationRepository notificationRepository, UserService userService, EmailService emailService) {
+    public NotificationServiceImpl(@Value("${mailing.enabled}") boolean mailingEnabled, NotificationRepository notificationRepository, EmailService emailService) {
         this.mailingEnabled = mailingEnabled;
         this.notificationRepository = notificationRepository;
-        this.userService = userService;
         this.emailService = emailService;
     }
 
@@ -51,12 +49,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void markAllAsRead(int userId) {
-        List<Notification> notifications = notificationRepository.getAllUnreadNotifications(userId);
-        for (Notification notification : notifications) {
-            notification.setRead(true);
-            notificationRepository.save(notification);
-        }
+        notificationRepository.markAllAsReadByUserId(userId);
     }
 
     @Override
@@ -66,12 +61,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getAll(int userId) {
-        return userService.getUserById(userId).getNotifications();
+        return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
     }
 
     @Override
     public List<Notification> getUnreadNotifications(int userId) {
         return notificationRepository.getAllUnreadNotifications(userId);
+    }
+
+    @Override
+    public long countUnreadNotifications(int userId) {
+        return notificationRepository.countUnreadByUserId(userId);
     }
 
     @Override

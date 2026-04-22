@@ -1,0 +1,11 @@
+.notification-bell {
+    position: relative;
+    display: inline-block;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
