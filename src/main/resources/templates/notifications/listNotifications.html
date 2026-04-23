@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body/*},'notifications','Notifications List')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'notifications','Notifications List')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<body>
+<body th:remove="tag">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
 <script defer type="text/javascript" charset="utf8"
         src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>

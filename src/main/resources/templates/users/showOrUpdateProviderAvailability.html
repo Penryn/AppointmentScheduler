@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body/*},'availability','Availability settings')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'availability','Availability settings')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<body>
+<body th:remove="tag">
 <div class="row" style="margin-top: 50px" ;>
     <div class="col-md-6 text-center">
         <h2>Working plan</h2>

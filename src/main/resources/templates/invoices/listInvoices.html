@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body/*},'invoices','Available invoices')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'invoices','Available invoices')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<body>
+<body th:remove="tag">
 
 
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">

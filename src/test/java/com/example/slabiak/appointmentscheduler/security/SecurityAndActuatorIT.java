@@ -12,6 +12,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,8 +40,11 @@ public class SecurityAndActuatorIT {
 
     @Test
     public void shouldExposeRegistrationPageWithoutBypassingSecurityFilterChain() throws Exception {
-        mockMvc.perform(get("/customers/new/retail"))
-                .andExpect(status().isOk());
+        MvcResult result = mockMvc.perform(get("/customers/new/retail"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(StringUtils.countOccurrencesOf(result.getResponse().getContentAsString(), "<body")).isEqualTo(1);
     }
 
     @Test

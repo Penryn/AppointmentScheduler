@@ -22,7 +22,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -39,7 +38,6 @@ public class LoginPageIT {
 
     @Rule
     public BrowserWebDriverContainer chrome = new BrowserWebDriverContainer()
-            .withRecordingMode(BrowserWebDriverContainer.VncRecordingMode.RECORD_ALL, new File("./target/"))
             .withCapabilities(new ChromeOptions());
 
     @Test

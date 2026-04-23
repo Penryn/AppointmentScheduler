@@ -16,6 +16,8 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<failsafe.includes>**/*IT.java</failsafe.includes>
+		<failsafe.excludes>**/ui/**</failsafe.excludes>
 	</properties>
 
 	<dependencies>
@@ -161,8 +163,17 @@
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>3.141.59</version>
+			<artifactId>selenium-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-remote-driver</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-chrome-driver</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -205,8 +216,11 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
 					<includes>
-						<include>**/*IT.java</include>
+						<include>${failsafe.includes}</include>
 					</includes>
+					<excludes>
+						<exclude>${failsafe.excludes}</exclude>
+					</excludes>
 				</configuration>
 				<executions>
 					<execution>
@@ -261,5 +275,15 @@
 		</plugins>
 
 	</build>
+
+	<profiles>
+		<profile>
+			<id>ui-tests</id>
+			<properties>
+				<failsafe.includes>**/ui/*IT.java</failsafe.includes>
+				<failsafe.excludes></failsafe.excludes>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

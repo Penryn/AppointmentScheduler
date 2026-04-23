@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body/*}, '','Login form')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body}, '','Login form')}"
 >
-<body>
+<body th:remove="tag">
 <div class="row" style="margin-top: 50px" ;>
     <div class="col-lg-4 text-center"></div>
     <div class="col-lg-4 text-center">

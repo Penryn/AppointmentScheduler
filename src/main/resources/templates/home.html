@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body/*},'home','Home')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'home','Home')}"
 >
 
-<body>
+<body th:remove="tag">
 <link rel="stylesheet" th:href="@{/css/vendor/fullcalendar.css}"/>
 <script defer type="text/javascript" th:src="@{/js/vendor/moment.js}"></script>
 <script defer type="text/javascript" th:src="@{/js/vendor/fullcalendar.js}"></script>

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body/*},'exchange','Appointments eligible to exchange')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'exchange','Appointments eligible to exchange')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<body>
+<body th:remove="tag">
 <div class="row" style="margin-top: 50px">
 
     <div class="container">
