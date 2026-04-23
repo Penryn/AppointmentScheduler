@@ -1,158 +1,210 @@
-[![CircleCI](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)](https://circleci.com/gh/slabiak/AppointmentScheduler)
+# AppointmentScheduler
 
-# Appointment scheduler
+AppointmentScheduler 是一个基于 Spring Boot 的预约管理系统，用于管理服务提供者与客户之间的预约流程。系统覆盖预约创建、服务商工作计划与休息时间、通知、预约取消与异议处理、发票生成以及管理员后台管理等功能。
 
->This is a Spring Boot Web Application to manage and schedule appointments between providers and customers. It has many features such as automatic invoicing, email notifications, appointments cancelation, providers individual working plans with brakes etc.
+<a href="https://github.com/slabiak/slabiak.github.io/blob/master/images/appointmentscheduler/calendar.png?raw=true"><img src="https://github.com/slabiak/slabiak.github.io/blob/master/images/appointmentscheduler/calendar.png?raw=true" width="600" alt="AppointmentScheduler 日历视图"></a>
 
+## 当前技术栈
 
-<a href="https://github.com/slabiak/slabiak.github.io/blob/master/images/appointmentscheduler/calendar.png?raw=true"><img src="https://github.com/slabiak/slabiak.github.io/blob/master/images/appointmentscheduler/calendar.png?raw=true" width="600"></a>
+- Java 17
+- Spring Boot 3.3.12
+- Spring MVC、Thymeleaf、Spring Security 6、Spring Data JPA
+- Hibernate 6 + Hypersistence JSON 映射
+- MySQL 8 + Flyway
+- Bootstrap 5.3.8 + jQuery 3.7.1
+- 仓库内置的 FullCalendar 前端资源
+- Micrometer + Prometheus
+- Testcontainers + Spring Boot Test
+- Flying Saucer PDF + JJWT
 
-## Demo
+## 当前运行特性
 
-Improved and prod ready version of this app can be found at [SpotASlot.com](https://spotaslot.com/) 
+- 数据库结构和初始化数据由 Flyway 迁移统一管理，迁移目录为 `src/main/resources/db/migration`
+- 浏览器侧所有修改状态的请求都启用了 CSRF 防护
+- 主要列表页已经改为服务端分页
+- 列表页默认分页大小为 20
+- 预约列表支持按状态过滤
+- 静态资源启用了内容哈希和长缓存配置
+- HTTP 压缩已开启
+- 对外开放的 actuator 端点：
+  - `/actuator/health`
+  - `/actuator/info`
+  - `/actuator/metrics/**`
+  - `/actuator/prometheus`
 
-The live demo of this repo (master branch) can be found [here](https://appscheduler.onrender.com/) 
+## 环境要求
 
-You can use the following credentials with live demo:
+- JDK 17
+- Maven 3.9+
+- MySQL 8
+- Docker
+  - 运行 `mvn verify` 时需要 Docker，因为集成测试依赖 Testcontainers MySQL
 
-| Account type | Username | Password 
-| --- | --- | --- |
-| `admin` | admin | qwerty123 |
-| `provider` | provider |qwerty123 |
-| `corporate customer` | customer_c |qwerty123 |
-| `retail customer` | customer_r |qwerty123 |
+## 本地开发
 
-## Blog
-
-This application is being described in [devoxify.com](https://devoxify.com/) blog. If you are interested in how this project was created, what issues were encoutered and how they were solved I highly encourage you to visit this blog.
-
-## Steps to Setup
-
-**1. Clone the application**
+### 1. 克隆仓库
 
 ```bash
 git clone https://github.com/slabiak/AppointmentScheduler.git
+cd AppointmentScheduler
 ```
 
-**2. Create MySQL database**
+### 2. 创建本地数据库
 
-```bash
-create database appointmentscheduler
+默认本地配置使用名为 `appointmentscheduler` 的 MySQL 数据库，以及 `user/password` 凭据。
+
+```sql
+CREATE DATABASE appointmentscheduler;
+CREATE USER 'user'@'%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON appointmentscheduler.* TO 'user'@'%';
+FLUSH PRIVILEGES;
 ```
 
-- Schema and seed data are applied automatically by Flyway migrations from `src/main/resources/db/migration`.
+### 3. 检查本地配置
 
-**3. Configure enviroment variables**
+默认本地配置文件位于 [src/main/resources/application.properties](src/main/resources/application.properties)。
 
-+ open `src/main/resources/application.properties`
-+ set env variables for JDBC `dbURL`, `dbUsername`, `dbPassword`
-+ set env variables for mail server  `mailUsername`, `mailPassword`
-+ set jwtSecret, encoded with Base64 `jwtSecret`
+至少需要检查以下配置项：
 
-**4. Run the app using maven**
+- `spring.datasource.url`
+- `spring.datasource.username`
+- `spring.datasource.password`
+- `app.jwtSecret`
+- `base.url`
+
+可选调整：
+
+- 如果你希望本地实际发送邮件，需要配置 `spring.mail.*`
+- 如果本地没有 SMTP，可将 `mailing.enabled=false`
+
+### 4. 启动应用
 
 ```bash
 mvn spring-boot:run
 ```
 
-The app will start running at <http://localhost:8080>
+应用默认启动在 <http://localhost:8080>。
 
-**5. Login to admin account**
+### 5. 使用初始化账号登录
 
-+ username: `admin`
-+ password: `qwerty123`
+首次启动时，Flyway 会自动插入一组演示数据。
 
+| 账号类型 | 用户名 | 密码 |
+| --- | --- | --- |
+| `admin` | `admin` | `qwerty123` |
+| `provider` | `provider` | `qwerty123` |
+| `corporate customer` | `customer_c` | `qwerty123` |
+| `retail customer` | `customer_r` | `qwerty123` |
 
-## Account types 
+## 数据库迁移
 
-`admin` -  is created at database initialization. Admin can add new providers,  services and assign services to providers. Admin can see list of all: appointments, providers, customers, invoices. He can also issue invoices manually for all confirmed appointments.
+- Flyway 是当前唯一的数据库结构管理方式
+- JPA 自动建表已关闭：`spring.jpa.hibernate.ddl-auto=none`
+- 旧的根目录 SQL 初始化脚本已经移除
+- 后续数据库变更请新增到 `src/main/resources/db/migration`
 
-`provider` - can by created by admin only. Provider can set his own working plan, add brakes to that working plan and change his available services. Provider sees only his own appointments.
+## 测试
 
-`customer retail` - registration page is public and can be created by everyone. Customer can only book new appointments and manage them. This type of customer sees only services which targets retail customer.
+仅运行单元测试：
 
-`customer corporate` - almost the same as retail customer. The only difference is that this type of account needs to provide VAT number and Company Name and can see only services which targets corporrate customer.
+```bash
+mvn test
+```
 
-## Booking process
+运行完整构建，包括集成测试：
 
-To book a new appointment customer needs to click `New Appointment` button on all appointments page and then:
+```bash
+mvn clean verify
+```
 
-1. Choose desired work from available works list
-2. Choose provider for selected work
-3. Choose on of available date which is presented to him
-4. Click book on confirmation page
+说明：
 
-Available hours are calculatated with getAvailableHours function from AppointmentService:
+- 集成测试通过 Testcontainers 拉起 MySQL，因此需要 Docker
+- `src/test/java/**/ui/**` 下的 UI 测试默认不会在 `verify` 流程中执行
 
-`List<TimePeroid> getAvailableHours(int providerId,int customerId, int workId, LocalDate date)`
+## 角色说明
 
-This function works as follow:
+- `admin`
+  - 管理服务商和服务项目
+  - 可以查看所有预约、服务商、客户和发票
+  - 可以手动签发发票
+- `provider`
+  - 管理自己的工作计划和可提供的服务
+  - 只能查看自己的预约
+- `customer retail`
+  - 可自行注册
+  - 可以创建和管理自己的预约
+  - 只能看到面向零售客户的服务
+- `customer corporate`
+  - 与零售客户类似，但需要额外提供 VAT number 和 company name
+  - 只能看到面向企业客户的服务
 
-1. gets selected provider working plan
-2. gets working hours from working plan for selected day 
-3. excludes all brakes from working hours
-4. excludes all providers booked appointments for that day
-5. excludes all customers booked appointments for that day
-6. gets selected work duration and calculate available time peroids 
-7. returns available hours
+## 预约流程
 
-## Appointments lifecycle
+1. 客户选择服务项目
+2. 客户为该服务选择服务商
+3. 客户选择一个可预约时间段
+4. 客户确认预约
 
-**1. Every appointment has it's own status. Below you can find description for every possible status:**
+可预约时间的计算依赖以下因素：
 
-| Status                | Set by   | When                                           | Condition                                                    |
-| --------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------------ |
-| `scheudled`           | system   | New appointment is created                     | -                                                            |
-| `finished`            | system   | Current date is after appointment end time     | current appointment status is `scheduled` and current date is after appointment end time |
-| `confirmed`           | system   | Current date is 24h after appointment end time | current appointment status is `finished` and current date is more than 24h after appointment end time |
-| `invoiced`            | system   | Invoice for appointment is created             | -                                                            |
-| `canceled`            | customer | Customer clicks cancel button                  | current appointment status is `scheduled` and current date is not less than 24h before appointment start time and user total canceled appointments number for current month is not greater than 1 |
-| `rejection requested` | customer | Customer clicks reject button                  | current appointment status is `finished` and current date is not more than 24h after appointment end time |
-| `rejection accepted`  | provider | Provider clicks accept rejection button        | current appointment status is `rejection requested`          |
+- 服务商工作计划
+- 配置的休息时间
+- 服务商已有预约
+- 客户已有预约
+- 当前服务项目时长
 
-**2. Normal appointment lifecycle is:**
+## 预约生命周期
 
-1. scheduled - after user creates new appointment
-2. finished - after system time is after appointment end time
-3. confirmed - after system time is more than 24h after appointment end time and user didn't request rejection
-4. invoiced - after invoiced is issued automatically on the 1st day of next month
+当前支持的预约状态：
 
-**3. Appointment rejection**
+- `scheduled`
+- `finished`
+- `confirmed`
+- `invoiced`
+- `canceled`
+- `rejection requested`
+- `rejection accepted`
 
-After appointment status is changed to finished system automatically sends email to customer with information that appointment is finished. In case that the appointment didn't take place there is also a link attached to that email that allows customer to reject that the appointment didn't take place. That link is valid for 24h after appointment finished time. If user will no click that link then appointment status will be automatically chaned to confirmed after 24h and invoiced at the 1st day of next month. If user will click that link an email is send to provider that his customer requested rejection. If provied will accept that rejection then appointment status will be changed to rejection accepted and appointment will be not invoiced.
+典型正常流转如下：
 
+1. `scheduled`
+2. `finished`
+3. `confirmed`
+4. `invoiced`
 
-**4. Apppointment cancellation**
+系统同时支持以下分支流程：
 
-Every appointment can be canceled by customer or provider. Customer is allowed to cancel 1 appointment in a month no less than 24h before appointment start date. Provider is allowed to cancel his appointments without any limit as long as the appointment status is `scheduled`. 
+- 客户或服务商取消预约
+- 服务完成后的异议申请
+- 服务商接受异议申请
 
-## Notifications
+## 通知
 
-**1. An email notification is sent when:**
+以下场景会生成通知：
 
-+ appointment is finished
-+ appointment rejection is rquested
-+ appointment rejection is accepted
-+ new appointment is created
-+ appointment is canceled
-+ invoice is issued
+- 新预约创建
+- 预约被取消
+- 预约已完成
+- 客户发起异议申请
+- 服务商接受异议申请
+- 发票签发
 
-Email templates can be found here: `src\main\resources\templates\email`
+邮件模板位于 `src/main/resources/templates/email`。
 
+## CI
 
-## Built With
+当前 [azure-pipelines.yml](azure-pipelines.yml) 的流水线行为如下：
 
-* [Fullcalendar](https://fullcalendar.io/) - A JavaScript event calendar
-* [FlyingSaucer](https://github.com/flyingsaucerproject/flyingsaucer) - Used to generate invoice PDF
-* [jjwt](https://github.com/jwtk/jjwt) - Used to generate/validate JWT tokens
+- 在 Java 17 环境下执行 `mvn verify`
+- 发布 Surefire 和 Failsafe 的测试报告
+- 在 `master` 分支通过 Jib 构建并发布镜像
 
-## Contribute
+## 说明
 
-Let's together make AppointmentScheduler awesome!
+- `docker-compose.yml` 当前更适合做已发布镜像的容器化运行验证，不是本地开发源码调试的主流程
+- 代码中仍保留少量历史命名，但运行时技术栈、构建流程和基础设施已经对齐到当前的 Spring Boot 3 / Java 17 基线
 
-If you have any suggestions/ideas please feel free to write about it. You are also welcome to fork this project and send pull request with your changes.
+## 许可证
 
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+本项目使用 MIT License，详见 [LICENSE.md](LICENSE.md)。
