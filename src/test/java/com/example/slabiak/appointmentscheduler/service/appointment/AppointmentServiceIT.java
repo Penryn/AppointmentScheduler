@@ -8,13 +8,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -34,9 +35,9 @@ public class AppointmentServiceIT {
     public void shouldSaveNewRetailCustomer() {
         appointmentService.createNewAppointment(1, 2, 3, LocalDateTime.of(2020, 02, 9, 12, 0, 0));
 
-        List<Appointment> appointmentByProviderId = appointmentService.getAllAppointments();
-        assertThat(appointmentByProviderId).hasSize(1);
-        assertEquals(AppointmentStatus.SCHEDULED, appointmentByProviderId.get(0).getStatus());
+        Page<Appointment> appointments = appointmentService.getAllAppointments(null, PageRequest.of(0, 10));
+        assertThat(appointments).hasSize(1);
+        assertEquals(AppointmentStatus.SCHEDULED, appointments.getContent().get(0).getStatus());
 
     }
 

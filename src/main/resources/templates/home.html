@@ -3,58 +3,20 @@
 >
 
 <body th:remove="tag">
-<link rel="stylesheet" th:href="@{/css/vendor/fullcalendar.css}"/>
-<script defer type="text/javascript" th:src="@{/js/vendor/moment.js}"></script>
-<script defer type="text/javascript" th:src="@{/js/vendor/fullcalendar.js}"></script>
+<script defer th:src="@{/js/vendor/fullcalendar.global.min.js}"></script>
+<script defer th:src="@{/js/home-calendar.js}"></script>
 
 <div class="row mt-3">
     <div class="col">
 
     </div>
     <div class="col-10">
-        <div id='calendar'></div>
+        <div id="calendar" th:attr="data-events-url=@{'/api/user/'+${user.id}+'/appointments'}"></div>
     </div>
     <div class="col">
 
     </div>
 </div>
-
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        $('#calendar').fullCalendar({
-            defaultView: 'agendaWeek',
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek'
-            },
-            allDaySlot: false,
-            minTime: "06:00:00",
-            maxTime: "22:00:00",
-            timeFormat: 'H:mm', // uppercase H for 24-hour clock,
-            firstDay: 1,
-            eventSources: [
-
-                {
-                    events: function (start, end, timezone, callback) {
-                        $.ajax({
-                            url: /*[[${'/api/user/'+user.id+'/appointments'}]]*/ '/api/user/1/appointments',
-                            data: {
-                                start: start.toISOString(),
-                                end: end.toISOString()
-                            },
-                            success: callback
-                        });
-                    },
-                    color: 'yellow',
-                    textColor: 'black'
-
-                }
-            ]
-        })
-
-    });
-</script>
 </body>
 
 </html>

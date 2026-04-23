@@ -64,12 +64,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll();
-    }
-
-    @Override
-    @PreAuthorize("hasRole('ADMIN')")
     public Page<Appointment> getAllAppointments(AppointmentStatus status, Pageable pageable) {
         return appointmentRepository.findListPage(status, pageable);
     }
@@ -77,12 +71,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public void deleteAppointmentById(int id) {
         appointmentRepository.deleteById(id);
-    }
-
-    @Override
-    @PreAuthorize("#customerId == principal.id")
-    public List<Appointment> getAppointmentByCustomerId(int customerId) {
-        return appointmentRepository.findByCustomerId(customerId);
     }
 
     @Override
@@ -95,12 +83,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     @PreAuthorize("#customerId == principal.id")
     public List<Appointment> getAppointmentCalendarByCustomerId(int customerId, LocalDateTime start, LocalDateTime end) {
         return appointmentRepository.findCalendarByCustomerId(customerId, start, end);
-    }
-
-    @Override
-    @PreAuthorize("#providerId == principal.id")
-    public List<Appointment> getAppointmentByProviderId(int providerId) {
-        return appointmentRepository.findByProviderId(providerId);
     }
 
     @Override

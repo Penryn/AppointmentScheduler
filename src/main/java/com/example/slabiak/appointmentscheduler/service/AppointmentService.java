@@ -29,15 +29,9 @@ public interface AppointmentService {
 
     Appointment getAppointmentById(int id);
 
-    List<Appointment> getAllAppointments();
-
     Page<Appointment> getAllAppointments(AppointmentStatus status, Pageable pageable);
 
-    List<Appointment> getAppointmentByCustomerId(int customerId);
-
     Page<Appointment> getAppointmentByCustomerId(int customerId, AppointmentStatus status, Pageable pageable);
-
-    List<Appointment> getAppointmentByProviderId(int providerId);
 
     Page<Appointment> getAppointmentByProviderId(int providerId, AppointmentStatus status, Pageable pageable);
 

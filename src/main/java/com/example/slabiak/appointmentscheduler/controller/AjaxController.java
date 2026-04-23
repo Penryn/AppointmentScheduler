@@ -5,13 +5,14 @@ import com.example.slabiak.appointmentscheduler.model.AppointmentRegisterForm;
 import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
-import com.google.common.collect.Lists;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,26 +39,20 @@ public class AjaxController {
                                                     @AuthenticationPrincipal CustomUserDetails currentUser,
                                                     @RequestParam(value = "start", required = false) String start,
                                                     @RequestParam(value = "end", required = false) String end) {
-        if (start != null && end != null) {
-            LocalDateTime windowStart = parseDateTime(start);
-            LocalDateTime windowEnd = parseDateTime(end);
-            if (currentUser.hasRole("ROLE_CUSTOMER")) {
-                return appointmentService.getAppointmentCalendarByCustomerId(userId, windowStart, windowEnd);
-            } else if (currentUser.hasRole("ROLE_PROVIDER")) {
-                return appointmentService.getAppointmentCalendarByProviderId(userId, windowStart, windowEnd);
-            } else if (currentUser.hasRole("ROLE_ADMIN")) {
-                return appointmentService.getAppointmentCalendar(windowStart, windowEnd);
-            }
+        if (start == null || end == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Calendar requests require start and end parameters");
         }
 
+        LocalDateTime windowStart = parseDateTime(start);
+        LocalDateTime windowEnd = parseDateTime(end);
         if (currentUser.hasRole("ROLE_CUSTOMER")) {
-            return appointmentService.getAppointmentByCustomerId(userId);
+            return appointmentService.getAppointmentCalendarByCustomerId(userId, windowStart, windowEnd);
         } else if (currentUser.hasRole("ROLE_PROVIDER")) {
-            return appointmentService.getAppointmentByProviderId(userId);
+            return appointmentService.getAppointmentCalendarByProviderId(userId, windowStart, windowEnd);
         } else if (currentUser.hasRole("ROLE_ADMIN")) {
-            return appointmentService.getAllAppointments();
+            return appointmentService.getAppointmentCalendar(windowStart, windowEnd);
         }
-        return Lists.newArrayList();
+        return List.of();
     }
 
     @GetMapping("/availableHours/{providerId}/{workId}/{date}")

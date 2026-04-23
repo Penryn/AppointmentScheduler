@@ -14,6 +14,9 @@ import com.example.slabiak.appointmentscheduler.service.impl.AppointmentServiceI
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -171,9 +174,12 @@ public class AppointmentServiceTest {
 
     @Test
     public void shouldFindAllAppointments() {
-        when(appointmentRepository.findAll()).thenReturn(appointments);
-        assertEquals(appointments, appointmentService.getAllAppointments());
-        verify(appointmentRepository).findAll();
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Appointment> appointmentPage = new PageImpl<>(appointments, pageable, appointments.size());
+        when(appointmentRepository.findListPage(null, pageable)).thenReturn(appointmentPage);
+
+        assertEquals(appointmentPage, appointmentService.getAllAppointments(null, pageable));
+        verify(appointmentRepository).findListPage(null, pageable);
     }
 
     @Test

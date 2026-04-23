@@ -10,6 +10,24 @@
     display: inline-block;
 }
 
+.notification-icon::after {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.55rem;
+    content: attr(data-count);
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: #dc3545;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
 .avatar-placeholder {
     width: 96px;
     height: 96px;

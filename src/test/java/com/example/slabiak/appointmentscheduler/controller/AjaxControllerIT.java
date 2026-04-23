@@ -90,6 +90,13 @@ public class AjaxControllerIT {
     }
 
     @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectAppointmentCalendarRequestsWithoutWindowParameters() throws Exception {
+        mockMvc.perform(get("/api/user/3/appointments"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @Transactional
     @WithUserDetails("customer_r")
     public void shouldReturnUnreadNotificationCountWithoutLoadingNotificationList() throws Exception {
