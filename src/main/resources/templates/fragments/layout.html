@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:fragment="layout (content, activeLink, pageTitle)" xmlns:th="http://www.w3.org/1999/html"
+<html th:fragment="layout (content, activeLink, pageTitle)" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head>
@@ -35,17 +35,17 @@
 
             <th:block sec:authorize="hasRole('ROLE_CUSTOMER')">
                 <!-- menu for customer-->
-                <div th:replace="fragments/customer-nav.html :: navlinks(${activeLink})"></div>
+                <div th:replace="~{fragments/customer-nav.html :: navlinks(${activeLink})}"></div>
             </th:block>
 
             <th:block sec:authorize="hasRole('ROLE_PROVIDER')">
                 <!-- menu for provider-->
-                <div th:replace="fragments/provider-nav.html :: navlinks(${activeLink})"></div>
+                <div th:replace="~{fragments/provider-nav.html :: navlinks(${activeLink})}"></div>
             </th:block>
 
             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
                 <!-- menu for admin-->
-                <div th:replace="fragments/admin-nav.html :: navlinks(${activeLink})"></div>
+                <div th:replace="~{fragments/admin-nav.html :: navlinks(${activeLink})}"></div>
             </th:block>
             <!--notifications-->
 
@@ -79,7 +79,7 @@
 
 <!-- Page Content -->
 <div class="container">
-    <th:block th:include="${content}"/>
+    <th:block th:insert="${content}"/>
     <div class="row align-items-center justify-content-center" style="margin-top: 50px">
         <p>AppointmentScheduler v<span th:text="${currentVersion}">1.0</span></p>
     </div>

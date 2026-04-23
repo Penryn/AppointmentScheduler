@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml"
-      th:replace="~{fragments/layout :: layout (~{::body},'appointments','Customer appointments')}">
+      th:replace="~{fragments/layout :: layout (~{::body/*},'appointments','Customer appointments')}">
 
 <body>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
