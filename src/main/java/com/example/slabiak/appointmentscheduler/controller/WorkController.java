@@ -2,6 +2,9 @@ package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Work;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +20,8 @@ public class WorkController {
     }
 
     @GetMapping("/all")
-    public String showAllWorks(Model model) {
-        model.addAttribute("works", workService.getAllWorks());
+    public String showAllWorks(Model model, @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        model.addAttribute("works", workService.getWorkList(pageable));
         return "works/list";
     }
 

@@ -4,10 +4,6 @@
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-<script defer type="text/javascript" charset="utf8"
-        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
-
 
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
 
@@ -21,7 +17,7 @@
         </div>
         <table id="notifications" class="table table-striped text-center mt-2">
 
-            <thead class="thead-dark">
+            <thead class="table-dark">
 
             <tr>
                 <th> Date</th>
@@ -32,31 +28,26 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${notifications.size()==0}">
+            <tr th:if="${notifications.empty}">
                 <td colspan="5"> No notifications available</td>
             </tr>
-            <tr th:each="notification : ${notifications}">
+            <tr th:each="notification : ${notifications.content}">
                 <td><span th:text="${#dates.format(notification.createdAt, 'dd-MMM-yyyy')}"> 01-01-2019 </span></td>
                 <td><span th:text="${notification.title}"> New appointment </span></td>
                 <td><span th:text="${notification.message}"> meesage</span></td>
-                <td><a th:href="@{'/notifications/'+${notification.id}}">See</a></td>
+                <td>
+                    <form th:action="@{'/notifications/'+${notification.id}}" method="POST">
+                        <button type="submit" class="btn btn-link p-0">See</button>
+                    </form>
+                </td>
                 <td><span th:text="${notification.isRead()}">true</span></td>
 
             </tr>
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${notifications}, '/notifications', '')}"></div>
     </div>
 
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        $('#notifications').DataTable({
-            "order": [
-                [0, "desc"]
-            ]
-        });
-    });
-</script>
 </body>
 </html>

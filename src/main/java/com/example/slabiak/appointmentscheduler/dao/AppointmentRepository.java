@@ -1,6 +1,10 @@
 package com.example.slabiak.appointmentscheduler.dao;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
+import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,11 +14,26 @@ import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
+    @EntityGraph(attributePaths = {"work", "provider", "customer"})
+    @Query(value = "select a from Appointment a where (:status is null or a.status = :status)",
+            countQuery = "select count(a) from Appointment a where (:status is null or a.status = :status)")
+    Page<Appointment> findListPage(@Param("status") AppointmentStatus status, Pageable pageable);
+
     @Query("select a from Appointment a where a.customer.id = :customerId")
     List<Appointment> findByCustomerId(@Param("customerId") int customerId);
 
+    @EntityGraph(attributePaths = {"work", "provider", "customer"})
+    @Query(value = "select a from Appointment a where a.customer.id = :customerId and (:status is null or a.status = :status)",
+            countQuery = "select count(a) from Appointment a where a.customer.id = :customerId and (:status is null or a.status = :status)")
+    Page<Appointment> findListPageByCustomerId(@Param("customerId") int customerId, @Param("status") AppointmentStatus status, Pageable pageable);
+
     @Query("select a from Appointment a where a.provider.id = :providerId")
     List<Appointment> findByProviderId(@Param("providerId") int providerId);
+
+    @EntityGraph(attributePaths = {"work", "provider", "customer"})
+    @Query(value = "select a from Appointment a where a.provider.id = :providerId and (:status is null or a.status = :status)",
+            countQuery = "select count(a) from Appointment a where a.provider.id = :providerId and (:status is null or a.status = :status)")
+    Page<Appointment> findListPageByProviderId(@Param("providerId") int providerId, @Param("status") AppointmentStatus status, Pageable pageable);
 
     @Query("select a from Appointment a join fetch a.work where a.customer.id = :customerId and a.start >= :windowStart and a.start < :windowEnd order by a.start")
     List<Appointment> findCalendarByCustomerId(@Param("customerId") int customerId, @Param("windowStart") LocalDateTime windowStart, @Param("windowEnd") LocalDateTime windowEnd);

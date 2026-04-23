@@ -1,6 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `appointmentscheduler`;
-USE `appointmentscheduler`;
-
 CREATE TABLE IF NOT EXISTS `roles` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`name` varchar(50) DEFAULT NULL,
@@ -50,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `works` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(256),
   `duration` INT(11),
-  `price` DECIMAL(10, 2),
+  `price` DOUBLE,
 	`editable` BOOLEAN,
 	`target` VARCHAR(256),
   `description` TEXT,
@@ -63,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `invoices` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`number` VARCHAR(256),
 	`status` VARCHAR(256),
-	`total_amount` DECIMAL(10, 2),
+	`total_amount` DOUBLE,
 	`issued` DATETIME,
   PRIMARY KEY (`id`)
 )
@@ -129,13 +126,13 @@ CREATE TABLE IF NOT EXISTS `works_providers` (
 
 CREATE TABLE IF NOT EXISTS `working_plans` (
 	`id_provider` int(11) NOT NULL,
-  `monday` TEXT,
-	`tuesday` TEXT,
-	`wednesday` TEXT,
-	`thursday` TEXT,
-	`friday` TEXT,
-	`saturday` TEXT,
-	`sunday` TEXT,
+  `monday` JSON,
+	`tuesday` JSON,
+	`wednesday` JSON,
+	`thursday` JSON,
+	`friday` JSON,
+	`saturday` JSON,
+	`sunday` JSON,
 
   PRIMARY KEY (`id_provider`),
 	KEY `id_provider` (`id_provider`),
@@ -315,10 +312,17 @@ INSERT INTO works_providers
 VALUES (2, 1);
 INSERT INTO working_plans
 VALUES (2,
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}',
-        '{"workingHours":{"start":[6,0],"end":[18,0]},"breaks":[],"timePeroidsWithBreaksExcluded":[{"start":[6,0],"end":[18,0]}]}');
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()),
+        JSON_OBJECT('workingHours', JSON_OBJECT('start', JSON_ARRAY(6, 0), 'end', JSON_ARRAY(18, 0)),
+                    'breaks', JSON_ARRAY()));

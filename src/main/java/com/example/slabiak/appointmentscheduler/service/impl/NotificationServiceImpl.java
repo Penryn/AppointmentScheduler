@@ -6,6 +6,8 @@ import com.example.slabiak.appointmentscheduler.entity.user.User;
 import com.example.slabiak.appointmentscheduler.service.EmailService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +65,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<Notification> getAll(int userId) {
         return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public Page<Notification> getAll(int userId, Pageable pageable) {
+        return notificationRepository.findPageByUserId(userId, pageable);
     }
 
     @Override

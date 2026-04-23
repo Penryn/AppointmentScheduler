@@ -1,6 +1,6 @@
 <th:block th:fragment="navlinks(activeLink)">
     <div class="collapse navbar-collapse" id="navbarResponsive">
-        <ul class="navbar-nav mr-auto">
+        <ul class="navbar-nav me-auto">
             <li class="nav-item" th:classappend="${activeLink} == 'home' ? 'active':''">
                 <a class="nav-link" th:href="@{/}">Home</a>
             </li>

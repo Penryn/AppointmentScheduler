@@ -9,3 +9,44 @@
     position: relative;
     display: inline-block;
 }
+
+.avatar-placeholder {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 0%, #dfe7ef 100%);
+}
+
+.provider-card-avatar {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 0%, #dfe7ef 100%);
+}
+
+.avatar-placeholder::before {
+    content: "";
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #adb5bd;
+    transform: translateY(-18px);
+    box-shadow: 0 42px 0 14px #adb5bd;
+}
+
+.provider-card-avatar::before {
+    content: "";
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #adb5bd;
+    transform: translateY(-24px);
+    box-shadow: 0 58px 0 18px #adb5bd;
+}

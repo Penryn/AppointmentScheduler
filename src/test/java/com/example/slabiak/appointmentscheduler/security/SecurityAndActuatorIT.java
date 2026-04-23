@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,8 +17,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -45,6 +51,31 @@ public class SecurityAndActuatorIT {
                 .andReturn();
 
         assertThat(StringUtils.countOccurrencesOf(result.getResponse().getContentAsString(), "<body")).isEqualTo(1);
+        assertThat(result.getResponse().getContentAsString()).contains("_csrf");
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectStateChangingRequestWithoutCsrfToken() throws Exception {
+        mockMvc.perform(post("/notifications/markAllAsRead"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldAcceptStateChangingRequestWithCsrfToken() throws Exception {
+        mockMvc.perform(post("/notifications/markAllAsRead").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/notifications*"));
+    }
+
+    @Test
+    @WithUserDetails("admin")
+    public void shouldRenderServerPaginationForAdminLists() throws Exception {
+        mockMvc.perform(get("/customers/all").param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("List pages")))
+                .andExpect(content().string(containsString("Next")));
     }
 
     @Test
@@ -52,6 +83,13 @@ public class SecurityAndActuatorIT {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
+    public void shouldExposeActuatorPrometheusEndpoint() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("# HELP")));
     }
 
     @Test

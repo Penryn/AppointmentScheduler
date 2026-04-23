@@ -2,6 +2,8 @@ package com.example.slabiak.appointmentscheduler.service;
 
 import com.example.slabiak.appointmentscheduler.entity.*;
 import com.example.slabiak.appointmentscheduler.entity.user.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -16,6 +18,8 @@ public interface NotificationService {
     Notification getNotificationById(int notificationId);
 
     List<Notification> getAll(int userId);
+
+    Page<Notification> getAll(int userId, Pageable pageable);
 
     List<Notification> getUnreadNotifications(int userId);
 

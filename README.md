@@ -40,7 +40,7 @@ git clone https://github.com/slabiak/AppointmentScheduler.git
 create database appointmentscheduler
 ```
 
-- After that run MySQL script to create tables `src/main/resources/appointmentscheduler.sql`
+- Schema and seed data are applied automatically by Flyway migrations from `src/main/resources/db/migration`.
 
 **3. Configure enviroment variables**
 

@@ -8,7 +8,7 @@
 
     <div class="col-md-3 m-3" th:each="provider : ${providers}">
         <div class="card" style="width: 18rem;">
-            <img class="card-img-top" src="http://ssl.gstatic.com/accounts/ui/avatar_2x.png" alt="Card image cap">
+            <div class="card-img-top provider-card-avatar" role="img" aria-label="Provider avatar"></div>
             <div class="card-body text-center">
                 <h5 class="card-title"><span th:text="${provider.firstName +' ' +provider.lastName}"> Name
                             Lastname</span></h5>

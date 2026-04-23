@@ -10,15 +10,15 @@
     <!-- Appointment Chat CSS -->
     <link rel="stylesheet" th:href="@{/css/vendor/chat.css}"/>
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.3.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <!-- Site CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="stylesheet" th:href="@{/css/vendor/bootstrap-notifications.css}"/>
 
     <!--jQuery-->
-    <script defer th:src="@{/webjars/jquery/3.3.1-2/jquery.min.js}"></script>
+    <script defer th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
     <!-- Bootstrap core JavaScript -->
-    <script defer th:src="@{/webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
+    <script defer th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 
 </head>
 
@@ -28,7 +28,7 @@
 <div sec:authorize="isAuthenticated()">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
         <div class="container">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
                     aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -54,7 +54,7 @@
 
             <!--notifications-->
             <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ml-auto">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-notifications open">
                         <a th:href="@{/notifications}" class="nav-link dropdown-toggle">
                             <span id="notifications-count" data-count="0" class="notification-bell"
@@ -62,7 +62,7 @@
                         </a>
                     </li>
                     <li>
-                        <p class="navbar-nav ml-auto navbar-text"> Logged as:
+                        <p class="navbar-nav ms-auto navbar-text"> Logged as:
                             <span sec:authentication="name">username</span> | </p>
                     </li>
                     <li>

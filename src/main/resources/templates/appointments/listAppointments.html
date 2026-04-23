@@ -3,17 +3,31 @@
       th:replace="~{fragments/layout :: layout (~{::body},'appointments','Customer appointments')}">
 
 <body th:remove="tag">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-<script defer type="text/javascript" charset="utf8"
-        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
-
 <!-- Page Content -->
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
     <div th:fragment="customerAppointments">
 
+        <form class="row g-2 align-items-center mb-3" method="get" th:action="@{/appointments/all}">
+            <div class="col-auto">
+                <label class="col-form-label" for="status">Status filter</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" id="status" name="status">
+                    <option value="" th:selected="${selectedStatus == null}">All statuses</option>
+                    <option th:each="statusOption : ${statuses}"
+                            th:value="${statusOption.name()}"
+                            th:text="${statusOption}"
+                            th:selected="${selectedStatus != null && statusOption == selectedStatus}">SCHEDULED</option>
+                </select>
+            </div>
+            <input type="hidden" name="size" th:value="${appointments.size}">
+            <div class="col-auto">
+                <button class="btn btn-secondary" type="submit">Apply</button>
+            </div>
+        </form>
 
         <table id="appointments" class="table text-center">
-            <thead class="thead-dark">
+            <thead class="table-dark">
             <tr>
                 <th> Work</th>
                 <th> Status</th>
@@ -25,10 +39,10 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${appointments == null}">
-                <td colspan="2"> No Appointments Available</td>
+            <tr th:if="${appointments.empty}">
+                <td colspan="7"> No Appointments Available</td>
             </tr>
-            <tr th:each="appointment : ${appointments}"
+            <tr th:each="appointment : ${appointments.content}"
                 th:classappend="${appointment.status.name() == 'CANCELED' || appointment.status.name()  == 'FINISHED' || appointment.status.name()  == 'INVOICED' || appointment.status.name()  == 'REJECTION_REQUESTED' || appointment.status.name()  == 'REJECTED'} ? table-secondary : table-success">
                 <td><span th:text="${appointment.work.name}"> Work </span></td>
                 <td><span th:text="${appointment.status}"> scheduled </span></td>
@@ -59,53 +73,12 @@
             </tr>
             </tfoot>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${appointments}, '/appointments/all', ${paginationQuery})}"></div>
         <div sec:authorize="hasRole('ROLE_CUSTOMER')" class="text-center">
             <a class="btn btn-primary mt-2" th:href="@{/appointments/new}" role="button">New appointment</a>
         </div>
 
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#appointments').DataTable({
-                "dom": '<"toolbar">lrtip',
-                "bFilter": true,
-                "bLengthChange": false,
-                "order": [
-                    [2, "asc"]
-                ],
-                "initComplete": function () {
-                    this.api().columns([1]).every(function () {
-                        $("div.toolbar").html('<div id="my_filter" style="margin-bottom: 10px">Status filter: </div>');
-                        var column = this;
-                        column.search('^SCHEDULED$', true, false).draw();
-                        var select = $('<select name="statuses"><option value="SCHEDULED">SCHEDULED</option></select>')
-                            .appendTo('#my_filter')
-                            .on('change', function () {
-                                var searchString = $(this).val();
-                                searchString = searchString.replace('<span>', '');
-                                searchString = searchString.replace('</span>', '');
-                                var val = $.fn.dataTable.util.escapeRegex(searchString);
-                                column.search(val ? '^' + val + '$' : '', true, false).draw();
-                            });
-                        statuses.forEach(function (d) {
-                            select.append('<option value="' + d + '">' + d + '</option>')
-                        });
-                    });
-                }
-            });
-        });
-
-        var statuses = [
-            'FINISHED',
-            'CONFIRMED',
-            'INVOICED',
-            'CANCELED',
-            'DENIED',
-            'REJECTION_REQUESTED',
-            'REJECTED',
-            'EXCHANGE_REQUESTED'];
-    </script>
 </div>
 
 

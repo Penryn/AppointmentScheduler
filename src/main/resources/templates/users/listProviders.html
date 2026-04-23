@@ -8,7 +8,7 @@
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
     <div>
         <table id="providers" class="table table-striped text-center">
-            <thead class="thead-dark">
+            <thead class="table-dark">
             <tr>
                 <th> Name</th>
                 <th> E-mail</th>
@@ -18,14 +18,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${providers == null}">
-                <td colspan="4"> No Providers Available</td>
+            <tr th:if="${providers.empty}">
+                <td colspan="5"> No Providers Available</td>
             </tr>
-            <tr th:each="provider : ${providers}">
+            <tr th:each="item : ${providers.content}" th:with="provider=${item.provider}">
                 <td><span th:text="${provider.firstName +' ' + provider.lastName}"> Name Lastname </span></td>
                 <td><span th:text="${provider.email }"> email </span></td>
-                <td><span th:text="${provider.appointments.size() }"> 3 </span></td>
-                <td><span th:text="${provider.works.size() }"> 2 </span></td>
+                <td><span th:text="${item.appointmentCount}"> 3 </span></td>
+                <td><span th:text="${item.workCount}"> 2 </span></td>
                 <td><a class="btn btn-secondary" th:href="@{'/providers/' + ${provider.id}}" role="button">Details</a>
                     <form class="d-inline-block" th:action="@{/providers/delete}" method="POST">
                         <input type="hidden" name="providerId" th:value="${provider.id}"/>
@@ -35,6 +35,7 @@
             </tr>
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${providers}, '/providers/all', '')}"></div>
     </div>
 
 </div>

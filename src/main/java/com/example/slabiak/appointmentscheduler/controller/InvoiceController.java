@@ -4,6 +4,9 @@ import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.InvoiceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,8 +35,8 @@ public class InvoiceController {
     }
 
     @GetMapping("/all")
-    public String showAllInvoices(Model model) {
-        model.addAttribute("invoices", invoiceService.getAllInvoices());
+    public String showAllInvoices(Model model, @PageableDefault(size = 20, sort = "issued", direction = Sort.Direction.DESC) Pageable pageable) {
+        model.addAttribute("invoices", invoiceService.getInvoiceList(pageable));
         return "invoices/listInvoices";
     }
 
@@ -43,7 +46,7 @@ public class InvoiceController {
         return "redirect:/invoices/all";
     }
 
-    @GetMapping("/issue")
+    @PostMapping("/issue")
     public String issueInvoicesManually(Model model) {
         invoiceService.issueInvoicesForConfirmedAppointments();
         return "redirect:/invoices/all";

@@ -4,8 +4,11 @@ import com.example.slabiak.appointmentscheduler.dao.WorkRepository;
 import com.example.slabiak.appointmentscheduler.entity.Work;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
 import com.example.slabiak.appointmentscheduler.exception.WorkNotFoundException;
+import com.example.slabiak.appointmentscheduler.model.WorkListItem;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +52,12 @@ public class WorkServiceImpl implements WorkService {
     @Override
     public List<Work> getAllWorks() {
         return workRepository.findAll();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<WorkListItem> getWorkList(Pageable pageable) {
+        return workRepository.findListPage(pageable);
     }
 
     @Override

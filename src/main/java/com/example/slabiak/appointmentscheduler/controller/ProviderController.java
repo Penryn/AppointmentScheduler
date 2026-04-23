@@ -13,6 +13,9 @@ import com.example.slabiak.appointmentscheduler.validation.groups.CreateProvider
 import com.example.slabiak.appointmentscheduler.validation.groups.CreateUser;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateProvider;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateUser;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,8 +45,8 @@ public class ProviderController {
 
 
     @GetMapping("/all")
-    public String showAllProviders(Model model) {
-        model.addAttribute("providers", userService.getAllProviders());
+    public String showAllProviders(Model model, @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        model.addAttribute("providers", userService.getProviderList(pageable));
         return "users/listProviders";
     }
 

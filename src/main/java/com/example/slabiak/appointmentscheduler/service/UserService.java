@@ -9,7 +9,11 @@ import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.RetailCustomer;
 import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
 import com.example.slabiak.appointmentscheduler.model.ChangePasswordForm;
+import com.example.slabiak.appointmentscheduler.model.CustomerListItem;
+import com.example.slabiak.appointmentscheduler.model.ProviderListItem;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,6 +49,8 @@ public interface UserService {
 
     List<Provider> getAllProviders();
 
+    Page<ProviderListItem> getProviderList(Pageable pageable);
+
     void saveNewProvider(UserForm userForm);
 
     void updateProviderProfile(UserForm updateData);
@@ -57,6 +63,8 @@ public interface UserService {
     Customer getCustomerById(int customerId);
 
     List<Customer> getAllCustomers();
+
+    Page<CustomerListItem> getCustomerList(Pageable pageable);
 
     /*
      * RetailCustomer
@@ -84,4 +92,3 @@ public interface UserService {
 
 
 }
-

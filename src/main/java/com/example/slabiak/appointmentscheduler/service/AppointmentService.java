@@ -1,9 +1,12 @@
 package com.example.slabiak.appointmentscheduler.service;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
+import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
 import com.example.slabiak.appointmentscheduler.entity.ChatMessage;
 import com.example.slabiak.appointmentscheduler.entity.Work;
 import com.example.slabiak.appointmentscheduler.model.TimePeroid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,9 +31,15 @@ public interface AppointmentService {
 
     List<Appointment> getAllAppointments();
 
+    Page<Appointment> getAllAppointments(AppointmentStatus status, Pageable pageable);
+
     List<Appointment> getAppointmentByCustomerId(int customerId);
 
+    Page<Appointment> getAppointmentByCustomerId(int customerId, AppointmentStatus status, Pageable pageable);
+
     List<Appointment> getAppointmentByProviderId(int providerId);
+
+    Page<Appointment> getAppointmentByProviderId(int providerId, AppointmentStatus status, Pageable pageable);
 
     List<Appointment> getAppointmentCalendarByCustomerId(int customerId, LocalDateTime start, LocalDateTime end);
 

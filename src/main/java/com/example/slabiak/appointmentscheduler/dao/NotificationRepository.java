@@ -1,6 +1,8 @@
 package com.example.slabiak.appointmentscheduler.dao;
 
 import com.example.slabiak.appointmentscheduler.entity.Notification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +23,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     @Query("select n from Notification n where n.user.id = :userId order by n.createdAt desc")
     List<Notification> findAllByUserIdOrderByCreatedAtDesc(@Param("userId") int userId);
+
+    @Query(value = "select n from Notification n where n.user.id = :userId",
+            countQuery = "select count(n) from Notification n where n.user.id = :userId")
+    Page<Notification> findPageByUserId(@Param("userId") int userId, Pageable pageable);
 }

@@ -9,7 +9,7 @@
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
     <div>
         <table id="works" class="table text-center">
-            <thead class="thead-dark">
+            <thead class="table-dark">
             <tr>
                 <th> Name</th>
                 <th> Target</th>
@@ -20,17 +20,17 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${works == null}">
-                <td colspan="4"> No Works Available</td>
+            <tr th:if="${works.empty}">
+                <td colspan="6"> No Works Available</td>
             </tr>
 
-            <tr th:each="work : ${works}"
+            <tr th:each="item : ${works.content}" th:with="work=${item.work}"
                 th:classappend="${work.targetCustomer=='retail'} ? table-primary : table-info">
                 <td><span th:text="${work.name}"> english </span></td>
                 <td><span th:text="${work.targetCustomer}"> retail </span></td>
                 <td><span th:text="${work.price + ' PLN'}"> 50 PLN </span></td>
                 <td><span th:text="${work.duration+' min'}"> 30 min </span></td>
-                <td><span th:text="${work.providers.size()}"> 2 </span></td>
+                <td><span th:text="${item.providerCount}"> 2 </span></td>
                 <td><a class="btn btn-secondary" th:href="@{'/works/' + ${work.id}}" role="button">Details</a>
                     <form class="d-inline-block" th:action="@{/works/delete}" method="POST">
                         <input type="hidden" name="workId" th:value="${work.id}" />
@@ -40,6 +40,7 @@
             </tr>
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${works}, '/works/all', '')}"></div>
     </div>
 
 </div>

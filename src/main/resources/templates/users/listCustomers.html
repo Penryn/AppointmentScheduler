@@ -8,7 +8,7 @@
 <div class="row align-items-center justify-content-center" style="margin-top: 50px">
     <div>
         <table id="customers" class="table table-striped text-center">
-            <thead class="thead-dark">
+            <thead class="table-dark">
             <tr>
                 <th> Name</th>
                 <th> Type </th>
@@ -18,14 +18,15 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${customers == null}">
-                <td colspan="4"> No Providers Available</td>
+            <tr th:if="${customers.empty}">
+                <td colspan="5"> No Customers Available</td>
             </tr>
-            <tr th:each="customer : ${customers}" th:classappend="${customer.getType()=='retail' ? 'table-primary' : 'table-info'}">
+            <tr th:each="item : ${customers.content}" th:with="customer=${item.customer}"
+                th:classappend="${customer.getType()=='retail' ? 'table-primary' : 'table-info'}">
                 <td><span th:text="${customer.firstName +' ' + customer.lastName}"> Name Lastname </span></td>
                 <td><span th:text="${customer.getType() == 'retail'? 'retail':'corporate'}"> retail </span></td>
                 <td><span th:text="${customer.email }"> email </span></td>
-                <td><span th:text="${customer.appointments.size() }"> 3 </span></td>
+                <td><span th:text="${item.appointmentCount}"> 3 </span></td>
                 <td><a class="btn btn-secondary" th:href="@{'/customers/' + ${customer.id}}"
                        role="button">Details</a>
                     <form class="d-inline-block" th:action="@{/customers/delete}" method="POST">
@@ -36,6 +37,7 @@
             </tr>
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${customers}, '/customers/all', '')}"></div>
     </div>
 
 </div>

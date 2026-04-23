@@ -5,6 +5,7 @@ import com.example.slabiak.appointmentscheduler.entity.Appointment;
 import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
 import com.example.slabiak.appointmentscheduler.entity.Invoice;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
+import com.example.slabiak.appointmentscheduler.model.InvoiceListItem;
 import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.InvoiceService;
@@ -12,6 +13,8 @@ import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.util.PdfGeneratorUtil;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,12 @@ public class InvoiceServiceImpl implements InvoiceService {
     @PreAuthorize("hasRole('ADMIN')")
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<InvoiceListItem> getInvoiceList(Pageable pageable) {
+        return invoiceRepository.findListPage(pageable);
     }
 
     @Override

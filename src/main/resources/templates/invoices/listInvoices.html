@@ -12,7 +12,7 @@
     <div>
         <table id="providers" class="table table-striped text-center mt-2">
 
-            <thead class="thead-dark">
+            <thead class="table-dark">
 
             <tr >
                 <th> Number</th>
@@ -24,16 +24,16 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${invoices == null}">
-                <td colspan="4"> No Invoices Available</td>
+            <tr th:if="${invoices.empty}">
+                <td colspan="6"> No Invoices Available</td>
             </tr>
-            <tr th:each="invoice : ${invoices}">
+            <tr th:each="invoice : ${invoices.content}">
                 <td><span th:text="${invoice.number}"> FV/2019/02/03 </span></td>
                 <td><span th:text="${#temporals.format(invoice.issued, 'dd-MM-yyyy HH:mm')}"> 15-03-2019 15:00 </span>
                 </td>
                 <td><span th:text="${invoice.status}"> paid </span></td>
                 <td><span th:text="${invoice.totalAmount +' PLN'}"> 60.00 PLN</span></td>
-                <td><span th:text="${invoice.appointments[0].customer.firstName + ' '+invoice.appointments[0].customer.lastName}">Jan Kowalski</span></td>
+                <td><span th:text="${invoice.customerName}">Jan Kowalski</span></td>
                 <td>
                     <a class="btn btn-secondary" th:href="@{'/invoices/download/' + ${invoice.id}}" role="button">Download</a>
                     <form th:if="${invoice.status=='issued'}" class="d-inline-block"
@@ -45,11 +45,14 @@
             </tr>
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pager(${invoices}, '/invoices/all', '')}"></div>
     </div>
 
 </div>
 <div class="row align-items-center justify-content-center">
-    <a style="margin-bottom: 5px"  th:href="@{/invoices/issue}" class="btn btn-success" role="button" aria-pressed="true">Issue invoices manually</a>
+    <form th:action="@{/invoices/issue}" method="POST">
+        <button style="margin-bottom: 5px" type="submit" class="btn btn-success">Issue invoices manually</button>
+    </form>
 </div>
 </body>
 </html>

@@ -10,6 +10,9 @@ import com.example.slabiak.appointmentscheduler.validation.groups.CreateCorporat
 import com.example.slabiak.appointmentscheduler.validation.groups.CreateUser;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateCorporateCustomer;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateUser;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,8 +36,8 @@ public class CustomerController {
     }
 
     @GetMapping("/all")
-    public String showAllCustomers(Model model) {
-        model.addAttribute("customers", userService.getAllCustomers());
+    public String showAllCustomers(Model model, @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        model.addAttribute("customers", userService.getCustomerList(pageable));
         return "users/listCustomers";
     }
 

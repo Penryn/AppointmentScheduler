@@ -15,8 +15,12 @@ import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.RetailCustomer;
 import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
 import com.example.slabiak.appointmentscheduler.model.ChangePasswordForm;
+import com.example.slabiak.appointmentscheduler.model.CustomerListItem;
+import com.example.slabiak.appointmentscheduler.model.ProviderListItem;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
 import com.example.slabiak.appointmentscheduler.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -94,8 +98,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<ProviderListItem> getProviderList(Pageable pageable) {
+        return providerRepository.findListPage(pageable);
+    }
+
+    @Override
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<CustomerListItem> getCustomerList(Pageable pageable) {
+        return customerRepository.findListPage(pageable);
     }
 
     @Override

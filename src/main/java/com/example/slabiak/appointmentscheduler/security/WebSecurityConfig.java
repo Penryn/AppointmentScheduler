@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
 @Configuration
@@ -28,7 +27,6 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authenticationProvider(authenticationProvider())
-                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info", "/actuator/metrics/**", "/actuator/prometheus").permitAll()
@@ -53,7 +51,7 @@ public class WebSecurityConfig {
                         .loginProcessingUrl("/perform_login")
                         .successHandler(customAuthenticationSuccessHandler)
                         .permitAll())
-                .logout(logout -> logout.logoutRequestMatcher(new AntPathRequestMatcher("/perform_logout")))
+                .logout(logout -> logout.logoutUrl("/perform_logout"))
                 .exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedPage("/access-denied"));
         return http.build();
     }

@@ -1,19 +1,22 @@
-version: '3.7'
-
 services:
 
   backend:
-    image: slabiak/appointmentscheduler:0.0.1-SNAPSHOT
+    image: slabiak/appointmentscheduler:1.0.5
     ports:
       - "8080:8080"
     restart: always
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://appointmentscheduler_db:3306/appointmentscheduler?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      BASE_URL: http://localhost:8080
     depends_on:
       - appointmentscheduler_db
     networks:
       - appointmentscheduler_network
 
   appointmentscheduler_db:
-    image: mysql:5.7
+    image: mysql:8.0
     ports:
       - "3306:3306"
     restart: always

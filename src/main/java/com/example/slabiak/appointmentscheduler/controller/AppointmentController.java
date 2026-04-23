@@ -1,12 +1,17 @@
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
+import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
 import com.example.slabiak.appointmentscheduler.entity.ChatMessage;
 import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.ExchangeService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,16 +39,24 @@ public class AppointmentController {
     }
 
     @GetMapping("/all")
-    public String showAllAppointments(Model model, @AuthenticationPrincipal CustomUserDetails currentUser) {
-        String appointmentsModelName = "appointments";
+    public String showAllAppointments(
+            Model model,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @RequestParam(value = "status", required = false) AppointmentStatus status,
+            @PageableDefault(size = 20, sort = "start", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<Appointment> appointments = Page.empty(pageable);
 
         if (currentUser.hasRole("ROLE_CUSTOMER")) {
-            model.addAttribute(appointmentsModelName, appointmentService.getAppointmentByCustomerId(currentUser.getId()));
+            appointments = appointmentService.getAppointmentByCustomerId(currentUser.getId(), status, pageable);
         } else if (currentUser.hasRole("ROLE_PROVIDER")) {
-            model.addAttribute(appointmentsModelName, appointmentService.getAppointmentByProviderId(currentUser.getId()));
+            appointments = appointmentService.getAppointmentByProviderId(currentUser.getId(), status, pageable);
         } else if (currentUser.hasRole("ROLE_ADMIN")) {
-            model.addAttribute(appointmentsModelName, appointmentService.getAllAppointments());
+            appointments = appointmentService.getAllAppointments(status, pageable);
         }
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("statuses", AppointmentStatus.values());
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("paginationQuery", status == null ? "" : "status=" + status.name());
         return "appointments/listAppointments";
     }
 

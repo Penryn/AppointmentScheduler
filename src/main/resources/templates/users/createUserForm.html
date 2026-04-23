@@ -20,7 +20,7 @@
                         <p th:text="${registrationError}"></p>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="userName">Username</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('userName') ? 'is-invalid' :''}" th:field="*{userName}" placeholder="jkwowalski">
@@ -30,7 +30,7 @@
 
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="password">Password</label>
                         <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password') ? 'is-invalid' :''}" th:field="*{password}" placeholder="password">
                         <div th:if="${#fields.hasErrors('password')}" class="invalid-feedback">
@@ -38,7 +38,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="matchingPassword">Repeat</label>
                         <input type="password" class="form-control" th:classappend="${#fields.hasErrors('matchingPassword') ? 'is-invalid' :''}" th:field="*{matchingPassword}"
                                placeholder="repeat password">
@@ -49,7 +49,7 @@
                     </div>
 
                     <th:block th:if="${account_type =='customer_corporate'}">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="companyName">Company Name</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('companyName') ? 'is-invalid' :''}" th:field="*{companyName}"
                                    placeholder="company name">
@@ -59,7 +59,7 @@
 
                         </div>
 
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="vatNumber">VAT number</label>
 
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('vatNumber') ? 'is-invalid' :''}" th:field="*{vatNumber}"
@@ -72,7 +72,7 @@
 
                     </th:block>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label th:if="${account_type =='customer_corporate'}" for="firstName">Contact person first
                             name</label>
                         <label th:if="${account_type =='customer_retail' or account_type =='provider'}"
@@ -85,7 +85,7 @@
 
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label th:if="${account_type =='customer_corporate'}" for="lastName">Contact person last
                             name</label>
                         <label th:if="${account_type =='customer_retail' or account_type =='provider'}"
@@ -97,7 +97,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="email">E-mail</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('email') ? 'is-invalid' :''}" th:field="*{email}" placeholder="jkowalski@example.com">
@@ -106,7 +106,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="mobile">mobile</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('mobile') ? 'is-invalid' :''}" th:field="*{mobile}"
@@ -117,7 +117,7 @@
 
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="street">street</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('street') ? 'is-invalid' :''}" th:field="*{street}" placeholder="ul. Adama Mickiewicza 1">
@@ -126,15 +126,15 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group col-md-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
                             <label for="postcode">Postocode</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('postcode') ? 'is-invalid' :''}" th:field="*{postcode}" placeholder="24-199">
                             <div th:if="${#fields.hasErrors('postcode')}" class="invalid-feedback">
                                 <p th:errors="*{postcode}"></p>
                             </div>
                         </div>
-                        <div class="form-group col-md-8">
+                        <div class="col-md-8">
                             <label for="city">City</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('city') ? 'is-invalid' :''}" th:field="*{city}" placeholder="Poznan">
                             <div th:if="${#fields.hasErrors('city')}" class="invalid-feedback">
@@ -144,7 +144,7 @@
                     </div>
 
                     <th:block th:if="${account_type =='provider'}">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <p class="text-primary">retail customer target</p>
                             <p class="text-info">corporate customer target</p>
                             <label>Works:</label>

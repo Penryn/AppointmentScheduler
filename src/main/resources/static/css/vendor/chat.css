@@ -20,7 +20,9 @@
 .chatperson .chatimg img{
     width: 40px;
     height: 40px;
-    background-image: url('http://i.imgur.com/JqEuJ6t.png');
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #dfe7ef 100%);
+    object-fit: cover;
 }
 .chatperson .pname{
     font-size: 18px;

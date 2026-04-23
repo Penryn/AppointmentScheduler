@@ -12,6 +12,8 @@ import com.example.slabiak.appointmentscheduler.service.AppointmentService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -67,6 +69,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<Appointment> getAllAppointments(AppointmentStatus status, Pageable pageable) {
+        return appointmentRepository.findListPage(status, pageable);
+    }
+
+    @Override
     public void deleteAppointmentById(int id) {
         appointmentRepository.deleteById(id);
     }
@@ -79,6 +87,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @PreAuthorize("#customerId == principal.id")
+    public Page<Appointment> getAppointmentByCustomerId(int customerId, AppointmentStatus status, Pageable pageable) {
+        return appointmentRepository.findListPageByCustomerId(customerId, status, pageable);
+    }
+
+    @Override
+    @PreAuthorize("#customerId == principal.id")
     public List<Appointment> getAppointmentCalendarByCustomerId(int customerId, LocalDateTime start, LocalDateTime end) {
         return appointmentRepository.findCalendarByCustomerId(customerId, start, end);
     }
@@ -87,6 +101,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     @PreAuthorize("#providerId == principal.id")
     public List<Appointment> getAppointmentByProviderId(int providerId) {
         return appointmentRepository.findByProviderId(providerId);
+    }
+
+    @Override
+    @PreAuthorize("#providerId == principal.id")
+    public Page<Appointment> getAppointmentByProviderId(int providerId, AppointmentStatus status, Pageable pageable) {
+        return appointmentRepository.findListPageByProviderId(providerId, status, pageable);
     }
 
     @Override

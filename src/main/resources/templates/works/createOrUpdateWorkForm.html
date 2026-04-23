@@ -14,25 +14,25 @@
 
                 <form th:action="@{/works/new}" th:object="${work}" method="POST">
                     <input type="hidden" th:field="*{id}" th:value="${work.id}">
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <label for="name" class="col-md-3 col-form-label">Name</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" th:field="*{name}" placeholder="Name">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <label for="price" class="col-md-3 col-form-label">Price</label>
                         <div class="col-md-9">
                             <input type="number" class="form-control" th:field="*{price}" placeholder="Price">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <label for="duration" class="col-md-3 col-form-label">Duration</label>
                         <div class="col-md-9">
                             <input type="number" class="form-control" th:field="*{duration}" placeholder="Duration">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <label for="duration" class="col-md-3 col-form-label">Description</label>
                         <div class="col-md-9">
                                 <textarea class="form-control" th:field="*{description}" rows="3"
@@ -40,7 +40,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <legend class="col-form-label col-md-3 pt-0">Target customer</legend>
                         <div class="col-md-9">
                             <div class="form-check form-check-inline">
@@ -57,7 +57,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="row mb-3">
                         <legend class="col-form-label col-md-3 pt-0">Cancelable by customer?</legend>
                         <div class="col-md-9">
                             <div class="form-check form-check-inline">
@@ -73,7 +73,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group text-center">
+                    <div class="mb-3 text-center">
 
                         <button type="submit" class="btn btn-primary">Save</button>
 
