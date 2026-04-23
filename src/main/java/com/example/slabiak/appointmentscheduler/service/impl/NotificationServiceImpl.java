@@ -5,6 +5,7 @@ import com.example.slabiak.appointmentscheduler.entity.*;
 import com.example.slabiak.appointmentscheduler.entity.user.User;
 import com.example.slabiak.appointmentscheduler.service.EmailService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void markAsRead(int notificationId, int userId) {
-        Notification notification = notificationRepository.getOne(notificationId);
+        Notification notification = getNotificationOrThrow(notificationId);
         if (notification.getUser().getId() == userId) {
             notification.setRead(true);
             notificationRepository.save(notification);
@@ -56,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Notification getNotificationById(int notificationId) {
-        return notificationRepository.getOne(notificationId);
+        return getNotificationOrThrow(notificationId);
     }
 
     @Override
@@ -193,6 +194,11 @@ public class NotificationServiceImpl implements NotificationService {
         if (sendEmail && mailingEnabled) {
             emailService.sendNewChatMessageNotification(chatMessage);
         }
+    }
+
+    private Notification getNotificationOrThrow(int notificationId) {
+        return notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
     }
 
 }

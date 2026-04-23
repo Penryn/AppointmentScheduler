@@ -62,7 +62,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("#customerId == principal.id or hasRole('ADMIN')")
     public Customer getCustomerById(int customerId) {
-        return customerRepository.getOne(customerId);
+        return customerRepository.findById(customerId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
     }
 
     @Override
@@ -143,7 +144,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("#passwordChangeForm.id == principal.id")
     public void updateUserPassword(ChangePasswordForm passwordChangeForm) {
-        User user = userRepository.getOne(passwordChangeForm.getId());
+        User user = userRepository.findById(passwordChangeForm.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         user.setPassword(passwordEncoder.encode(passwordChangeForm.getPassword()));
         userRepository.save(user);
     }
@@ -151,7 +153,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("#updateData.id == principal.id or hasRole('ADMIN')")
     public void updateProviderProfile(UserForm updateData) {
-        Provider provider = providerRepository.getOne(updateData.getId());
+        Provider provider = providerRepository.findById(updateData.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         provider.update(updateData);
         providerRepository.save(provider);
     }
@@ -159,7 +162,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("#updateData.id == principal.id or hasRole('ADMIN')")
     public void updateRetailCustomerProfile(UserForm updateData) {
-        RetailCustomer retailCustomer = retailCustomerRepository.getOne(updateData.getId());
+        RetailCustomer retailCustomer = retailCustomerRepository.findById(updateData.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         retailCustomer.update(updateData);
         retailCustomerRepository.save(retailCustomer);
 
@@ -168,7 +172,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("#updateData.id == principal.id or hasRole('ADMIN')")
     public void updateCorporateCustomerProfile(UserForm updateData) {
-        CorporateCustomer corporateCustomer = corporateCustomerRepository.getOne(updateData.getId());
+        CorporateCustomer corporateCustomer = corporateCustomerRepository.findById(updateData.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         corporateCustomer.update(updateData);
         corporateCustomerRepository.save(corporateCustomer);
 
@@ -219,4 +224,3 @@ public class UserServiceImpl implements UserService {
 
 
 }
-

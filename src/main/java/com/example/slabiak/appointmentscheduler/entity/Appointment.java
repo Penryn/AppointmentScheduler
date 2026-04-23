@@ -7,7 +7,7 @@ import com.example.slabiak.appointmentscheduler.model.AppointmentSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;

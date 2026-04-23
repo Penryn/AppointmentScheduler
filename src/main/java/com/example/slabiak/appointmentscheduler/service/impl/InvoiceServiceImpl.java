@@ -11,6 +11,7 @@ import com.example.slabiak.appointmentscheduler.service.InvoiceService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.util.PdfGeneratorUtil;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public File generatePdfForInvoice(int invoiceId) {
         CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Invoice invoice = invoiceRepository.getOne(invoiceId);
+        Invoice invoice = getInvoiceOrThrow(invoiceId);
         if (!isUserAllowedToDownloadInvoice(currentUser, invoice)) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
         }
@@ -96,7 +97,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public void changeInvoiceStatusToPaid(int invoiceId) {
-        Invoice invoice = invoiceRepository.getOne(invoiceId);
+        Invoice invoice = getInvoiceOrThrow(invoiceId);
         invoice.setStatus("paid");
         invoiceRepository.save(invoice);
     }
@@ -118,5 +119,10 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
 
         }
+    }
+
+    private Invoice getInvoiceOrThrow(int invoiceId) {
+        return invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Invoice not found"));
     }
 }

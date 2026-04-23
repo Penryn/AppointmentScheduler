@@ -3,10 +3,10 @@ package com.example.slabiak.appointmentscheduler.entity.user.customer;
 import com.example.slabiak.appointmentscheduler.entity.user.Role;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 import java.util.Collection;
 
 @Entity

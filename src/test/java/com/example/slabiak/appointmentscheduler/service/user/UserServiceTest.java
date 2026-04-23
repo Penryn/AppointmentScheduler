@@ -63,11 +63,11 @@ public class UserServiceTest {
 
     @Test
     public void shouldUpdateUserPassword() {
-        doReturn(new User()).when(userRepository).getOne(userId);
+        doReturn(Optional.of(new User())).when(userRepository).findById(userId);
         ChangePasswordForm changePasswordForm = new ChangePasswordForm(userId);
         userService.updateUserPassword(changePasswordForm);
         ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository, times(1)).getOne(userId);
+        verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).save(argumentCaptor.capture());
     }
 
@@ -75,7 +75,7 @@ public class UserServiceTest {
     public void shouldEncodeUserPasswordWhileUpdate() {
         User userToBeUpdated = new User();
         userToBeUpdated.setPassword(password);
-        doReturn(userToBeUpdated).when(userRepository).getOne(userId);
+        doReturn(Optional.of(userToBeUpdated)).when(userRepository).findById(userId);
         doReturn(passwordEncoded).when(passwordEncoder).encode(newPassword);
         ChangePasswordForm changePasswordForm = new ChangePasswordForm(userId);
         changePasswordForm.setCurrentPassword(password);

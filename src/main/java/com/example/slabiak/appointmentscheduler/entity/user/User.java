@@ -4,7 +4,7 @@ import com.example.slabiak.appointmentscheduler.entity.BaseEntity;
 import com.example.slabiak.appointmentscheduler.entity.Notification;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;

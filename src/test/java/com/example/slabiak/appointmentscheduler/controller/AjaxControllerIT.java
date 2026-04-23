@@ -18,7 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.Persistence;
+import jakarta.persistence.Persistence;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;

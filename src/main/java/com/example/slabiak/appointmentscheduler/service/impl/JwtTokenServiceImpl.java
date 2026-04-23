@@ -5,11 +5,13 @@ import com.example.slabiak.appointmentscheduler.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -20,10 +22,10 @@ import java.util.Date;
 @Component
 public class JwtTokenServiceImpl implements JwtTokenService {
 
-    private String jwtSecret;
+    private final SecretKey jwtSigningKey;
 
     public JwtTokenServiceImpl(@Value(value = "${app.jwtSecret}") String jwtSecret) {
-        this.jwtSecret = jwtSecret;
+        this.jwtSigningKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
     @Override
@@ -32,8 +34,8 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         return Jwts.builder()
                 .claim("appointmentId", appointment.getId())
                 .claim("customerId", appointment.getCustomer().getId())
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .expiration(expiryDate)
+                .signWith(jwtSigningKey)
                 .compact();
     }
 
@@ -42,7 +44,7 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         return Jwts.builder()
                 .claim("appointmentId", appointment.getId())
                 .claim("providerId", appointment.getProvider().getId())
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(jwtSigningKey)
                 .compact();
     }
 
@@ -50,9 +52,9 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Override
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            parseClaims(token);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             log.error("Error while token {} validation, error is {}", token, e.getMessage());
         }
         return false;
@@ -61,29 +63,20 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
     @Override
     public int getAppointmentIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();
-        return (int) claims.get("appointmentId");
+        Claims claims = parseClaims(token);
+        return claims.get("appointmentId", Integer.class);
     }
 
     @Override
     public int getCustomerIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();
-        return (int) claims.get("customerId");
+        Claims claims = parseClaims(token);
+        return claims.get("customerId", Integer.class);
     }
 
     @Override
     public int getProviderIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();
-        return (int) claims.get("providerId");
+        Claims claims = parseClaims(token);
+        return claims.get("providerId", Integer.class);
     }
 
     @Override
@@ -92,5 +85,13 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         ZoneOffset zoneOffSet = zone.getRules().getOffset(localDateTime);
         Instant instant = localDateTime.toInstant(zoneOffSet);
         return Date.from(instant);
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(jwtSigningKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

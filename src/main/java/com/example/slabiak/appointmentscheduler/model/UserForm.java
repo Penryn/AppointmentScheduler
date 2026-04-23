@@ -9,7 +9,7 @@ import com.example.slabiak.appointmentscheduler.validation.FieldsMatches;
 import com.example.slabiak.appointmentscheduler.validation.UniqueUsername;
 import com.example.slabiak.appointmentscheduler.validation.groups.*;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.util.List;
 
 @FieldsMatches(field = "password", matchingField = "matchingPassword", groups = {CreateUser.class})

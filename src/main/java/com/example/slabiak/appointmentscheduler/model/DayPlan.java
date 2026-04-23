@@ -1,10 +1,14 @@
 package com.example.slabiak.appointmentscheduler.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-public class DayPlan {
+public class DayPlan implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private TimePeroid workingHours;
     private List<TimePeroid> breaks;
@@ -70,6 +74,19 @@ public class DayPlan {
 
     public void addBreak(TimePeroid breakToAdd) {
         breaks.add(breakToAdd);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DayPlan dayPlan)) return false;
+        return Objects.equals(workingHours, dayPlan.workingHours) &&
+                Objects.equals(breaks, dayPlan.breaks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(workingHours, breaks);
     }
 
 }

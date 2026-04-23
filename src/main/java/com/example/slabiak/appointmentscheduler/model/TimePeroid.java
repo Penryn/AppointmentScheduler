@@ -1,9 +1,12 @@
 package com.example.slabiak.appointmentscheduler.model;
 
+import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.Objects;
 
-public class TimePeroid implements Comparable<TimePeroid> {
+public class TimePeroid implements Comparable<TimePeroid>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private LocalTime start;
     private LocalTime end;
