@@ -6,11 +6,17 @@ import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
 import com.example.slabiak.appointmentscheduler.model.ProviderListItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProviderRepository extends CommonUserRepository<Provider> {
+    @Override
+    @EntityGraph(attributePaths = {"works", "workingPlan", "roles"})
+    Optional<Provider> findById(Integer id);
+
     @Query(value = """
             select new com.example.slabiak.appointmentscheduler.model.ProviderListItem(
                 p,

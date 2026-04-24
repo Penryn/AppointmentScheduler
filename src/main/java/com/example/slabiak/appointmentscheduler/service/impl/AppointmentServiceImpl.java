@@ -249,15 +249,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public void cancelUserAppointmentById(int appointmentId, int userId) {
         Appointment appointment = getAppointmentById(appointmentId);
-        if (appointment.getCustomer().getId() == userId || appointment.getProvider().getId() == userId) {
+        boolean canceledByCustomer = hasUserId(appointment.getCustomer(), userId);
+        boolean canceledByProvider = hasUserId(appointment.getProvider(), userId);
+
+        if (canceledByCustomer || canceledByProvider) {
             appointment.setStatus(AppointmentStatus.CANCELED);
             User canceler = userService.getUserById(userId);
             appointment.setCanceler(canceler);
             appointment.setCanceledAt(LocalDateTime.now());
             appointmentRepository.save(appointment);
-            if (canceler.equals(appointment.getCustomer())) {
+            if (canceledByCustomer) {
                 notificationService.newAppointmentCanceledByCustomerNotification(appointment, true);
-            } else if (canceler.equals(appointment.getProvider())) {
+            } else if (canceledByProvider) {
                 notificationService.newAppointmentCanceledByProviderNotification(appointment, true);
             }
         } else {
@@ -270,10 +273,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public boolean isCustomerAllowedToRejectAppointment(int userId, int appointmentId) {
-        User user = userService.getUserById(userId);
         Appointment appointment = getAppointmentByIdWithAuthorization(appointmentId);
 
-        return appointment.getCustomer().equals(user) && appointment.getStatus().equals(AppointmentStatus.FINISHED) && !LocalDateTime.now().isAfter(appointment.getEnd().plusDays(1));
+        return hasUserId(appointment.getCustomer(), userId) && appointment.getStatus().equals(AppointmentStatus.FINISHED) && !LocalDateTime.now().isAfter(appointment.getEnd().plusDays(1));
     }
 
     @Override
@@ -304,10 +306,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public boolean isProviderAllowedToAcceptRejection(int providerId, int appointmentId) {
-        User user = userService.getUserById(providerId);
         Appointment appointment = getAppointmentByIdWithAuthorization(appointmentId);
 
-        return appointment.getProvider().equals(user) && appointment.getStatus().equals(AppointmentStatus.REJECTION_REQUESTED);
+        return hasUserId(appointment.getProvider(), providerId) && appointment.getStatus().equals(AppointmentStatus.REJECTION_REQUESTED);
     }
 
     @Override
@@ -335,14 +336,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public String getCancelNotAllowedReason(int userId, int appointmentId) {
-        User user = userService.getUserById(userId);
         Appointment appointment = getAppointmentByIdWithAuthorization(appointmentId);
 
-        if (user.hasRole("ROLE_ADMIN")) {
-            return "Only customer or provider can cancel appointments";
-        }
+        boolean userIsProvider = hasUserId(appointment.getProvider(), userId);
+        boolean userIsCustomer = hasUserId(appointment.getCustomer(), userId);
 
-        if (appointment.getProvider().equals(user)) {
+        if (userIsProvider) {
             if (!appointment.getStatus().equals(AppointmentStatus.SCHEDULED)) {
                 return "Only appoinmtents with scheduled status can be cancelled.";
             } else {
@@ -350,7 +349,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             }
         }
 
-        if (appointment.getCustomer().equals(user)) {
+        if (userIsCustomer) {
             if (!appointment.getStatus().equals(AppointmentStatus.SCHEDULED)) {
                 return "Only appoinmtents with scheduled status can be cancelled.";
             } else if (LocalDateTime.now().plusDays(1).isAfter(appointment.getStart())) {
@@ -363,7 +362,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 return null;
             }
         }
-        return null;
+        return "Only customer or provider can cancel appointments";
+    }
+
+    private boolean hasUserId(User user, int userId) {
+        return user != null && user.getId() != null && user.getId() == userId;
     }
 
     @Override

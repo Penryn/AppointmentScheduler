@@ -21,8 +21,13 @@ public class VersionInterceptor implements HandlerInterceptor {
     public void postHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler,
                            final ModelAndView modelAndView) {
 
-        if (modelAndView != null) {
+        if (modelAndView != null && !isRedirect(modelAndView)) {
             modelAndView.getModelMap().addAttribute("currentVersion", buildProperties.getVersion());
         }
+    }
+
+    private boolean isRedirect(ModelAndView modelAndView) {
+        String viewName = modelAndView.getViewName();
+        return viewName != null && viewName.startsWith("redirect:");
     }
 }
