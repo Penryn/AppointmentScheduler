@@ -24,7 +24,10 @@ public class ExchangeController {
     }
 
     @GetMapping("/{oldAppointmentId}")
-    public String showEligibleAppointmentsToExchange(@PathVariable("oldAppointmentId") int oldAppointmentId, Model model) {
+    public String showEligibleAppointmentsToExchange(@PathVariable("oldAppointmentId") int oldAppointmentId, Model model, @AuthenticationPrincipal CustomUserDetails currentUser) {
+        if (!exchangeService.checkIfEligibleForExchange(currentUser.getId(), oldAppointmentId)) {
+            return "redirect:/appointments/all";
+        }
         List<Appointment> eligibleAppointments = exchangeService.getEligibleAppointmentsForExchange(oldAppointmentId);
         model.addAttribute("appointmentId", oldAppointmentId);
         model.addAttribute("numberOfEligibleAppointments", eligibleAppointments.size());

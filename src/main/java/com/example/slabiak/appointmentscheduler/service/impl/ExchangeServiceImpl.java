@@ -61,6 +61,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         ExchangeRequest exchangeRequest = getExchangeRequestOrThrow(exchangeId);
         Appointment requestor = exchangeRequest.getRequestor();
         Appointment requested = exchangeRequest.getRequested();
+        if (requested.getCustomer().getId() != userId) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
+        }
         Customer tempCustomer = requestor.getCustomer();
         requestor.setStatus(AppointmentStatus.SCHEDULED);
         exchangeRequest.setStatus(ExchangeStatus.ACCEPTED);
@@ -76,6 +79,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public boolean rejectExchange(int exchangeId, int userId) {
         ExchangeRequest exchangeRequest = getExchangeRequestOrThrow(exchangeId);
+        if (exchangeRequest.getRequested().getCustomer().getId() != userId) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
+        }
         Appointment requestor = exchangeRequest.getRequestor();
         exchangeRequest.setStatus(ExchangeStatus.REJECTED);
         requestor.setStatus(AppointmentStatus.SCHEDULED);
