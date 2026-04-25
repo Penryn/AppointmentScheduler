@@ -192,13 +192,55 @@ mvn clean verify
 
 邮件模板位于 `src/main/resources/templates/email`。
 
-## CI
+## CI/CD（Azure DevOps）
 
-当前 [azure-pipelines.yml](azure-pipelines.yml) 的流水线行为如下：
+本项目的流水线配置位于 [azure-pipelines.yml](azure-pipelines.yml)。
 
-- 在 Java 17 环境下执行 `mvn verify`
-- 发布 Surefire 和 Failsafe 的测试报告
-- 在 `master` 分支通过 Jib 构建并发布镜像
+### 当前流水线行为
+
+- 触发方式
+  - `develop`、`master` 分支的 push 会触发
+  - 指向 `develop`、`master` 的 PR 会触发
+  - 文档和构建产物目录变更（如 `docs/**`、`target/**`）默认不触发
+- CI 阶段（Build and Test）
+  - 在 Java 17 环境执行 `mvn verify`
+  - 发布 Surefire/Failsafe 测试报告
+  - 生成并发布 JaCoCo 报告产物
+  - JaCoCo 产物名采用规范格式：`jacoco-report-分支-bBuildId-短SHA`
+  - 自动为当前运行申请保留租约（默认 30 天）
+- 镜像发布阶段（Publish Docker Image）
+  - 仅在 `master` 分支构建成功后执行
+  - 通过 Jib 推送 Docker 镜像
+  - 额外推送标签：`latest`、`BuildId`、`SourceVersion`
+
+### 如何在 Azure DevOps 启用这条流水线
+
+1. 在 Azure DevOps 创建或选择一个 Project。
+2. 在 Pipelines 中创建新流水线，选择 Existing Azure Pipelines YAML file。
+3. 指向仓库中的 [azure-pipelines.yml](azure-pipelines.yml)。
+4. 在该流水线 Variables 中添加以下机密变量（Secret）：
+  - `dockerRegistryUsername`
+  - `dockerRegistryPassword`
+5. 在流水线设置中开启脚本访问 OAuth Token（Allow scripts to access the OAuth token）。
+6. 确认项目内 Build Service 账号具备创建保留租约所需权限（用于 JaCoCo 保留天数设置）。
+7. 提交一次 `develop` 或 `master` 变更，验证流水线能正常触发。
+
+### 镜像发布后如何部署应用
+
+当前仓库里的 [azure-pipelines.yml](azure-pipelines.yml) 只负责 CI 和镜像发布，不包含“自动部署到服务器”的 stage。
+
+如果要部署到运行环境，可使用 [docker-compose.yml](docker-compose.yml) 在目标主机执行：
+
+1. 选择一个已发布镜像标签（建议用 `BuildId` 或 `SourceVersion` 对应标签）。
+2. 将 [docker-compose.yml](docker-compose.yml) 中 `backend.image` 改为该标签。
+3. 在目标主机执行：
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+4. 使用 `docker compose ps` 和应用健康端点检查启动状态。
 
 ## 说明
 
