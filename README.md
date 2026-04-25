@@ -214,26 +214,6 @@ mvn clean verify
   - 通过 Jib 推送 Docker 镜像
   - 额外推送标签：`latest`、`run_number`、`短SHA`
 
-### 与 Azure Pipelines 对照
-
-- 触发与分支过滤
-  - Azure: `trigger` + `pr`
-  - GitHub Actions: `on.push` + `on.pull_request`
-- 路径过滤
-  - Azure: `paths.exclude`
-  - GitHub Actions: `paths-ignore`
-- Maven 缓存
-  - Azure: `Cache@2`
-  - GitHub Actions: `actions/setup-java` 的 `cache: maven`
-- 构建与测试
-  - Azure: `Maven@4` 执行 `verify`
-  - GitHub Actions: `./mvnw -B -ntp verify`
-- 测试结果与 JaCoCo 产物
-  - Azure: `PublishPipelineArtifact` + 运行保留租约
-  - GitHub Actions: `actions/upload-artifact` + `retention-days`
-- 镜像发布
-  - Azure: `master` 分支执行 `jib:build`
-  - GitHub Actions: `if: github.ref == 'refs/heads/master'` 执行 `jib:build`
 
 ### 如何启用这条 GitHub Actions 流水线
 
