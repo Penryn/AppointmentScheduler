@@ -1,0 +1,131 @@
+name: AppointmentScheduler CI
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - 'output/**'
+      - 'target/**'
+      - 'README.md'
+      - 'LICENSE.md'
+  pull_request:
+    branches:
+      - develop
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - 'output/**'
+      - 'target/**'
+      - 'README.md'
+      - 'LICENSE.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: '17'
+  JACOCO_RETENTION_DAYS: '30'
+  TEST_REPORT_RETENTION_DAYS: '14'
+  JACOCO_ARTIFACT_PREFIX: 'jacoco-report'
+  MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
+  MAVEN_OPTS: '-Xmx3072m'
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Run unit and integration tests
+        run: ./mvnw $MAVEN_CLI_OPTS verify
+
+      - name: Normalize JaCoCo artifact name
+        if: always()
+        id: jacoco-meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch_raw="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          branch_safe="${branch_raw//\//-}"
+          branch_safe="$(echo "${branch_safe}" | tr ' ' '-' | tr -cd '[:alnum:]._-')"
+          if [ -z "${branch_safe}" ]; then
+            branch_safe="unknown-branch"
+          fi
+          short_sha="${GITHUB_SHA::8}"
+          artifact_name="${JACOCO_ARTIFACT_PREFIX}-${branch_safe}-r${GITHUB_RUN_NUMBER}-${short_sha}"
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "JaCoCo artifact name: ${artifact_name}"
+
+      - name: Upload JaCoCo report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.jacoco-meta.outputs.artifact_name }}
+          path: target/site/jacoco
+          if-no-files-found: warn
+          retention-days: ${{ env.JACOCO_RETENTION_DAYS }}
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            **/surefire-reports/TEST-*.xml
+            **/failsafe-reports/TEST-*.xml
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
+  publish-image:
+    name: Publish Docker Image
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build and push image with Jib
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DOCKER_USERNAME}" ] || [ -z "${DOCKER_PASSWORD}" ]; then
+            echo "DOCKERHUB_USERNAME 或 DOCKERHUB_PASSWORD 未配置。"
+            exit 1
+          fi
+
+          short_sha="${GITHUB_SHA::8}"
+          ./mvnw $MAVEN_CLI_OPTS \
+            -Djib.to.auth.username="${DOCKER_USERNAME}" \
+            -Djib.to.auth.password="${DOCKER_PASSWORD}" \
+            -Djib.to.tags="latest,${GITHUB_RUN_NUMBER},${short_sha}" \
+            jib:build
