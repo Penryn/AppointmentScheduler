@@ -1,32 +1,25 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'exchange','Appointments eligible to exchange')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'exchange','可换约列表')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
-<div class="row" style="margin-top: 50px">
+<div class="page-header">
+    <div>
+        <h1>选择换约对象</h1>
+        <p>共有 <span th:text="${numberOfEligibleAppointments}">3</span> 个可换约预约，请选择一个。</p>
+    </div>
+</div>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div clas="col-md-1">
-            </div>
-            <div>
-                <p>There are <span th:text="${numberOfEligibleAppointments}"> 3</span> appointments that you can exchange with. Please select one.</p>
-            </div>
-        </div>
-
-        <div class="row">
-            <table id="appointments" class="table" width="500px">
+    <div class="content-panel">
+            <table id="appointments" class="table">
 
                 <tr th:each="appointment : ${eligibleAppointments}">
                     <td><span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy HH:mm')}">10-01-2019 12:40</span></td>
-                <td><a th:href="@{'/exchange/' +${appointmentId} + '/'+ ${appointment.id}}">Select</a> </td>
+                <td><a class="btn btn-primary btn-sm" th:href="@{'/exchange/' +${appointmentId} + '/'+ ${appointment.id}}">选择</a> </td>
                 </tr>
 
             </table>
-        </div>
     </div>
-
-
 </body>
 
 </html>

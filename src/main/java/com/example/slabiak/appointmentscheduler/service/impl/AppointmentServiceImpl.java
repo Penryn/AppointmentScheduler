@@ -343,7 +343,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (userIsProvider) {
             if (!appointment.getStatus().equals(AppointmentStatus.SCHEDULED)) {
-                return "Only appoinmtents with scheduled status can be cancelled.";
+                return "只有已预约状态的预约可以取消。";
             } else {
                 return null;
             }
@@ -351,18 +351,18 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (userIsCustomer) {
             if (!appointment.getStatus().equals(AppointmentStatus.SCHEDULED)) {
-                return "Only appoinmtents with scheduled status can be cancelled.";
+                return "只有已预约状态的预约可以取消。";
             } else if (LocalDateTime.now().plusDays(1).isAfter(appointment.getStart())) {
-                return "Appointments which will be in less than 24 hours cannot be canceled.";
+                return "距离开始不足 24 小时的预约不能取消。";
             } else if (!appointment.getWork().getEditable()) {
-                return "This type of appointment can be canceled only by Provider.";
+                return "该类型预约只能由服务人员取消。";
             } else if (getCanceledAppointmentsByCustomerIdForCurrentMonth(userId).size() >= NUMBER_OF_ALLOWED_CANCELATIONS_PER_MONTH) {
-                return "You can't cancel this appointment because you exceeded maximum number of cancellations in this month.";
+                return "本月取消次数已达上限，无法取消该预约。";
             } else {
                 return null;
             }
         }
-        return "Only customer or provider can cancel appointments";
+        return "只有客户或服务人员可以取消预约";
     }
 
     private boolean hasUserId(User user, int userId) {

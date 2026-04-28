@@ -1,22 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'','Select provider')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'','选择服务人员')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
+<div class="page-header">
+    <div>
+        <h1>选择服务人员</h1>
+        <p>选择合适的服务人员后，再选择服务项目和预约时间。</p>
+    </div>
+</div>
+<div class="booking-steps"><span class="active">1 选择服务人员</span><span>2 选择服务</span><span>3 选择时间</span><span>4 确认预约</span></div>
 
-
-    <div class="col-md-3 m-3" th:each="provider : ${providers}">
-        <div class="card" style="width: 18rem;">
-            <div class="card-img-top provider-card-avatar" role="img" aria-label="Provider avatar"></div>
+<div class="row g-3">
+    <div class="col-sm-6 col-lg-4 col-xl-3" th:each="provider : ${providers}">
+        <div class="card h-100">
+            <div class="card-img-top provider-card-avatar" role="img" aria-label="服务人员头像"></div>
             <div class="card-body text-center">
                 <h5 class="card-title"><span th:text="${provider.firstName +' ' +provider.lastName}"> Name
                             Lastname</span></h5>
                 <p sec:authorize="hasRole('ROLE_CUSTOMER_RETAIL')"
-                   th:text="${'Available works: '+ provider.getRetailWorks().size()}">Available works: 3</p>
+                   th:text="${'可预约服务：'+ provider.getRetailWorks().size()}">可预约服务：3</p>
                 <p sec:authorize="hasRole('ROLE_CUSTOMER_CORPORATE')"
-                   th:text="${'Available works: '+ provider.getCorporateWorks().size()}">Available works: 3</p>
-                <a th:href="@{'/appointments/new/'+${provider.id}}" class="btn btn-primary">Select</a>
+                   th:text="${'可预约服务：'+ provider.getCorporateWorks().size()}">可预约服务：3</p>
+                <a th:href="@{'/appointments/new/'+${provider.id}}" class="btn btn-primary">选择</a>
 
             </div>
         </div>

@@ -4,11 +4,11 @@
 <nav th:fragment="pager(page, path, query)"
      th:if="${page.totalPages > 1}"
      th:with="querySuffix=${query == null || #strings.isEmpty(query) ? '' : '&' + query}"
-     aria-label="List pages">
+     aria-label="分页">
     <ul class="pagination justify-content-center mt-3">
         <li class="page-item" th:classappend="${page.first} ? 'disabled'">
             <a class="page-link"
-               th:href="${page.first} ? '#' : @{|${path}?page=${page.number - 1}&size=${page.size}${querySuffix}|}">Previous</a>
+               th:href="${page.first} ? '#' : @{|${path}?page=${page.number - 1}&size=${page.size}${querySuffix}|}">上一页</a>
         </li>
         <li class="page-item"
             th:each="pageNumber : ${#numbers.sequence(0, page.totalPages - 1)}"
@@ -19,7 +19,7 @@
         </li>
         <li class="page-item" th:classappend="${page.last} ? 'disabled'">
             <a class="page-link"
-               th:href="${page.last} ? '#' : @{|${path}?page=${page.number + 1}&size=${page.size}${querySuffix}|}">Next</a>
+               th:href="${page.last} ? '#' : @{|${path}?page=${page.number + 1}&size=${page.size}${querySuffix}|}">下一页</a>
         </li>
     </ul>
 </nav>

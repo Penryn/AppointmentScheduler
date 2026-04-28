@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body},'notifications','Notifications List')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'notifications','通知中心')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
 
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
-
-
+<div class="page-header">
     <div>
-        <div style="text-align:right">
+        <h1>通知中心</h1>
+        <p>查看系统通知并标记已读。</p>
+    </div>
             <form th:action="@{/notifications/markAllAsRead}" id="markAllAsRead" method="POST">
                 <a class="btn btn-success" href="#"
-                   onclick="document.getElementById('markAllAsRead').submit(); return false;">Mark All As Read</a>
+                   onclick="document.getElementById('markAllAsRead').submit(); return false;">全部标记为已读</a>
             </form>
-        </div>
+</div>
+<div class="content-panel">
+    <div class="table-responsive">
         <table id="notifications" class="table table-striped text-center mt-2">
 
             <thead class="table-dark">
 
             <tr>
-                <th> Date</th>
-                <th> Title</th>
-                <th> Message</th>
-                <th> Action</th>
-                <th> Seen</th>
+                <th>日期</th>
+                <th>标题</th>
+                <th>消息</th>
+                <th>操作</th>
+                <th>已读</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${notifications.empty}">
-                <td colspan="5"> No notifications available</td>
+                <td colspan="5">暂无通知</td>
             </tr>
             <tr th:each="notification : ${notifications.content}">
                 <td><span th:text="${#dates.format(notification.createdAt, 'dd-MMM-yyyy')}"> 01-01-2019 </span></td>
@@ -37,10 +39,10 @@
                 <td><span th:text="${notification.message}"> meesage</span></td>
                 <td>
                     <form th:action="@{'/notifications/'+${notification.id}}" method="POST">
-                        <button type="submit" class="btn btn-link p-0">See</button>
+                        <button type="submit" class="btn btn-link p-0">查看</button>
                     </form>
                 </td>
-                <td><span th:text="${notification.isRead()}">true</span></td>
+                <td><span th:text="${notification.isRead() ? '是' : '否'}">是</span></td>
 
             </tr>
             </tbody>

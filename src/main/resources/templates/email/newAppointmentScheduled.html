@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 
 <head></head>
 
 <body>
-<p>Hello, <span th:text="${appointment.provider.firstName}"></span></p>
-<p>One of your customers booked an appointment with you, here are the details:</p>
-<p>Start date: <span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy HH:mm')}"></span></p>
-<p>Customer: <span th:text="${appointment.customer.firstName +' '+ appointment.customer.lastName}"></span></p>
-<p>Work: <span th:text="${appointment.work.name}"></span></p>
-<p>Duration: <span th:text="${appointment.work.duration}"></span> min</p>
-<p>Price: <span th:text="${appointment.work.price}"></span> PLN</p>
+<p>你好，<span th:text="${appointment.provider.firstName}"></span></p>
+<p>有客户预约了你的服务，详情如下：</p>
+<p>开始时间：<span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy HH:mm')}"></span></p>
+<p>客户：<span th:text="${appointment.customer.firstName +' '+ appointment.customer.lastName}"></span></p>
+<p>服务：<span th:text="${appointment.work.name}"></span></p>
+<p>时长：<span th:text="${appointment.work.duration}"></span> 分钟</p>
+<p>价格：<span th:text="${appointment.work.price}"></span> PLN</p>
 
-<p>Contact phone: <span th:text="${appointment.customer.mobile}"></span></p>
+<p>联系电话：<span th:text="${appointment.customer.mobile}"></span></p>
 
 
 </body>

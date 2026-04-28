@@ -17,10 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
             right: "dayGridMonth,timeGridWeek"
         },
         buttonText: {
-            today: "Today",
-            month: "Month",
-            week: "Week"
+            today: "今天",
+            month: "月",
+            week: "周"
         },
+        locale: "zh-cn",
         allDaySlot: false,
         slotMinTime: "06:00:00",
         slotMaxTime: "22:00:00",

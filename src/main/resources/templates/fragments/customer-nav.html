@@ -2,13 +2,13 @@
     <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav me-auto">
             <li class="nav-item " th:classappend="${activeLink} == 'home' ? 'active':''">
-                <a class="nav-link" th:href="@{/}">Home</a>
+                <a class="nav-link" th:href="@{/}">日程</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'appointments' ? 'active':''">
-                <a class="nav-link" th:href="@{/appointments/all}">Appointments</a>
+                <a class="nav-link" th:href="@{/appointments/all}">我的预约</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'account' ? 'active':''">
-                <a class="nav-link" th:href="@{'/customers/' + ${#authentication.principal.id}}">My account</a>
+                <a class="nav-link" th:href="@{'/customers/' + ${#authentication.principal.id}}">账户资料</a>
             </li>
         </ul>
     </div>

@@ -1,48 +1,45 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body}, '','Login form')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body}, '','登录')}"
 >
 <body th:remove="tag">
-<div class="row" style="margin-top: 50px" ;>
-    <div class="col-lg-4 text-center"></div>
-    <div class="col-lg-4 text-center">
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
         <div class="card">
             <div class="card-header">
-                Sign in
+                登录预约管理系统
             </div>
             <div class="card-body">
                 <form id="login-form" th:action="@{/perform_login}" method='POST' class="form-horizontal">
                     <div th:if="${param.error != null}" class="alert alert-danger">
-                        Invalid username or password.
+                        用户名或密码错误。
                     </div>
                     <div th:if="${createdUserName != null}" class="alert alert-success">
-                        <p>User <span th:text="${createdUserName}"></span> added!</p>
+                        <p>用户 <span th:text="${createdUserName}"></span> 已创建。</p>
                     </div>
                     <div th:if="${param.logout != null}" class="alert alert-success">
-                        <p>Logged out successfully</p>
+                        <p>已退出登录。</p>
                     </div>
-                    <div style="margin-bottom: 25px" class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-                        <input type="text" id="username" name="username" placeholder="username" class="form-control"
+                    <div class="mb-3">
+                        <label class="form-label" for="username">用户名</label>
+                        <input type="text" id="username" name="username" placeholder="请输入用户名" class="form-control"
                                autocomplete="username">
                     </div>
-                    <div style="margin-bottom: 25px" class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-                        <input type="password" id="password" name="password" placeholder="password"
+                    <div class="mb-3">
+                        <label class="form-label" for="password">密码</label>
+                        <input type="password" id="password" name="password" placeholder="请输入密码"
                                class="form-control" autocomplete="current-password">
                     </div>
-                    <div style="margin-top: 10px" class="input-group">
-                        <button type="submit" class="btn btn-success">Login</button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">登录</button>
                     </div>
-                    <div style="margin-top: 10px" class="input-group">
-
-                        <p>Need account? </p>
-                        <p>Create new <a th:href="@{/customers/new/retail}">Retail</a> or <a th:href="@{/customers/new/corporate}">Corporate</a> account</p>
+                    <div class="mt-3 text-center">
+                        <p class="mb-1">还没有账号？</p>
+                        <p class="mb-0">创建 <a th:href="@{/customers/new/retail}">个人客户</a> 或 <a th:href="@{/customers/new/corporate}">企业客户</a> 账号</p>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 text-center"></div>
 </div>
 </body>
 </html>

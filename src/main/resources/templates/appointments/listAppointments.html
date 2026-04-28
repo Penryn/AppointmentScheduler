@@ -1,51 +1,72 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml"
-      th:replace="~{fragments/layout :: layout (~{::body},'appointments','Customer appointments')}">
+      th:replace="~{fragments/layout :: layout (~{::body},'appointments','预约列表')}">
 
 <body th:remove="tag">
 <!-- Page Content -->
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
+<div class="page-header">
+    <div>
+        <h1>预约列表</h1>
+        <p>按状态筛选预约，进入详情后可取消、换约或沟通。</p>
+    </div>
+    <a sec:authorize="hasRole('ROLE_CUSTOMER')" class="btn btn-primary" th:href="@{/appointments/new}" role="button">新建预约</a>
+</div>
+
+<div class="content-panel">
     <div th:fragment="customerAppointments">
 
         <form class="row g-2 align-items-center mb-3" method="get" th:action="@{/appointments/all}">
             <div class="col-auto">
-                <label class="col-form-label" for="status">Status filter</label>
+                <label class="col-form-label" for="status">状态筛选</label>
             </div>
             <div class="col-auto">
                 <select class="form-select" id="status" name="status">
-                    <option value="" th:selected="${selectedStatus == null}">All statuses</option>
+                    <option value="" th:selected="${selectedStatus == null}">全部状态</option>
                     <option th:each="statusOption : ${statuses}"
                             th:value="${statusOption.name()}"
-                            th:text="${statusOption}"
+                            th:text="${statusOption.name() == 'SCHEDULED' ? '已预约' :
+                                      (statusOption.name() == 'CANCELED' ? '已取消' :
+                                      (statusOption.name() == 'FINISHED' ? '已完成' :
+                                      (statusOption.name() == 'INVOICED' ? '已开票' :
+                                      (statusOption.name() == 'REJECTION_REQUESTED' ? '待确认未履约' :
+                                      (statusOption.name() == 'REJECTED' ? '已拒绝' : statusOption)))))}"
                             th:selected="${selectedStatus != null && statusOption == selectedStatus}">SCHEDULED</option>
                 </select>
             </div>
             <input type="hidden" name="size" th:value="${appointments.size}">
             <div class="col-auto">
-                <button class="btn btn-secondary" type="submit">Apply</button>
+                <button class="btn btn-secondary" type="submit">应用筛选</button>
             </div>
         </form>
 
+        <div class="table-responsive">
         <table id="appointments" class="table text-center">
             <thead class="table-dark">
             <tr>
-                <th> Work</th>
-                <th> Status</th>
-                <th> Start</th>
-                <th sec:authorize="!hasRole('ROLE_PROVIDER')"> Provider</th>
-                <th sec:authorize="!hasRole('ROLE_CUSTOMER')"> Customer</th>
-                <th> Duration</th>
-                <th> Action</th>
+                <th>服务</th>
+                <th>状态</th>
+                <th>开始时间</th>
+                <th sec:authorize="!hasRole('ROLE_PROVIDER')">服务人员</th>
+                <th sec:authorize="!hasRole('ROLE_CUSTOMER')">客户</th>
+                <th>时长</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${appointments.empty}">
-                <td colspan="7"> No Appointments Available</td>
+                <td colspan="7">暂无预约</td>
             </tr>
             <tr th:each="appointment : ${appointments.content}"
                 th:classappend="${appointment.status.name() == 'CANCELED' || appointment.status.name()  == 'FINISHED' || appointment.status.name()  == 'INVOICED' || appointment.status.name()  == 'REJECTION_REQUESTED' || appointment.status.name()  == 'REJECTED'} ? table-secondary : table-success">
                 <td><span th:text="${appointment.work.name}"> Work </span></td>
-                <td><span th:text="${appointment.status}"> scheduled </span></td>
+                <td><span class="status-pill"
+                          th:classappend="${appointment.status.name() == 'SCHEDULED'} ? ' is-success' : (${appointment.status.name() == 'REJECTION_REQUESTED'} ? ' is-warning' : (${appointment.status.name() == 'CANCELED' || appointment.status.name() == 'REJECTED'} ? ' is-danger' : ''))"
+                          th:text="${appointment.status.name() == 'SCHEDULED' ? '已预约' :
+                                      (appointment.status.name() == 'CANCELED' ? '已取消' :
+                                      (appointment.status.name() == 'FINISHED' ? '已完成' :
+                                      (appointment.status.name() == 'INVOICED' ? '已开票' :
+                                      (appointment.status.name() == 'REJECTION_REQUESTED' ? '待确认' :
+                                      (appointment.status.name() == 'REJECTED' ? '已拒绝' : appointment.status)))))}">已预约</span></td>
                 <td><span th:text="${#temporals.format(appointment.start, 'yyyy-MM-dd HH:mm')}"> 21-01-2019 15:00</span>
                 </td>
                 <td sec:authorize="!hasRole('ROLE_PROVIDER')"><span
@@ -56,9 +77,9 @@
                         th:text="${appointment.customer.firstName + ' ' + appointment.customer.lastName}">
                                 Customer </span>
                 </td>
-                <td><span th:text="${appointment.work.duration + ' min'}"> 60 min </span></td>
+                <td><span th:text="${appointment.work.duration + ' 分钟'}"> 60 分钟 </span></td>
                 <td><a class="btn btn-secondary" th:href="@{'/appointments/' + ${appointment.id}}"
-                       role="button">Details</a></td>
+                       role="button">详情</a></td>
             </tr>
             </tbody>
             <tfoot class="text-primary">
@@ -73,10 +94,8 @@
             </tr>
             </tfoot>
         </table>
-        <div th:replace="~{fragments/pagination :: pager(${appointments}, '/appointments/all', ${paginationQuery})}"></div>
-        <div sec:authorize="hasRole('ROLE_CUSTOMER')" class="text-center">
-            <a class="btn btn-primary mt-2" th:href="@{/appointments/new}" role="button">New appointment</a>
         </div>
+        <div th:replace="~{fragments/pagination :: pager(${appointments}, '/appointments/all', ${paginationQuery})}"></div>
 
     </div>
 </div>

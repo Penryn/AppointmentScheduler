@@ -1,88 +1,86 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'works','Work form')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'works','服务表单')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
-<div class="row" style="margin-top: 50px" ;>
-    <div class="col-md-2 text-center"></div>
-    <div class="col-md-8 text-center">
+<div class="row justify-content-center">
+    <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                Add or update work
+                新增或编辑服务
             </div>
             <div class="card-body">
 
                 <form th:action="@{/works/new}" th:object="${work}" method="POST">
                     <input type="hidden" th:field="*{id}" th:value="${work.id}">
                     <div class="row mb-3">
-                        <label for="name" class="col-md-3 col-form-label">Name</label>
+                        <label for="name" class="col-md-3 col-form-label">名称</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" th:field="*{name}" placeholder="Name">
+                            <input type="text" class="form-control" th:field="*{name}" placeholder="请输入服务名称">
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="price" class="col-md-3 col-form-label">Price</label>
+                        <label for="price" class="col-md-3 col-form-label">价格</label>
                         <div class="col-md-9">
-                            <input type="number" class="form-control" th:field="*{price}" placeholder="Price">
+                            <input type="number" class="form-control" th:field="*{price}" placeholder="请输入价格">
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="duration" class="col-md-3 col-form-label">Duration</label>
+                        <label for="duration" class="col-md-3 col-form-label">时长</label>
                         <div class="col-md-9">
-                            <input type="number" class="form-control" th:field="*{duration}" placeholder="Duration">
+                            <input type="number" class="form-control" th:field="*{duration}" placeholder="请输入时长（分钟）">
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="duration" class="col-md-3 col-form-label">Description</label>
+                        <label for="duration" class="col-md-3 col-form-label">说明</label>
                         <div class="col-md-9">
                                 <textarea class="form-control" th:field="*{description}" rows="3"
-                                          placeholder="Description"></textarea>
+                                          placeholder="请输入服务说明"></textarea>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <legend class="col-form-label col-md-3 pt-0">Target customer</legend>
+                        <legend class="col-form-label col-md-3 pt-0">适用客户</legend>
                         <div class="col-md-9">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="targetCustomer" id="retail"
                                        value="retail"
                                        th:checked="*{targetCustomer =='retail' or targetCustomer== null}">
-                                <label class="form-check-label" for="retail">Retail</label>
+                                <label class="form-check-label" for="retail">个人客户</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="targetCustomer" id="corporate"
                                        value="corporate" th:checked="*{targetCustomer=='corporate'}">
-                                <label class="form-check-label" for="corporate">Corporate</label>
+                                <label class="form-check-label" for="corporate">企业客户</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <legend class="col-form-label col-md-3 pt-0">Cancelable by customer?</legend>
+                        <legend class="col-form-label col-md-3 pt-0">客户可取消</legend>
                         <div class="col-md-9">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="editable" id="option1" value="1"
                                        th:checked="*{editable}">
-                                <label class="form-check-label" for="option1">Yes</label>
+                                <label class="form-check-label" for="option1">是</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="editable" id="option2" value="0"
                                        th:checked="*{editable == false}">
-                                <label class="form-check-label" for="option2">No</label>
+                                <label class="form-check-label" for="option2">否</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3 text-center">
 
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
 
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <div class="col-md-8 text-center"></div>
 </div>
 </body>
 

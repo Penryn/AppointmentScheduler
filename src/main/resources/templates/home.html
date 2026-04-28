@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'home','Home')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'home','我的日程')}"
 >
 
 <body th:remove="tag">
 <script defer th:src="@{/js/vendor/fullcalendar.global.min.js}"></script>
 <script defer th:src="@{/js/home-calendar.js}"></script>
 
-<div class="row mt-3">
-    <div class="col">
-
+<div class="page-header">
+    <div>
+        <h1>我的日程</h1>
+        <p>查看近期预约安排，点击日程可进入预约详情。</p>
     </div>
-    <div class="col-10">
-        <div id="calendar" th:attr="data-events-url=@{'/api/user/'+${user.id}+'/appointments'}"></div>
-    </div>
-    <div class="col">
+    <a class="btn btn-primary" th:href="@{/appointments/all}">查看全部预约</a>
+</div>
 
+<div class="row">
+    <div class="col-12">
+        <div class="calendar-panel">
+            <div id="calendar" th:attr="data-events-url=@{'/api/user/'+${user.id}+'/appointments'}"></div>
+        </div>
     </div>
 </div>
 </body>

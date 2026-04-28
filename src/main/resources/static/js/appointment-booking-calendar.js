@@ -26,11 +26,12 @@ document.addEventListener("DOMContentLoaded", function () {
             right: "prev,next"
         },
         buttonText: {
-            listDay: "Available times"
+            listDay: "可预约时间"
         },
+        locale: "zh-cn",
         firstDay: 1,
         height: "auto",
-        noEventsContent: "Unavailable",
+        noEventsContent: "当天暂无可预约时间",
         eventTimeFormat: {
             hour: "2-digit",
             minute: "2-digit",
@@ -45,14 +46,14 @@ document.addEventListener("DOMContentLoaded", function () {
             })
                 .then(function (response) {
                     if (!response.ok) {
-                        throw new Error("Availability request failed with status " + response.status);
+                        throw new Error("可预约时间请求失败，状态码：" + response.status);
                     }
                     return response.json();
                 })
                 .then(function (entries) {
                     successCallback(entries.map(function (entry) {
                         return {
-                            title: "Available",
+                            title: "可预约",
                             start: entry.start,
                             end: entry.end,
                             url: bookingBaseUrl + encodeURIComponent(entry.start)

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html th:fragment="layout (content, activeLink, pageTitle)" xmlns:th="http://www.thymeleaf.org"
+<html lang="zh-CN" th:fragment="layout (content, activeLink, pageTitle)" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title th:text="${pageTitle}">Page title</title>
+    <title th:text="${pageTitle}">预约管理系统</title>
     <link rel="icon" type="image/jpeg" th:href="@{/img/logo.jpg}">
 
     <!-- Bootstrap core CSS -->
@@ -22,10 +22,11 @@
 
 <!-- Navigation -->
 <div sec:authorize="isAuthenticated()">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+    <nav class="navbar navbar-expand-lg navbar-dark app-navbar static-top">
         <div class="container">
+            <a class="navbar-brand fw-semibold" th:href="@{/}">预约管理系统</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="展开导航">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -49,22 +50,22 @@
 
 
             <!--notifications-->
-            <div class="collapse navbar-collapse">
+            <div class="navbar-actions">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a th:href="@{/notifications}" class="nav-link">
+                        <a th:href="@{/notifications}" class="nav-link" title="通知">
                             <span id="notifications-count" data-count="0" class="notification-bell"
-                                  aria-label="Notification centre" role="img">&#128276;</span>
+                                  aria-label="通知中心" role="img">&#128276;</span>
                         </a>
                     </li>
                     <li>
-                        <p class="navbar-nav ms-auto navbar-text"> Logged as:
-                            <span sec:authentication="name">username</span> | </p>
+                        <p class="navbar-nav ms-auto navbar-text"> 当前用户：
+                            <span sec:authentication="name">username</span></p>
                     </li>
                     <li>
                         <form th:action="@{/perform_logout}" id="logout" method="POST">
                             <a class="nav-link" href="#"
-                               onclick="document.getElementById('logout').submit(); return false;">Log out</a>
+                               onclick="document.getElementById('logout').submit(); return false;">退出登录</a>
                         </form>
                     </li>
                 </ul>
@@ -74,9 +75,9 @@
 </div>
 
 <!-- Page Content -->
-<div class="container">
+<div class="container app-content">
     <th:block th:replace="${content}"/>
-    <div class="row align-items-center justify-content-center" style="margin-top: 50px">
+    <div class="app-footer">
         <p>AppointmentScheduler v<span th:text="${currentVersion}">1.0</span></p>
     </div>
 </div>
@@ -116,7 +117,7 @@
             })
                 .then(function (response) {
                     if (!response.ok) {
-                        throw new Error('Notification polling failed with status ' + response.status);
+                        throw new Error('通知轮询失败，状态码：' + response.status);
                     }
                     return response.text();
                 })

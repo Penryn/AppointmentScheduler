@@ -1,45 +1,53 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body},'invoices','Available invoices')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'invoices','发票管理')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
 
 
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
-
-
+<div class="page-header">
     <div>
+        <h1>发票管理</h1>
+        <p>查看发票状态，下载发票或手动生成月度发票。</p>
+    </div>
+    <form th:action="@{/invoices/issue}" method="POST">
+        <button type="submit" class="btn btn-success">手动生成发票</button>
+    </form>
+</div>
+<div class="content-panel">
+    <div class="table-responsive">
         <table id="providers" class="table table-striped text-center mt-2">
 
             <thead class="table-dark">
 
             <tr >
-                <th> Number</th>
-                <th> Issued</th>
-                <th> Status</th>
-                <th> Total price</th>
-                <th> Customer</th>
-                <th> Action</th>
+                <th>编号</th>
+                <th>开票时间</th>
+                <th>状态</th>
+                <th>总金额</th>
+                <th>客户</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${invoices.empty}">
-                <td colspan="6"> No Invoices Available</td>
+                <td colspan="6">暂无发票</td>
             </tr>
             <tr th:each="invoice : ${invoices.content}">
                 <td><span th:text="${invoice.number}"> FV/2019/02/03 </span></td>
                 <td><span th:text="${#temporals.format(invoice.issued, 'dd-MM-yyyy HH:mm')}"> 15-03-2019 15:00 </span>
                 </td>
-                <td><span th:text="${invoice.status}"> paid </span></td>
+                <td><span class="status-pill" th:classappend="${invoice.status=='paid'} ? ' is-success' : ' is-warning'"
+                          th:text="${invoice.status=='paid' ? '已支付' : (invoice.status=='issued' ? '已开具' : invoice.status)}">已支付</span></td>
                 <td><span th:text="${invoice.totalAmount +' PLN'}"> 60.00 PLN</span></td>
                 <td><span th:text="${invoice.customerName}">Jan Kowalski</span></td>
                 <td>
-                    <a class="btn btn-secondary" th:href="@{'/invoices/download/' + ${invoice.id}}" role="button">Download</a>
+                    <a class="btn btn-secondary" th:href="@{'/invoices/download/' + ${invoice.id}}" role="button">下载</a>
                     <form th:if="${invoice.status=='issued'}" class="d-inline-block"
                           th:action="@{'/invoices/paid/' + ${invoice.id}}" method="POST">
                         <input type="hidden" name="invoiceId" th:value="${invoice.id}"/>
-                        <button type="submit" name="submit" value="value" class="btn btn-success">Mark as paid</button>
+                        <button type="submit" name="submit" value="value" class="btn btn-success">标记已支付</button>
                     </form>
                 </td>
             </tr>
@@ -48,11 +56,6 @@
         <div th:replace="~{fragments/pagination :: pager(${invoices}, '/invoices/all', '')}"></div>
     </div>
 
-</div>
-<div class="row align-items-center justify-content-center">
-    <form th:action="@{/invoices/issue}" method="POST">
-        <button style="margin-bottom: 5px" type="submit" class="btn btn-success">Issue invoices manually</button>
-    </form>
 </div>
 </body>
 </html>

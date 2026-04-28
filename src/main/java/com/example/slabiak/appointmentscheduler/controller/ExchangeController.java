@@ -51,9 +51,9 @@ public class ExchangeController {
     public String processExchangeRequest(@RequestParam("oldAppointmentId") int oldAppointmentId, @RequestParam("newAppointmentId") int newAppointmentId, Model model, @AuthenticationPrincipal CustomUserDetails currentUser) {
         boolean result = exchangeService.requestExchange(oldAppointmentId, newAppointmentId, currentUser.getId());
         if (result) {
-            model.addAttribute("message", "Exchange request sucsessfully sent!");
+            model.addAttribute("message", "换约请求已发送。");
         } else {
-            model.addAttribute("message", "Error! Exchange not sent!");
+            model.addAttribute("message", "换约请求发送失败。");
         }
         return "exchange/requestConfirmation";
     }

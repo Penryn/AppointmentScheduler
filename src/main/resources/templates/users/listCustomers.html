@@ -1,37 +1,43 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'customers','Customers')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'customers','客户管理')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
 
 
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
+<div class="page-header">
     <div>
+        <h1>客户管理</h1>
+        <p>查看客户资料和预约数量。</p>
+    </div>
+</div>
+<div class="content-panel">
+    <div class="table-responsive">
         <table id="customers" class="table table-striped text-center">
             <thead class="table-dark">
             <tr>
-                <th> Name</th>
-                <th> Type </th>
-                <th> E-mail</th>
-                <th> Appointments</th>
-                <th> Action</th>
+                <th>姓名</th>
+                <th>类型</th>
+                <th>邮箱</th>
+                <th>预约数</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${customers.empty}">
-                <td colspan="5"> No Customers Available</td>
+                <td colspan="5">暂无客户</td>
             </tr>
             <tr th:each="item : ${customers.content}" th:with="customer=${item.customer}"
                 th:classappend="${customer.getType()=='retail' ? 'table-primary' : 'table-info'}">
                 <td><span th:text="${customer.firstName +' ' + customer.lastName}"> Name Lastname </span></td>
-                <td><span th:text="${customer.getType() == 'retail'? 'retail':'corporate'}"> retail </span></td>
+                <td><span th:text="${customer.getType() == 'retail'? '个人客户':'企业客户'}">个人客户</span></td>
                 <td><span th:text="${customer.email }"> email </span></td>
                 <td><span th:text="${item.appointmentCount}"> 3 </span></td>
                 <td><a class="btn btn-secondary" th:href="@{'/customers/' + ${customer.id}}"
-                       role="button">Details</a>
+                       role="button">详情</a>
                     <form class="d-inline-block" th:action="@{/customers/delete}" method="POST">
                         <input type="hidden" name="customerId" th:value="${customer.id}" />
-                        <button type="submit" name="submit" value="value" class="btn btn-danger">Delete</button>
+                        <button type="submit" name="submit" value="value" class="btn btn-danger">删除</button>
                     </form>
                 </td>
             </tr>

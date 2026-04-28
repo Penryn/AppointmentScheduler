@@ -2,22 +2,22 @@
     <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav me-auto">
             <li class="nav-item" th:classappend="${activeLink} == 'home' ? 'active':''">
-                <a class="nav-link" th:href="@{/}">Home</a>
+                <a class="nav-link" th:href="@{/}">日程</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'appointments' ? 'active':''">
-                <a class="nav-link" th:href="@{/appointments/all}">Appointments</a>
+                <a class="nav-link" th:href="@{/appointments/all}">预约</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'works' ? 'active':''">
-                <a class="nav-link" th:href="@{/works/all}">Works</a>
+                <a class="nav-link" th:href="@{/works/all}">服务项目</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'providers' ? 'active':''">
-                <a class="nav-link" th:href="@{/providers/all}">Providers</a>
+                <a class="nav-link" th:href="@{/providers/all}">服务人员</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'customers' ? 'active':''">
-                <a class="nav-link" th:href="@{/customers/all}">Customers</a>
+                <a class="nav-link" th:href="@{/customers/all}">客户</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'invoices' ? 'active':''">
-                <a class="nav-link" th:href="@{/invoices/all}">Invoices</a>
+                <a class="nav-link" th:href="@{/invoices/all}">发票</a>
             </li>
         </ul>
     </div>

@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'','Registration form')}"
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'','注册账号')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
-<div class="row" style="margin-top: 50px" ;>
-    <div class="col-lg-3 text-center"></div>
-    <div class="col-lg-6">
+<div class="row justify-content-center">
+    <div class="col-lg-7">
         <div class="card">
             <div class="card-header text-center">
-                <th:block th:if="${account_type =='customer_corporate'}">Register new Corporate Customer Account</th:block>
-                <th:block th:if="${account_type =='customer_retail'}">Register new Retail Customer Account</th:block>
-                <th:block th:if="${account_type =='provider'}">Register new Provider Account</th:block>
+                <th:block th:if="${account_type =='customer_corporate'}">注册企业客户账号</th:block>
+                <th:block th:if="${account_type =='customer_retail'}">注册个人客户账号</th:block>
+                <th:block th:if="${account_type =='provider'}">注册服务人员账号</th:block>
             </div>
             <div class="card-body">
 
@@ -21,9 +20,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="userName">Username</label>
+                        <label for="userName">用户名</label>
 
-                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('userName') ? 'is-invalid' :''}" th:field="*{userName}" placeholder="jkwowalski">
+                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('userName') ? 'is-invalid' :''}" th:field="*{userName}" placeholder="请输入用户名">
                         <div th:if="${#fields.hasErrors('userName')}" class="invalid-feedback">
                            <p th:errors="*{userName}"></p>
                         </div>
@@ -31,17 +30,17 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password">Password</label>
-                        <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password') ? 'is-invalid' :''}" th:field="*{password}" placeholder="password">
+                        <label for="password">密码</label>
+                        <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password') ? 'is-invalid' :''}" th:field="*{password}" placeholder="请输入密码">
                         <div th:if="${#fields.hasErrors('password')}" class="invalid-feedback">
                             <p th:errors="*{password}"></p>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="matchingPassword">Repeat</label>
+                        <label for="matchingPassword">确认密码</label>
                         <input type="password" class="form-control" th:classappend="${#fields.hasErrors('matchingPassword') ? 'is-invalid' :''}" th:field="*{matchingPassword}"
-                               placeholder="repeat password">
+                               placeholder="请再次输入密码">
                         <div th:if="${#fields.hasErrors('matchingPassword')}" class="invalid-feedback">
                             <p th:errors="*{matchingPassword}"></p>
                         </div>
@@ -50,9 +49,9 @@
 
                     <th:block th:if="${account_type =='customer_corporate'}">
                         <div class="mb-3">
-                            <label for="companyName">Company Name</label>
+                            <label for="companyName">公司名称</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('companyName') ? 'is-invalid' :''}" th:field="*{companyName}"
-                                   placeholder="company name">
+                                   placeholder="请输入公司名称">
                             <div th:if="${#fields.hasErrors('companyName')}" class="invalid-feedback">
                                 <p th:errors="*{companyName}"></p>
                             </div>
@@ -60,10 +59,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="vatNumber">VAT number</label>
+                            <label for="vatNumber">税号</label>
 
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('vatNumber') ? 'is-invalid' :''}" th:field="*{vatNumber}"
-                                   placeholder="vat number">
+                                   placeholder="请输入税号">
                             <div th:if="${#fields.hasErrors('vatNumber')}" class="invalid-feedback">
                                 <p th:errors="*{vatNumber}"></p>
                             </div>
@@ -73,12 +72,10 @@
                     </th:block>
 
                     <div class="mb-3">
-                        <label th:if="${account_type =='customer_corporate'}" for="firstName">Contact person first
-                            name</label>
+                        <label th:if="${account_type =='customer_corporate'}" for="firstName">联系人名</label>
                         <label th:if="${account_type =='customer_retail' or account_type =='provider'}"
-                               for="firstName">First
-                            name</label>
-                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('firstName') ? 'is-invalid' :''}" th:field="*{firstName}"  placeholder="Jan">
+                               for="firstName">名</label>
+                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('firstName') ? 'is-invalid' :''}" th:field="*{firstName}"  placeholder="请输入名">
                         <div th:if="${#fields.hasErrors('firstName')}" class="invalid-feedback">
                             <p th:errors="*{firstName}"></p>
                         </div>
@@ -86,19 +83,17 @@
                     </div>
 
                     <div class="mb-3">
-                        <label th:if="${account_type =='customer_corporate'}" for="lastName">Contact person last
-                            name</label>
+                        <label th:if="${account_type =='customer_corporate'}" for="lastName">联系人姓</label>
                         <label th:if="${account_type =='customer_retail' or account_type =='provider'}"
-                               for="lastName">Last
-                            name</label>
-                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('lastName') ? 'is-invalid' :''}" th:field="*{lastName}" placeholder="Kowalski">
+                               for="lastName">姓</label>
+                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('lastName') ? 'is-invalid' :''}" th:field="*{lastName}" placeholder="请输入姓">
                         <div th:if="${#fields.hasErrors('lastName')}" class="invalid-feedback">
                             <p th:errors="*{lastName}"></p>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="email">E-mail</label>
+                        <label for="email">邮箱</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('email') ? 'is-invalid' :''}" th:field="*{email}" placeholder="jkowalski@example.com">
                         <div th:if="${#fields.hasErrors('email')}" class="invalid-feedback">
@@ -107,7 +102,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="mobile">mobile</label>
+                        <label for="mobile">手机号</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('mobile') ? 'is-invalid' :''}" th:field="*{mobile}"
                                placeholder="505162073">
@@ -118,7 +113,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="street">street</label>
+                        <label for="street">街道地址</label>
 
                         <input type="text" class="form-control" th:classappend="${#fields.hasErrors('street') ? 'is-invalid' :''}" th:field="*{street}" placeholder="ul. Adama Mickiewicza 1">
                         <div th:if="${#fields.hasErrors('street')}" class="invalid-feedback">
@@ -128,14 +123,14 @@
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="postcode">Postocode</label>
+                            <label for="postcode">邮编</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('postcode') ? 'is-invalid' :''}" th:field="*{postcode}" placeholder="24-199">
                             <div th:if="${#fields.hasErrors('postcode')}" class="invalid-feedback">
                                 <p th:errors="*{postcode}"></p>
                             </div>
                         </div>
                         <div class="col-md-8">
-                            <label for="city">City</label>
+                            <label for="city">城市</label>
                             <input type="text" class="form-control" th:classappend="${#fields.hasErrors('city') ? 'is-invalid' :''}" th:field="*{city}" placeholder="Poznan">
                             <div th:if="${#fields.hasErrors('city')}" class="invalid-feedback">
                                 <p th:errors="*{city}"></p>
@@ -145,28 +140,24 @@
 
                     <th:block th:if="${account_type =='provider'}">
                         <div class="mb-3">
-                            <p class="text-primary">retail customer target</p>
-                            <p class="text-info">corporate customer target</p>
-                            <label>Works:</label>
+                            <p class="text-primary">个人客户服务</p>
+                            <p class="text-info">企业客户服务</p>
+                            <label>可提供服务：</label>
                             <ul>
                                 <li th:each="work : ${allWorks}">
                                     <input type="checkbox" th:field="*{works}" th:value="${work.id}" />
                                     <label th:for="${#ids.prev('works')}"
-                                           th:text="${work.name}" th:classappend="${work.targetCustomer=='retail'} ? text-primary : text-info">French lesson</label>
+                                           th:text="${work.name}" th:classappend="${work.targetCustomer=='retail'} ? text-primary : text-info">法语课</label>
                                 </li>
                             </ul>
                         </div>
                     </th:block>
 
-                    <button type="submit" class="btn btn-success">Register</button>
-
-
+                    <button type="submit" class="btn btn-success">注册</button>
+                </form>
             </div>
-            </form>
         </div>
     </div>
-</div>
-<div class="col-lg-3 text-center"></div>
 </div>
 </body>
 </html>

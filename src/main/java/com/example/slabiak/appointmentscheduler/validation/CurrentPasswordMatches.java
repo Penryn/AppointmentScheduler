@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = CurrentPasswordMatchesValidator.class)
 public @interface CurrentPasswordMatches {
 
-    String message() default "Wrong current password";
+    String message() default "当前密码不正确";
 
     Class<?>[] groups() default {};
 

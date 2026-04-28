@@ -1,46 +1,51 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body},'appointments','Appointment detail')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'appointments','预约详情')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
 <link rel="stylesheet" th:href="@{/css/vendor/chat.css}"/>
 
-<div class="row" style="margin-top: 50px">
+<div class="page-header">
+    <div>
+        <h1>预约详情</h1>
+        <p>查看预约信息、处理变更，并与对方沟通。</p>
+    </div>
+    <a class="btn btn-outline-secondary" th:href="@{/appointments/all}">返回预约列表</a>
+</div>
 
-    <div class="container">
+<div class="container px-0">
         <div class="row justify-content-center">
             <div clas="col-md-1">
             </div>
             <div th:if="${appointment.exchangeRequest !=null && appointment.exchangeRequest.getStatus().name()== 'PENDING'}" class="col-md-9 p-3 mb-2 bg-warning text-dark text-center">
-                <p>Someone requested this appointment to be exchanged.</p>
+                <p>有人请求与该预约交换时间。</p>
 
                 <form th:action="@{/exchange/reject}" method='POST'>
                     <input type="hidden" name="exchangeId" th:value="${appointment.exchangeRequest.id}">
-                    <input type="submit" class="btn btn-success" value="Reject" />
+                    <input type="submit" class="btn btn-outline-dark" value="拒绝" />
                 </form>
                 <form th:action="@{/exchange/accept}" method='POST'>
                     <input type="hidden" name="exchangeId" th:value="${appointment.exchangeRequest.id}">
-                    <input type="submit" class="btn btn-success" value="Accept" />
+                    <input type="submit" class="btn btn-success" value="接受" />
                 </form>
             </div>
             <div th:if="${allowedToRequestRejection}" class="col-md-9 p-3 mb-2 bg-warning text-dark text-center">
-                <p>You have <span class="font-weight-bold" th:text="${remainingTime}">3h 45m</span> to deny that
-                    this appointment took place.</p>
-                <p>After that time it will be invoiced automatically.</p>
+                <p>你还有 <span class="font-weight-bold" th:text="${remainingTime}">3h 45m</span> 可申诉该预约未履约。</p>
+                <p>超过该时间后系统将自动开票。</p>
 
                 <form th:action="@{/appointments/reject}" method='POST'>
                     <input type="hidden" name="appointmentId" th:value="${appointment.id}">
-                    <input type="submit" class="btn btn-danger" value="Reject" />
+                    <input type="submit" class="btn btn-danger" value="提交申诉" />
                 </form>
             </div>
             <div th:if="${allowedToAcceptRejection}" class="col-md-9 p-3 mb-2 bg-warning text-dark text-center">
-                <p>Customer claims that this appointment didn't take place.</p>
-                <p>If you agree with that, click the button below:</p>
+                <p>客户申诉该预约未履约。</p>
+                <p>如果你确认属实，请点击下方按钮。</p>
 
                 <form th:action="@{/appointments/acceptRejection}" method='POST'>
                     <input type="hidden" name="appointmentId" th:value="${appointment.id}">
-                    <input type="submit" class="btn btn-danger" value="Accept" /></form>
+                    <input type="submit" class="btn btn-danger" value="确认申诉" /></form>
             </div>
 
         </div>
@@ -48,15 +53,22 @@
         <div class="row">
             <div class="col-md-1">
             </div>
-            <div class="col-md-4">
+            <div class="col-lg-5">
 
-                <table id="appointments" class="table">
+                <table id="appointments" class="table content-panel">
                     <tr>
-                        <td><b>status</b></td>
-                        <td><span th:text="${appointment.status}"> scheduled </span></td>
+                        <td><b>状态</b></td>
+                        <td><span class="status-pill"
+                                  th:classappend="${appointment.status.name() == 'SCHEDULED'} ? ' is-success' : (${appointment.status.name() == 'REJECTION_REQUESTED'} ? ' is-warning' : (${appointment.status.name() == 'CANCELED' || appointment.status.name() == 'REJECTED'} ? ' is-danger' : ''))"
+                                  th:text="${appointment.status.name() == 'SCHEDULED' ? '已预约' :
+                                      (appointment.status.name() == 'CANCELED' ? '已取消' :
+                                      (appointment.status.name() == 'FINISHED' ? '已完成' :
+                                      (appointment.status.name() == 'INVOICED' ? '已开票' :
+                                      (appointment.status.name() == 'REJECTION_REQUESTED' ? '待确认' :
+                                      (appointment.status.name() == 'REJECTED' ? '已拒绝' : appointment.status)))))}">已预约</span></td>
                     </tr>
                     <tr th:if="${appointment.status.name()=='CANCELED'}">
-                        <td><b>canceled by</b></td>
+                        <td><b>取消人</b></td>
                         <td><span
                                 th:text="${appointment.canceler.firstName+' '+appointment.canceler.lastName}">Canceller
                             name</span>
@@ -65,78 +77,78 @@
                     </tr>
 
                     <tr>
-                        <td><b>date</b></td>
+                        <td><b>日期</b></td>
                         <td><span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy')}">10-01-2019</span></td>
                     </tr>
                     <tr>
-                        <td><b>time</b></td>
+                        <td><b>时间</b></td>
                         <td><span th:text="${#temporals.format(appointment.start, 'HH:mm')+' - '+ #temporals.format(appointment.end, 'HH:mm')}">14:00 - 15:00</span>
                         </td>
                     </tr>
                     <tr>
-                        <td><b>customer</b></td>
+                        <td><b>客户</b></td>
                         <td><span th:text="${appointment.customer.firstName+' '+appointment.customer.lastName}">Peter Kowalski</span>
                         </td>
                     </tr>
                     <tr>
-                        <td><b>provider</b></td>
+                        <td><b>服务人员</b></td>
                         <td><span th:text="${appointment.provider.firstName+' '+appointment.provider.lastName}">Marian Nowak</span>
                         </td>
                     </tr>
 
                     <tr>
-                        <td><b>work</b></td>
+                        <td><b>服务</b></td>
                         <td><span th:text="${appointment.work.name}"> english </span></td>
                     </tr>
                     <tr>
-                        <td><b>description</b></td>
+                        <td><b>说明</b></td>
                         <td><span th:text="${appointment.work.description}">description</span></td>
                     </tr>
 
 
                     <tr>
-                        <td><b>price</b></td>
-                        <td><span th:text="${appointment.work.price}"> 50 </span> pln</td>
+                        <td><b>价格</b></td>
+                        <td><span th:text="${appointment.work.price}"> 50 </span> PLN</td>
                     </tr>
                     <tr th:if="${appointment.status.name()=='INVOICED'}">
-                        <td><b>invoice</b></td>
-                        <td><a th:href="@{'/invoices/download/'+${appointment.invoice.id}}">download</a></td>
+                        <td><b>发票</b></td>
+                        <td><a th:href="@{'/invoices/download/'+${appointment.invoice.id}}">下载</a></td>
                     </tr>
 
                     <tr>
-                        <td><b>exchange</b></td>
+                        <td><b>换约</b></td>
                         <td th:if="${allowedToExchange}">
-                            <a th:href="@{'/exchange/'+${appointment.id}}">exchange</a>
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{'/exchange/'+${appointment.id}}">申请换约</a>
                         </td>
                         <td th:unless="${allowedToExchange}">
-                            <p>This appointment cannot be exchanged.</p>
+                            <p class="mb-0 text-muted">该预约当前不可换约。</p>
                         </td>
                     </tr>
                     
                     <tr>
-                        <td><b>cancellation</b></td>
+                        <td><b>取消预约</b></td>
                         <td th:if="${allowedToCancel}">
                             <form th:action="@{/appointments/cancel}" method='POST'>
                                 <input type="hidden" name="appointmentId" th:value="${appointment.id}">
-                                <input type="submit" class="btn btn-danger" value="Cancel" />
+                                <input type="submit" class="btn btn-danger" value="取消预约" />
                             </form>
                         </td>
                         <td th:unless="${allowedToCancel}">
-                            <p th:text="${cancelNotAllowedReason}">Reason why appointment cannot be cancelled.</p>
+                            <p class="mb-0 text-muted" th:text="${cancelNotAllowedReason}">该预约当前不可取消。</p>
                         </td>
                     </tr>
 
                 </table>
 
             </div>
-            <div class="col-md-5">
+            <div class="col-lg-6">
 
                 <div class="chatbody">
                     <div class="panel panel-primary">
                         <div class="panel-heading top-bar">
                             <div class="col-md-8 col-xs-8">
                                 <p>
-                                    Appointment chat with
+                                    预约沟通：
                                     <span sec:authorize="hasRole('ROLE_PROVIDER')" th:text="${appointment.customer.firstName}"></span>
                                     <span sec:authorize="hasRole('ROLE_CUSTOMER')" th:text="${appointment.provider.firstName}"></span>
                                 </p>
@@ -147,9 +159,9 @@
                             <div th:each="chatMessage : ${appointment.chatMessages}" class="row msg_container base_receive">
                                 <div class="col-md-12 col-xs-12">
                                     <div class="messages msg_receive">
-                                        <p th:text="${chatMessage.message}">messae</p>
+                                        <p th:text="${chatMessage.message}">消息内容</p>
                                         <time datetime="2009-11-13T20:00"><span
-                                                th:text="${chatMessage.author.firstName}">author</span> • <span
+                                                th:text="${chatMessage.author.firstName}">发送人</span> • <span
                                                 th:text="${#temporals.format(chatMessage.createdAt, 'dd-MM-yyyy HH:mm')}"></span></time>
                                     </div>
                                 </div>
@@ -159,8 +171,8 @@
                         <form th:action="@{/appointments/messages/new}" th:object="${chatMessage}" method='POST'>
                             <div class="input-group mb-3">
                                 <input type="hidden" name="appointmentId" th:value="${appointment.id}">
-                                <input type="text" class="form-control" th:field="*{message}" placeholder="Write your message here..." aria-label="Recipient's username" aria-describedby="basic-addon2">
-                                <button class="btn btn-outline-secondary" type="submit">Send</button>
+                                <input type="text" class="form-control" th:field="*{message}" placeholder="输入消息..." aria-label="消息内容" aria-describedby="basic-addon2">
+                                <button class="btn btn-outline-secondary" type="submit">发送</button>
                             </div>
                         </form>
 
@@ -174,7 +186,6 @@
 
         </div>
     </div>
-</div>
 </div>
 </body>
 

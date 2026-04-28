@@ -20,51 +20,51 @@ public class UserForm {
     private int id;
 
     @UniqueUsername(groups = {CreateUser.class})
-    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "Username should have 5-15 letters")
-    @NotBlank(groups = {CreateUser.class})
+    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "用户名长度应为 5-15 个字符")
+    @NotBlank(groups = {CreateUser.class}, message = "用户名不能为空")
     private String userName;
 
-    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "Password should have 5-15 letters")
-    @NotBlank(groups = {CreateUser.class})
+    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "密码长度应为 5-15 个字符")
+    @NotBlank(groups = {CreateUser.class}, message = "密码不能为空")
     private String password;
 
-    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "Password should have 5-15 letters")
-    @NotBlank(groups = {CreateUser.class})
+    @Size(min = 5, max = 15, groups = {CreateUser.class}, message = "密码长度应为 5-15 个字符")
+    @NotBlank(groups = {CreateUser.class}, message = "确认密码不能为空")
     private String matchingPassword;
 
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "First name cannot be empty")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "名不能为空")
     private String firstName;
 
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "Last name cannot be empty")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "姓不能为空")
     private String lastName;
 
-    @Email(groups = {CreateUser.class, UpdateUser.class}, message = "Email not valid!")
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "Email cannot be empty")
+    @Email(groups = {CreateUser.class, UpdateUser.class}, message = "邮箱格式不正确")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "邮箱不能为空")
     private String email;
 
-    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{9}", message = "Please enter valid mobile phone")
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "Mobile phone cannot be empty")
+    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{9}", message = "请输入有效手机号")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "手机号不能为空")
     private String mobile;
 
-    @Size(groups = {CreateUser.class, UpdateUser.class}, min = 5, max = 30, message = "Wrong street!")
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "Street cannot be empty")
+    @Size(groups = {CreateUser.class, UpdateUser.class}, min = 5, max = 30, message = "街道地址长度应为 5-30 个字符")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "街道地址不能为空")
     private String street;
 
-    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{2}-[0-9]{3}", message = "Please enter valid postcode")
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "Post code cannot be empty")
+    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{2}-[0-9]{3}", message = "请输入有效邮编")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "邮编不能为空")
     private String postcode;
 
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "City cannot be empty")
+    @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "城市不能为空")
     private String city;
 
     /*
      * CorporateCustomer only:
      * */
-    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "Company cannot be empty")
+    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "公司名称不能为空")
     private String companyName;
 
-    @Pattern(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, regexp = "[0-9]{10}", message = "Please enter valid Polish VAT number")
-    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "VAT number cannot be empty")
+    @Pattern(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, regexp = "[0-9]{10}", message = "请输入有效税号")
+    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "税号不能为空")
     private String vatNumber;
 
     /*

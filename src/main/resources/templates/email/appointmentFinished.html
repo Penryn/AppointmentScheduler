@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 
 <head></head>
 
 <body>
-<p>Hello, <span th:text="${appointment.customer.firstName}"></span></p>
-<p>This is your finished appointment summary:</p>
-<p>Date: <span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy HH:mm')}"></span></p>
-<p>Provider: <span th:text="${appointment.provider.firstName}"></span></p>
-<p>Work: <span th:text="${appointment.work.name}"></span></p>
-<p>Duration: <span th:text="${appointment.work.duration}"></span></p>
-<p>Price: <span th:text="${appointment.work.price}"></span></p>
-<p>If by some reason this appointemt didn't take place, you have 24h to report this by clicking <a th:href="${url}">here</a></p>
+<p>你好，<span th:text="${appointment.customer.firstName}"></span></p>
+<p>以下是你的已完成预约摘要：</p>
+<p>时间：<span th:text="${#temporals.format(appointment.start, 'dd-MM-yyyy HH:mm')}"></span></p>
+<p>服务人员：<span th:text="${appointment.provider.firstName}"></span></p>
+<p>服务：<span th:text="${appointment.work.name}"></span></p>
+<p>时长：<span th:text="${appointment.work.duration}"></span> 分钟</p>
+<p>价格：<span th:text="${appointment.work.price}"></span> PLN</p>
+<p>如果该预约未实际履约，你可在 24 小时内点击<a th:href="${url}">这里</a>提交申诉。</p>
 
 </body>
 

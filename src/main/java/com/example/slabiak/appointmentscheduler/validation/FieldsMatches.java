@@ -16,7 +16,7 @@ public @interface FieldsMatches {
 
     String matchingField();
 
-    String message() default "Passwords don't match";
+    String message() default "两次输入的密码不一致";
 
     Class<?>[] groups() default {};
 

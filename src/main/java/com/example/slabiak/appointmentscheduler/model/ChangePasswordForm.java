@@ -16,12 +16,12 @@ public class ChangePasswordForm {
     @NotNull
     private int id;
 
-    @Size(min = 5, max = 10, message = "Password should have 5-15 letters")
-    @NotBlank()
+    @Size(min = 5, max = 10, message = "密码长度应为 5-10 个字符")
+    @NotBlank(message = "新密码不能为空")
     private String password;
 
-    @Size(min = 5, max = 10, message = "Password should have 5-15 letters")
-    @NotBlank()
+    @Size(min = 5, max = 10, message = "密码长度应为 5-10 个字符")
+    @NotBlank(message = "确认密码不能为空")
     private String matchingPassword;
 
     private String currentPassword;

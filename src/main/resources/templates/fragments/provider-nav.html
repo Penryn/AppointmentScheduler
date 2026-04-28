@@ -2,19 +2,19 @@
     <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav me-auto">
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/}" th:classappend="${activeLink} == 'home' ? 'active':''">Home
+                <a class="nav-link" th:href="@{/}" th:classappend="${activeLink} == 'home' ? 'active':''">日程
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/appointments/all}"
-                   th:classappend="${activeLink} == 'appointments' ? 'active':''">Appointments</a>
+                   th:classappend="${activeLink} == 'appointments' ? 'active':''">预约管理</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/providers/availability}"
-                   th:classappend="${activeLink} == 'availability' ? 'active':''">Availability</a>
+                   th:classappend="${activeLink} == 'availability' ? 'active':''">可预约时间</a>
             </li>
             <li class="nav-item" th:classappend="${activeLink} == 'account' ? 'active':''">
-                <a class="nav-link" th:href="@{'/providers/' + ${#authentication.principal.id}}">My account</a>
+                <a class="nav-link" th:href="@{'/providers/' + ${#authentication.principal.id}}">账户资料</a>
             </li>
         </ul>
     </div>

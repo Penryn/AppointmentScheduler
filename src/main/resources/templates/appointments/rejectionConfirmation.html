@@ -1,41 +1,40 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (~{::body},'appointments','Appointment rejection')}"
+      th:replace="~{fragments/layout :: layout (~{::body},'appointments','预约申诉结果')}"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <body th:remove="tag">
 
 <!-- Page Content -->
-<div class="row align-items-center justify-content-center" style="margin-top: 50px">
+<div class="content-panel text-center">
 <div th:if="${type == 'request'}">
     <div th:if="${result}">
-        <p>You succesfully requested rejection for this appointment. </p>
-        <p>If provider will confirm that it will be not invoiced.</p>
+        <p>已提交预约未履约申诉。</p>
+        <p>服务人员确认后，该预约将不会开票。</p>
     </div>
 
     <div th:if="${result==false}">
-        <p>Error occured!</p>
-        <p>Make sure that this appointments isn't already rejected</p>
+        <p>操作失败。</p>
+        <p>请确认该预约尚未被申诉或拒绝。</p>
     </div>
 
 </div>
 
 <div  th:if="${type == 'accept'}">
     <div th:if="${result}">
-        <p>Appointment status has been succesfully set to rejected </p>
-        <p>It will be not invoiced.</p>
+        <p>预约状态已设置为已拒绝。</p>
+        <p>该预约不会开票。</p>
     </div>
 
     <div th:if="${result==false}">
-        <p>Error occured!</p>
-        <p>Make sure that this appointments isn't already rejected</p>
+        <p>操作失败。</p>
+        <p>请确认该预约尚未被申诉或拒绝。</p>
     </div>
 
 </div>
 
 <div sec:authorize="!isAuthenticated()">
-    <p>You can sign in <a th:href="@{/login}">here</a></p>
-</div>
+    <p>你可以在<a th:href="@{/login}">这里登录</a>。</p>
 </div>
 </div>
 

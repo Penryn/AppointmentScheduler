@@ -114,7 +114,7 @@
 
                         <td>
                             <span th:text="${invoice.number}" id="number">FV/2019/03/42</span><br />
-                            Issued: <span th:text="${#temporals.format(invoice.issued, 'dd-MM-yyyy')}">Issued: 01-03-2019</span><br/>
+                            开票日期：<span th:text="${#temporals.format(invoice.issued, 'dd-MM-yyyy')}">01-03-2019</span><br/>
                         </td>
                     </tr>
                 </table>
@@ -126,7 +126,7 @@
                 <table>
                     <tr>
                         <td>
-                            <b>From:</b><br/>
+                            <b>开票方：</b><br/>
                             Walerian Grabowski<br/>
                             ul. Białych Brzóz 13<br/>
                             31-410 Kraków<br/>
@@ -136,7 +136,7 @@
                         </td>
 
                         <td>
-                            <b>To:</b><br/>
+                            <b>收票方：</b><br/>
                             <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_RETAIL')}" th:utext="${invoice.appointments[0].customer.firstName +' '+invoice.appointments[0].customer.lastName}+ '&lt;br /&gt;'">Bolesław Walczak</span>
                             <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_CORPORATE')}" th:utext="${invoice.appointments[0].customer.companyName} +'&lt;br /&gt;'">Company name</span>
                             <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_CORPORATE')}" th:utext="${'VAT: ' + invoice.appointments[0].customer.vatNumber}+'&lt;br /&gt;'">VAT: 697-134-42-81</span>
@@ -174,7 +174,7 @@
             <td></td>
 
             <td>
-                Total: <span th:text="${invoice.totalAmount}">50 PLN</span> PLN
+                合计：<span th:text="${invoice.totalAmount}">50 PLN</span> PLN
             </td>
         </tr>
     </table>
