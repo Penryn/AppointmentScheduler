@@ -115,7 +115,7 @@
                     <div class="mb-3">
                         <label for="street">街道地址</label>
 
-                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('street') ? 'is-invalid' :''}" th:field="*{street}" placeholder="ul. Adama Mickiewicza 1">
+                        <input type="text" class="form-control" th:classappend="${#fields.hasErrors('street') ? 'is-invalid' :''}" th:field="*{street}" placeholder="北京市朝阳区示例路1号">
                         <div th:if="${#fields.hasErrors('street')}" class="invalid-feedback">
                             <p th:errors="*{street}"></p>
                         </div>
@@ -131,7 +131,7 @@
                         </div>
                         <div class="col-md-8">
                             <label for="city">城市</label>
-                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('city') ? 'is-invalid' :''}" th:field="*{city}" placeholder="Poznan">
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('city') ? 'is-invalid' :''}" th:field="*{city}" placeholder="北京">
                             <div th:if="${#fields.hasErrors('city')}" class="invalid-feedback">
                                 <p th:errors="*{city}"></p>
                             </div>
