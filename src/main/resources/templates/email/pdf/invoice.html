@@ -139,7 +139,7 @@
                             <b>收票方：</b><br/>
                             <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_RETAIL')}" th:utext="${invoice.appointments[0].customer.firstName +' '+invoice.appointments[0].customer.lastName}+ '&lt;br /&gt;'">Bolesław Walczak</span>
                             <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_CORPORATE')}" th:utext="${invoice.appointments[0].customer.companyName} +'&lt;br /&gt;'">Company name</span>
-                            <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_CORPORATE')}" th:utext="${'VAT: ' + invoice.appointments[0].customer.vatNumber}+'&lt;br /&gt;'">VAT: 697-134-42-81</span>
+                            <span th:if="${invoice.appointments[0].customer.hasRole('ROLE_CUSTOMER_CORPORATE')}" th:utext="${'统一社会信用代码：' + invoice.appointments[0].customer.vatNumber}+'&lt;br /&gt;'">统一社会信用代码：91110000000000000X</span>
                             <span th:text="${invoice.appointments[0].customer.street}">ul. Pola Wincentego 7</span><br/>
                             <span th:text="${invoice.appointments[0].customer.postcode + ' ' + invoice.appointments[0].customer.city}">71-342 Szczecin</span><br/>
                             <span th:text="${invoice.appointments[0].customer.mobile}">695-262-145</span><br/>

@@ -96,7 +96,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="vatNumber">税号</label>
+                                <label for="vatNumber">统一社会信用代码</label>
                                 <input type="text" class="form-control" th:classappend="${#fields.hasErrors('vatNumber') ? 'is-invalid' :''}" th:field="*{vatNumber}">
                                 <div th:if="${#fields.hasErrors('vatNumber')}" class="invalid-feedback">
                                     <p th:errors="*{vatNumber}"></p>

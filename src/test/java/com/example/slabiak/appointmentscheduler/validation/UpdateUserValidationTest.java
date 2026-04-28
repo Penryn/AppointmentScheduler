@@ -12,6 +12,7 @@ import jakarta.validation.ValidatorFactory;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class UpdateUserValidationTest {
 
@@ -29,6 +30,40 @@ public class UpdateUserValidationTest {
         UserForm form = new UserForm();
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
         assertEquals(violations.size(), 8);
+    }
+
+    @Test
+    public void shouldAcceptChineseMobileAndPostcodeWhenUpdateUser() {
+        UserForm form = validUserForm();
+
+        Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
+
+        assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    public void shouldRejectNonChineseMobileAndPostcodeWhenUpdateUser() {
+        UserForm form = validUserForm();
+        form.setMobile("123456789");
+        form.setPostcode("12-345");
+
+        Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
+
+        assertEquals(2, violations.size());
+    }
+
+    private UserForm validUserForm() {
+        UserForm form = new UserForm();
+        form.setId(1);
+        form.setUserName("zhangsan");
+        form.setFirstName("San");
+        form.setLastName("Zhang");
+        form.setEmail("zhangsan@example.com");
+        form.setMobile("13800138000");
+        form.setStreet("北京市朝阳区示例路1号");
+        form.setPostcode("100000");
+        form.setCity("北京");
+        return form;
     }
 
 }

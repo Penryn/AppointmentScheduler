@@ -42,7 +42,7 @@ public class UserForm {
     @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "邮箱不能为空")
     private String email;
 
-    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{9}", message = "请输入有效手机号")
+    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "1[3-9][0-9]{9}", message = "请输入有效的中国大陆手机号")
     @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "手机号不能为空")
     private String mobile;
 
@@ -50,7 +50,7 @@ public class UserForm {
     @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "街道地址不能为空")
     private String street;
 
-    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{2}-[0-9]{3}", message = "请输入有效邮编")
+    @Pattern(groups = {CreateUser.class, UpdateUser.class}, regexp = "[0-9]{6}", message = "请输入 6 位中国邮政编码")
     @NotBlank(groups = {CreateUser.class, UpdateUser.class}, message = "邮编不能为空")
     private String postcode;
 
@@ -63,8 +63,8 @@ public class UserForm {
     @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "公司名称不能为空")
     private String companyName;
 
-    @Pattern(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, regexp = "[0-9]{10}", message = "请输入有效税号")
-    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "税号不能为空")
+    @Pattern(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, regexp = "[0-9A-Z]{18}", message = "请输入 18 位统一社会信用代码")
+    @NotBlank(groups = {CreateCorporateCustomer.class, UpdateCorporateCustomer.class}, message = "统一社会信用代码不能为空")
     private String vatNumber;
 
     /*
