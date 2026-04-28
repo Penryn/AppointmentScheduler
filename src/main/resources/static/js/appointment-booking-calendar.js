@@ -14,6 +14,29 @@ document.addEventListener("DOMContentLoaded", function () {
     firstBookableDate.setDate(firstBookableDate.getDate() + 1);
     firstBookableDate.setHours(0, 0, 0, 0);
 
+    function localizeListLabels() {
+        calendarEl.querySelectorAll("*").forEach(function (element) {
+            if (element.getAttribute("aria-label") === "Previous day" || element.getAttribute("title") === "Previous day") {
+                element.setAttribute("aria-label", "前一天");
+                element.setAttribute("title", "前一天");
+            } else if (element.getAttribute("aria-label") === "Next day" || element.getAttribute("title") === "Next day") {
+                element.setAttribute("aria-label", "后一天");
+                element.setAttribute("title", "后一天");
+            }
+
+            if (element.children.length > 0) {
+                return;
+            }
+
+            var text = element.textContent.trim();
+            if (text === "Time") {
+                element.textContent = "时间";
+            } else if (text === "Event") {
+                element.textContent = "状态";
+            }
+        });
+    }
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "listDay",
         initialDate: firstBookableDate,
@@ -37,6 +60,12 @@ document.addEventListener("DOMContentLoaded", function () {
             minute: "2-digit",
             hour12: false
         },
+        eventDidMount: function () {
+            window.setTimeout(localizeListLabels, 0);
+        },
+        datesSet: function () {
+            window.setTimeout(localizeListLabels, 0);
+        },
         events: function (fetchInfo, successCallback, failureCallback) {
             var requestedDate = fetchInfo.startStr.slice(0, 10);
             fetch(availabilityBaseUrl + requestedDate, {
@@ -59,6 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             url: bookingBaseUrl + encodeURIComponent(entry.start)
                         };
                     }));
+                    window.setTimeout(localizeListLabels, 0);
                 })
                 .catch(failureCallback);
         },
@@ -72,4 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     calendar.render();
+    localizeListLabels();
+    window.setTimeout(localizeListLabels, 100);
 });

@@ -27,9 +27,12 @@
                             th:text="${statusOption.name() == 'SCHEDULED' ? '已预约' :
                                       (statusOption.name() == 'CANCELED' ? '已取消' :
                                       (statusOption.name() == 'FINISHED' ? '已完成' :
+                                      (statusOption.name() == 'CONFIRMED' ? '已确认' :
                                       (statusOption.name() == 'INVOICED' ? '已开票' :
+                                      (statusOption.name() == 'DENIED' ? '已驳回' :
                                       (statusOption.name() == 'REJECTION_REQUESTED' ? '待确认未履约' :
-                                      (statusOption.name() == 'REJECTED' ? '已拒绝' : statusOption)))))}"
+                                      (statusOption.name() == 'REJECTED' ? '已拒绝' :
+                                      (statusOption.name() == 'EXCHANGE_REQUESTED' ? '换约处理中' : statusOption))))))))}"
                             th:selected="${selectedStatus != null && statusOption == selectedStatus}">SCHEDULED</option>
                 </select>
             </div>
@@ -57,16 +60,19 @@
                 <td colspan="7">暂无预约</td>
             </tr>
             <tr th:each="appointment : ${appointments.content}"
-                th:classappend="${appointment.status.name() == 'CANCELED' || appointment.status.name()  == 'FINISHED' || appointment.status.name()  == 'INVOICED' || appointment.status.name()  == 'REJECTION_REQUESTED' || appointment.status.name()  == 'REJECTED'} ? table-secondary : table-success">
+                th:classappend="${appointment.status.name() == 'CANCELED' || appointment.status.name()  == 'FINISHED' || appointment.status.name()  == 'INVOICED' || appointment.status.name()  == 'REJECTION_REQUESTED' || appointment.status.name()  == 'REJECTED' || appointment.status.name() == 'DENIED'} ? table-secondary : table-success">
                 <td><span th:text="${appointment.work.name}"> Work </span></td>
                 <td><span class="status-pill"
-                          th:classappend="${appointment.status.name() == 'SCHEDULED'} ? ' is-success' : (${appointment.status.name() == 'REJECTION_REQUESTED'} ? ' is-warning' : (${appointment.status.name() == 'CANCELED' || appointment.status.name() == 'REJECTED'} ? ' is-danger' : ''))"
+                          th:classappend="${appointment.status.name() == 'SCHEDULED' || appointment.status.name() == 'CONFIRMED'} ? ' is-success' : (${appointment.status.name() == 'REJECTION_REQUESTED' || appointment.status.name() == 'EXCHANGE_REQUESTED'} ? ' is-warning' : (${appointment.status.name() == 'CANCELED' || appointment.status.name() == 'REJECTED' || appointment.status.name() == 'DENIED'} ? ' is-danger' : ''))"
                           th:text="${appointment.status.name() == 'SCHEDULED' ? '已预约' :
                                       (appointment.status.name() == 'CANCELED' ? '已取消' :
                                       (appointment.status.name() == 'FINISHED' ? '已完成' :
+                                      (appointment.status.name() == 'CONFIRMED' ? '已确认' :
                                       (appointment.status.name() == 'INVOICED' ? '已开票' :
+                                      (appointment.status.name() == 'DENIED' ? '已驳回' :
                                       (appointment.status.name() == 'REJECTION_REQUESTED' ? '待确认' :
-                                      (appointment.status.name() == 'REJECTED' ? '已拒绝' : appointment.status)))))}">已预约</span></td>
+                                      (appointment.status.name() == 'REJECTED' ? '已拒绝' :
+                                      (appointment.status.name() == 'EXCHANGE_REQUESTED' ? '换约处理中' : appointment.status))))))))}">已预约</span></td>
                 <td><span th:text="${#temporals.format(appointment.start, 'yyyy-MM-dd HH:mm')}"> 21-01-2019 15:00</span>
                 </td>
                 <td sec:authorize="!hasRole('ROLE_PROVIDER')"><span
