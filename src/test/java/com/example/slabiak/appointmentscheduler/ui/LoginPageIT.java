@@ -5,7 +5,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.By;
-import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -22,7 +23,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -32,6 +35,8 @@ import static org.junit.Assert.*;
 @ContextConfiguration(initializers = LoginPageIT.Initializer.class)
 @ActiveProfiles("integration-test")
 public class LoginPageIT {
+
+    private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(30);
 
     @LocalServerPort
     private int port;
@@ -43,6 +48,7 @@ public class LoginPageIT {
     @Test
     public void shouldShowLoginPageAndSuccessfullyLoginToAdminAccountUsingAdminCredentials() {
         RemoteWebDriver driver = chrome.getWebDriver();
+        driver.manage().window().setSize(new Dimension(1280, 800));
         String url = "http://host.testcontainers.internal:" + port + "/";
         driver.get(url);
 
@@ -51,7 +57,7 @@ public class LoginPageIT {
         driver.findElement(By.id("password")).sendKeys("qwerty123");
         driver.findElement(By.tagName("button")).click();
 
-        WebElement appointments = driver.findElement(By.linkText("Appointments"));
+        WebElement appointments = waitForClickable(driver, By.cssSelector("a[href='/appointments/all']"));
 
         assertNotNull(elementById);
         assertNotNull(appointments);
@@ -60,40 +66,95 @@ public class LoginPageIT {
     @Test
     public void shouldLoginAsRetailCustomerAndSuccessfullyBookNewAppointment() {
         RemoteWebDriver driver = chrome.getWebDriver();
+        driver.manage().window().setSize(new Dimension(1280, 800));
         String url = "http://host.testcontainers.internal:" + port + "/";
 
         driver.get(url);
-        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 
         driver.findElement(By.id("username")).sendKeys("customer_r");
         driver.findElement(By.id("password")).sendKeys("qwerty123");
         driver.findElement(By.tagName("button")).click();
 
-        driver.findElement(By.linkText("Appointments")).click();
-        driver.findElement(By.linkText("New appointment")).click();
-        driver.findElement(By.linkText("Select")).click();
-        driver.findElement(By.linkText("Select")).click();
-        driver.findElement(By.xpath("//*[@id=\"calendar\"]/div[1]/div[2]/div/button[2]/span\n")).click();
+        waitForClickable(driver, By.cssSelector("a[href='/appointments/all']")).click();
+        waitForClickable(driver, By.cssSelector("a[href='/appointments/new']")).click();
+        waitForClickable(driver, By.cssSelector("a.btn-primary[href^='/appointments/new/']")).click();
+        waitForClickable(driver, By.cssSelector("a.btn-primary[href^='/appointments/new/']")).click();
+        clickFirstAvailableAppointmentSlot(driver);
 
-        boolean result = false;
-        int attempts = 0;
-        while (attempts < 3) {
-            try {
-                driver.findElement(By.xpath("//*[@id=\"calendar\"]/div[2]/div/div/table/tbody/tr[2]/td[1]")).click();
-                result = true;
-                break;
-            } catch (StaleElementReferenceException e) {
-            }
-            attempts++;
-        }
-
-        driver.findElement(By.xpath("/html/body/div[2]/div/div/table/tbody/tr[8]/td/form/button")).click();
+        waitForClickable(driver, By.cssSelector("form[action='/appointments/new'] button[type='submit']")).click();
 
         WebElement table = driver.findElement(By.id("appointments"));
         WebElement tableBody = table.findElement(By.tagName("tbody"));
         int rowCount = tableBody.findElements(By.tagName("tr")).size();
-        assertTrue(result);
         assertEquals(1, rowCount);
+    }
+
+    private WebElement waitForClickable(RemoteWebDriver driver, By locator) {
+        Instant deadline = Instant.now().plus(WAIT_TIMEOUT);
+        RuntimeException lastError = null;
+
+        while (Instant.now().isBefore(deadline)) {
+            try {
+                WebElement element = driver.findElement(locator);
+                if (element.isDisplayed() && element.isEnabled()) {
+                    return element;
+                }
+            } catch (RuntimeException e) {
+                lastError = e;
+            }
+            sleepBriefly();
+        }
+
+        if (lastError != null) {
+            throw lastError;
+        }
+        throw new NoSuchElementException("Timed out waiting for clickable element: " + locator);
+    }
+
+    private void clickFirstAvailableAppointmentSlot(RemoteWebDriver driver) {
+        waitForElement(driver, By.id("calendar"));
+
+        for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
+            List<WebElement> slots = driver.findElements(By.cssSelector("#calendar a.fc-event[href]"));
+            if (!slots.isEmpty()) {
+                slots.get(0).click();
+                return;
+            }
+
+            waitForClickable(driver, By.cssSelector("#calendar .fc-next-button")).click();
+            waitForElement(driver, By.id("calendar"));
+            sleepBriefly();
+        }
+
+        fail("No available appointment slot found in the next seven calendar days");
+    }
+
+    private WebElement waitForElement(RemoteWebDriver driver, By locator) {
+        Instant deadline = Instant.now().plus(WAIT_TIMEOUT);
+        NoSuchElementException lastError = null;
+
+        while (Instant.now().isBefore(deadline)) {
+            try {
+                return driver.findElement(locator);
+            } catch (NoSuchElementException e) {
+                lastError = e;
+            }
+            sleepBriefly();
+        }
+
+        if (lastError != null) {
+            throw lastError;
+        }
+        throw new NoSuchElementException("Timed out waiting for element: " + locator);
+    }
+
+    private void sleepBriefly() {
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for Selenium element", e);
+        }
     }
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
