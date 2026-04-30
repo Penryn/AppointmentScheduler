@@ -5,6 +5,8 @@ import { Counter } from 'k6/metrics';
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const PASSWORD = __ENV.K6_PASSWORD || 'qwerty123';
 
+http.setResponseCallback(http.expectedStatuses({ min: 200, max: 399 }));
+
 const USERS = {
   admin: __ENV.K6_ADMIN_USERNAME || 'admin',
   provider: __ENV.K6_PROVIDER_USERNAME || 'provider',
@@ -179,11 +181,11 @@ function loginAs(username) {
   }
 
   const login = post(`${BASE_URL}/perform_login`, payload, {
-    redirects: 1,
+    redirects: 0,
   }, `${username}:login-submit`);
   check(login, {
-    [`${username} login succeeds`]: (response) => response.status === 200 && !bodyOf(response).includes('id="login-form"'),
-    [`${username} login does not return error page`]: (response) => !String(response.url || '').includes('error') && !bodyOf(response).includes('用户名或密码错误'),
+    [`${username} login redirects after success`]: (response) => response.status === 302,
+    [`${username} login does not return error redirect`]: (response) => !String(response.headers.Location || '').includes('error'),
   });
 }
 
