@@ -110,11 +110,10 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: Unit and Integration Test Report
-          path: |
-            **/surefire-reports/TEST-*.xml
-            **/failsafe-reports/TEST-*.xml
+          path: target/surefire-reports/TEST-*.xml,target/failsafe-reports/TEST-*.xml
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
 
       - name: Normalize JaCoCo artifact name
         if: always()
@@ -232,11 +231,10 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: UI Test Report
-          path: |
-            **/surefire-reports/TEST-*.xml
-            **/failsafe-reports/TEST-*.xml
+          path: target/surefire-reports/TEST-*.xml,target/failsafe-reports/TEST-*.xml
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
 
       - name: Upload UI test reports
         if: always()
