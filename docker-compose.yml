@@ -1,7 +1,10 @@
 services:
 
   backend:
-    image: slabiak/appointmentscheduler:1.0.5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: appointmentscheduler:local
     ports:
       - "8080:8080"
     restart: always
@@ -11,7 +14,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       BASE_URL: http://localhost:8080
     depends_on:
-      - appointmentscheduler_db
+      appointmentscheduler_db:
+        condition: service_healthy
     networks:
       - appointmentscheduler_network
 
@@ -25,6 +29,11 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
       MYSQL_ROOT_PASSWORD: root_pass
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uuser", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - appointmentscheduler_volume:/var/lib/mysql
     networks:

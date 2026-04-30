@@ -113,6 +113,36 @@ mvn spring-boot:run
 
 应用默认启动在 <http://localhost:8080>。
 
+也可以用 Docker Compose 构建并运行本地源码：
+
+```bash
+docker compose up --build
+```
+
+该命令会：
+
+- 基于当前工作区源码构建 `appointmentscheduler:local` 镜像
+- 启动 MySQL 8 容器
+- 等 MySQL 健康检查通过后启动后端应用
+
+后台运行可使用：
+
+```bash
+docker compose up --build -d
+```
+
+停止并保留数据库数据：
+
+```bash
+docker compose down
+```
+
+停止并删除数据库卷：
+
+```bash
+docker compose down -v
+```
+
 ### 5. 使用初始化账号登录
 
 首次启动时，Flyway 会自动插入一组演示数据。
@@ -258,7 +288,7 @@ mvn clean verify
 
 ## 说明
 
-- `docker-compose.yml` 当前更适合做已发布镜像的容器化运行验证，不是本地开发源码调试的主流程
+- `docker-compose.yml` 会基于本地源码构建镜像，适合验证当前工作区代码的容器化运行效果
 - 代码中仍保留少量历史命名，但运行时技术栈、构建流程和基础设施已经对齐到当前的 Spring Boot 3 / Java 17 基线
 
 ## 许可证

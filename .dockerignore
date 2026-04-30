@@ -1,0 +1,9 @@
+.git
+.idea
+.vscode
+target
+*.log
+.DS_Store
+README.md
+docs
+output
