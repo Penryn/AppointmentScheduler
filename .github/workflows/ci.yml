@@ -22,6 +22,27 @@ on:
       - 'README.md'
       - 'LICENSE.md'
   workflow_dispatch:
+    inputs:
+      k6_warm_vus:
+        description: Warm-up virtual users for the k6 performance test
+        required: false
+        default: '5'
+      k6_peak_vus:
+        description: Peak virtual users for the k6 performance test
+        required: false
+        default: '10'
+      k6_ramp_up_duration:
+        description: k6 ramp-up duration
+        required: false
+        default: '20s'
+      k6_steady_duration:
+        description: k6 steady-state duration
+        required: false
+        default: '40s'
+      k6_ramp_down_duration:
+        description: k6 ramp-down duration
+        required: false
+        default: '20s'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -126,11 +147,87 @@ jobs:
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
 
+  performance-test:
+    name: k6 Performance Test
+    needs: build-test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start application stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose up --build -d
+
+      - name: Wait for application health
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "Application is healthy."
+              exit 0
+            fi
+            echo "Waiting for application health... attempt ${attempt}/60"
+            sleep 5
+          done
+
+          docker compose ps
+          docker compose logs backend
+          exit 1
+
+      - name: Run k6 smoke load test
+        shell: bash
+        env:
+          K6_WARM_VUS: ${{ github.event.inputs.k6_warm_vus || '5' }}
+          K6_PEAK_VUS: ${{ github.event.inputs.k6_peak_vus || '10' }}
+          K6_RAMP_UP_DURATION: ${{ github.event.inputs.k6_ramp_up_duration || '20s' }}
+          K6_STEADY_DURATION: ${{ github.event.inputs.k6_steady_duration || '40s' }}
+          K6_RAMP_DOWN_DURATION: ${{ github.event.inputs.k6_ramp_down_duration || '20s' }}
+        run: |
+          set -euo pipefail
+          mkdir -p target/k6
+          docker run --rm --network host \
+            -e BASE_URL=http://localhost:8080 \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            grafana/k6:0.49.0 run \
+            --summary-export target/k6/summary.json \
+            performance/k6/appointmentscheduler-smoke.js
+
+      - name: Capture application logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p target/k6
+          docker compose logs > target/k6/docker-compose.log
+
+      - name: Stop application stack
+        if: always()
+        shell: bash
+        run: docker compose down -v
+
+      - name: Upload k6 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: target/k6
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
   publish-image:
     name: Publish Docker Image
     needs:
       - build-test
       - ui-test
+      - performance-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 25
