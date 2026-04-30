@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -25,7 +26,6 @@ import org.testcontainers.containers.BrowserWebDriverContainer;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -79,7 +79,7 @@ public class LoginPageIT {
         waitForClickable(driver, By.cssSelector("a[href='/appointments/new']")).click();
         waitForClickable(driver, By.cssSelector("a.btn-primary[href^='/appointments/new/']")).click();
         waitForClickable(driver, By.cssSelector("a.btn-primary[href^='/appointments/new/']")).click();
-        clickFirstAvailableAppointmentSlot(driver);
+        navigateToFirstAvailableAppointmentSlot(driver);
 
         waitForClickable(driver, By.cssSelector("form[action='/appointments/new'] button[type='submit']")).click();
 
@@ -111,22 +111,57 @@ public class LoginPageIT {
         throw new NoSuchElementException("Timed out waiting for clickable element: " + locator);
     }
 
-    private void clickFirstAvailableAppointmentSlot(RemoteWebDriver driver) {
+    private void navigateToFirstAvailableAppointmentSlot(RemoteWebDriver driver) {
         waitForElement(driver, By.id("calendar"));
 
-        for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
-            List<WebElement> slots = driver.findElements(By.cssSelector("#calendar a.fc-event[href]"));
-            if (!slots.isEmpty()) {
-                slots.get(0).click();
-                return;
-            }
+        Object bookingPath = ((JavascriptExecutor) driver).executeAsyncScript("""
+                const done = arguments[arguments.length - 1];
+                const calendar = document.getElementById('calendar');
+                const availabilityBaseUrl = calendar.dataset.availabilityBaseUrl;
+                const bookingBaseUrl = calendar.dataset.bookingBaseUrl;
 
-            waitForClickable(driver, By.cssSelector("#calendar .fc-next-button")).click();
-            waitForElement(driver, By.id("calendar"));
-            sleepBriefly();
+                function formatDate(date) {
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${date.getFullYear()}-${month}-${day}`;
+                }
+
+                (async function () {
+                    const firstBookableDate = new Date();
+                    firstBookableDate.setDate(firstBookableDate.getDate() + 1);
+
+                    for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+                        const candidateDate = new Date(firstBookableDate);
+                        candidateDate.setDate(firstBookableDate.getDate() + dayOffset);
+
+                        const response = await fetch(availabilityBaseUrl + formatDate(candidateDate), {
+                            headers: {'X-Requested-With': 'XMLHttpRequest'}
+                        });
+                        if (!response.ok) {
+                            continue;
+                        }
+
+                        const entries = await response.json();
+                        if (entries.length > 0) {
+                            done(bookingBaseUrl + encodeURIComponent(entries[0].start));
+                            return;
+                        }
+                    }
+
+                    done(null);
+                })().catch(function (error) {
+                    done('ERROR: ' + error.message);
+                });
+                """);
+
+        if (bookingPath == null) {
+            fail("No available appointment slot found in the next 30 calendar days");
+        }
+        if (bookingPath instanceof String path && path.startsWith("ERROR: ")) {
+            fail(path);
         }
 
-        fail("No available appointment slot found in the next seven calendar days");
+        driver.get("http://host.testcontainers.internal:" + port + bookingPath);
     }
 
     private WebElement waitForElement(RemoteWebDriver driver, By locator) {
