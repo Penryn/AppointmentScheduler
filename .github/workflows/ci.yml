@@ -402,6 +402,14 @@ jobs:
                 ' target/k6/checks.json
               fi
             fi
+            if [ -f target/k6/http-status.json ]; then
+              echo
+              echo "### HTTP status distribution"
+              echo
+              echo "| Status | Count |"
+              echo "| --- | ---: |"
+              jq -r '.[] | "| \(.status) | \(.count) |"' target/k6/http-status.json
+            fi
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Capture application logs
