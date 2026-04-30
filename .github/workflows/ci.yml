@@ -55,7 +55,8 @@ env:
   JACOCO_ARTIFACT_PREFIX: 'jacoco-report'
   MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
   MAVEN_OPTS: '-Xmx3072m'
-  ACTIONLINT_VERSION: '1.7.7'
+  DEPENDENCY_CHECK_VERSION: '12.1.8'
+  K6_VERSION: '0.49.0'
 
 jobs:
   workflow-lint:
@@ -64,18 +65,19 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      checks: write
+      pull-requests: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Run actionlint
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --rm \
-            -v "${PWD}:/repo" \
-            -w /repo \
-            "rhysd/actionlint:${ACTIONLINT_VERSION}"
+        uses: reviewdog/action-actionlint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
+          filter_mode: file
+          fail_level: error
 
   build-test:
     name: Build and Test
@@ -84,6 +86,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      checks: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -101,6 +104,17 @@ jobs:
           set -euo pipefail
           read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
           ./mvnw "${maven_args[@]}" verify
+
+      - name: Publish JUnit test report
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Unit and Integration Test Report
+          path: |
+            **/surefire-reports/TEST-*.xml
+            **/failsafe-reports/TEST-*.xml
+          reporter: java-junit
+          fail-on-error: false
 
       - name: Normalize JaCoCo artifact name
         if: always()
@@ -147,8 +161,8 @@ jobs:
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
 
-  ui-test:
-    name: UI Tests
+  dependency-check:
+    name: OWASP Dependency Check
     needs: build-test
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
@@ -166,12 +180,63 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Run OWASP Dependency-Check
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
+          ./mvnw "${maven_args[@]}" \
+            "org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:check" \
+            -Dformat=ALL \
+            -DfailBuildOnCVSS=11
+
+      - name: Upload Dependency-Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: target/dependency-check-report.*
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
+  ui-test:
+    name: UI Tests
+    needs: build-test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
       - name: Run Selenium UI tests
         shell: bash
         run: |
           set -euo pipefail
           read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
           ./mvnw "${maven_args[@]}" -Pui-tests verify
+
+      - name: Publish UI JUnit test report
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: UI Test Report
+          path: |
+            **/surefire-reports/TEST-*.xml
+            **/failsafe-reports/TEST-*.xml
+          reporter: java-junit
+          fail-on-error: false
 
       - name: Upload UI test reports
         if: always()
@@ -226,6 +291,31 @@ jobs:
           cache-from: type=gha,scope=appointmentscheduler-ci
           cache-to: type=gha,mode=max,scope=appointmentscheduler-ci
 
+      - name: Prepare Trivy output directory
+        shell: bash
+        run: mkdir -p target/trivy
+
+      - name: Run Trivy image scan
+        uses: aquasecurity/trivy-action@0.35.0
+        continue-on-error: true
+        with:
+          image-ref: appointmentscheduler:local
+          format: table
+          output: target/trivy/image-scan.txt
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Upload Trivy image scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-scan-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: target/trivy
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
       - name: Start application stack
         shell: bash
         run: |
@@ -249,28 +339,29 @@ jobs:
           docker compose logs backend
           exit 1
 
-      - name: Run k6 smoke load test
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Prepare k6 output directory
         shell: bash
+        run: mkdir -p target/k6
+
+      - name: Run k6 smoke load test
+        uses: grafana/run-k6-action@v1
         env:
+          BASE_URL: http://localhost:8080
           K6_WARM_VUS: ${{ github.event.inputs.k6_warm_vus || '5' }}
           K6_PEAK_VUS: ${{ github.event.inputs.k6_peak_vus || '10' }}
           K6_RAMP_UP_DURATION: ${{ github.event.inputs.k6_ramp_up_duration || '20s' }}
           K6_STEADY_DURATION: ${{ github.event.inputs.k6_steady_duration || '40s' }}
           K6_RAMP_DOWN_DURATION: ${{ github.event.inputs.k6_ramp_down_duration || '20s' }}
-        run: |
-          set -euo pipefail
-          mkdir -p target/k6
-          docker run --rm --network host \
-            -e BASE_URL=http://localhost:8080 \
-            -e K6_WARM_VUS="${K6_WARM_VUS}" \
-            -e K6_PEAK_VUS="${K6_PEAK_VUS}" \
-            -e K6_RAMP_UP_DURATION="${K6_RAMP_UP_DURATION}" \
-            -e K6_STEADY_DURATION="${K6_STEADY_DURATION}" \
-            -e K6_RAMP_DOWN_DURATION="${K6_RAMP_DOWN_DURATION}" \
-            -v "${PWD}:/workspace" \
-            -w /workspace \
-            grafana/k6:0.49.0 run \
-            performance/k6/appointmentscheduler-smoke.js | tee target/k6/output.log
+        with:
+          path: performance/k6/appointmentscheduler-smoke.js
+          debug: true
+          cloud-comment-on-pr: false
+          disable-analytics: true
 
       - name: Publish k6 summary
         if: always()
@@ -340,6 +431,7 @@ jobs:
     name: Publish Docker Image
     needs:
       - build-test
+      - dependency-check
       - ui-test
       - performance-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
