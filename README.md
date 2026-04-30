@@ -53,12 +53,40 @@ cd AppointmentScheduler
 
 默认本地配置使用名为 `appointmentscheduler` 的 MySQL 数据库，以及 `user/password` 凭据。
 
+如果本机还没有 MySQL，推荐直接用 Docker 启动一个开发用 MySQL：
+
+```bash
+docker run --name appointmentscheduler-mysql \
+  -e MYSQL_ROOT_PASSWORD=root_pass \
+  -e MYSQL_DATABASE=appointmentscheduler \
+  -e MYSQL_USER=user \
+  -e MYSQL_PASSWORD=password \
+  -p 3306:3306 \
+  -d mysql:8.0
+```
+
+启动后可用下面的命令查看容器状态：
+
+```bash
+docker ps --filter name=appointmentscheduler-mysql
+```
+
+如果你已经在本机安装并启动了 MySQL，也可以直接用 root 账号进入 MySQL：
+
+```bash
+mysql -u root -p
+```
+
+然后执行建库和授权 SQL：
+
 ```sql
 CREATE DATABASE appointmentscheduler;
 CREATE USER 'user'@'%' IDENTIFIED BY 'password';
 GRANT ALL PRIVILEGES ON appointmentscheduler.* TO 'user'@'%';
 FLUSH PRIVILEGES;
 ```
+
+如果使用上面的 `docker run` 命令启动 MySQL，数据库和用户会由容器环境变量自动创建，通常不需要再手动执行这段 SQL。
 
 ### 3. 检查本地配置
 
