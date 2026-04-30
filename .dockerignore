@@ -1,7 +1,9 @@
 .git
 .idea
 .vscode
-target
+target/*
+!target/app/
+!target/app/app.jar
 *.log
 .DS_Store
 README.md
