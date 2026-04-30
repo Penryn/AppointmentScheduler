@@ -93,9 +93,44 @@ jobs:
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
 
+  ui-test:
+    name: UI Tests
+    needs: build-test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Run Selenium UI tests
+        run: ./mvnw $MAVEN_CLI_OPTS -Pui-tests verify
+
+      - name: Upload UI test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-reports-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            **/surefire-reports/TEST-*.xml
+            **/failsafe-reports/TEST-*.xml
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
   publish-image:
     name: Publish Docker Image
-    needs: build-test
+    needs:
+      - build-test
+      - ui-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 25
