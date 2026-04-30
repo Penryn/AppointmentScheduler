@@ -270,7 +270,6 @@ jobs:
             -v "${PWD}:/workspace" \
             -w /workspace \
             grafana/k6:0.49.0 run \
-            --summary-export target/k6/summary.json \
             performance/k6/appointmentscheduler-smoke.js | tee target/k6/output.log
 
       - name: Publish k6 summary
@@ -300,6 +299,20 @@ jobs:
                 ["Max duration", ms(.metrics.http_req_duration.values.max)]
               ][] | "| \(.[0]) | \(.[1]) |"
             ' target/k6/summary.json
+            if [ -f target/k6/checks.json ]; then
+              failed_checks="$(jq '[.[] | select(.fails > 0)] | sort_by(.fails) | reverse | .[:10]' target/k6/checks.json)"
+              if [ "${failed_checks}" != "[]" ]; then
+                echo
+                echo "### Failed checks"
+                echo
+                echo "| Check | Fails | Passes | Success rate |"
+                echo "| --- | ---: | ---: | ---: |"
+                jq -r '
+                  [.[] | select(.fails > 0)] | sort_by(.fails) | reverse | .[:10][] |
+                  "| \(.path // .name) | \(.fails) | \(.passes) | \(((.rate * 10000 | round) / 100) | tostring)% |"
+                ' target/k6/checks.json
+              fi
+            fi
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Capture application logs

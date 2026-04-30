@@ -46,7 +46,7 @@ export const options = {
 export function setup() {
   const health = http.get(`${BASE_URL}/actuator/health`);
   check(health, {
-    'application is healthy': (response) => response.status === 200 && response.body.includes('UP'),
+    'application is healthy': (response) => response.status === 200 && bodyOf(response).includes('UP'),
   });
 }
 
@@ -67,6 +67,8 @@ export default function () {
 
 function anonymousFlow() {
   group('anonymous pages and assets', () => {
+    http.cookieJar().clear(BASE_URL);
+
     assertPage(http.get(`${BASE_URL}/login`), 'login page', ['id="login-form"']);
     assertPage(http.get(`${BASE_URL}/customers/new/retail`), 'retail registration page', ['name="username"']);
     assertPage(http.get(`${BASE_URL}/customers/new/corporate`), 'corporate registration page', ['name="username"']);
@@ -103,7 +105,7 @@ function customerFlow() {
       'available hours api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
     });
 
-    const userAppointments = http.get(`${BASE_URL}/api/user/${IDS.customer}/appointments`);
+    const userAppointments = http.get(`${BASE_URL}/api/user/${IDS.customer}/appointments?${calendarWindowQuery()}`);
     check(userAppointments, {
       'customer calendar api is available': (response) => response.status === 200,
       'customer calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
@@ -126,7 +128,7 @@ function providerFlow() {
     assertPage(http.get(`${BASE_URL}/providers/${IDS.provider}`), 'provider profile page', ['id="profile"']);
     assertPage(http.get(`${BASE_URL}/providers/availability`), 'provider availability page', ['name="monday.workingHours.start"']);
 
-    const providerAppointments = http.get(`${BASE_URL}/api/user/${IDS.provider}/appointments`);
+    const providerAppointments = http.get(`${BASE_URL}/api/user/${IDS.provider}/appointments?${calendarWindowQuery()}`);
     check(providerAppointments, {
       'provider calendar api is available': (response) => response.status === 200,
       'provider calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
@@ -156,10 +158,10 @@ function loginAs(username) {
   const loginPage = http.get(`${BASE_URL}/login`);
   check(loginPage, {
     'login page is available before authentication': (response) => response.status === 200,
-    'login form is rendered before authentication': (response) => response.body.includes('id="login-form"'),
+    'login form is rendered before authentication': (response) => bodyOf(response).includes('id="login-form"'),
   });
 
-  const csrfToken = extractCsrfToken(loginPage.body);
+  const csrfToken = extractCsrfToken(bodyOf(loginPage));
   const payload = {
     username,
     password: PASSWORD,
@@ -184,10 +186,14 @@ function assertPage(response, name, expectedFragments = []) {
   };
 
   expectedFragments.forEach((fragment) => {
-    checks[`${name} contains ${fragment}`] = (res) => res.body.includes(fragment);
+    checks[`${name} contains ${fragment}`] = (res) => bodyOf(res).includes(fragment);
   });
 
   check(response, checks);
+}
+
+function bodyOf(response) {
+  return String(response.body || '');
 }
 
 function nextIsoDate(offsetDays) {
@@ -195,8 +201,77 @@ function nextIsoDate(offsetDays) {
   return date.toISOString().slice(0, 10);
 }
 
+function calendarWindowQuery() {
+  const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  return `start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+}
+
 function extractCsrfToken(body) {
   const match = String(body).match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"[^>]*>/)
     || String(body).match(/<input[^>]*value="([^"]+)"[^>]*name="_csrf"[^>]*>/);
   return match ? match[1] : null;
+}
+
+export function handleSummary(data) {
+  return {
+    stdout: simpleSummary(data),
+    'target/k6/summary.json': JSON.stringify(data, null, 2),
+    'target/k6/checks.json': JSON.stringify(checkSummary(data), null, 2),
+  };
+}
+
+function checkSummary(data) {
+  const checks = [];
+  collectChecks(data.root_group, checks);
+  return checks.map((result) => ({
+    name: result.name,
+    path: result.path,
+    passes: result.passes,
+    fails: result.fails,
+    rate: result.passes + result.fails === 0 ? null : result.passes / (result.passes + result.fails),
+  }));
+}
+
+function collectChecks(group, checks) {
+  (group.checks || []).forEach((result) => checks.push(result));
+  (group.groups || []).forEach((child) => collectChecks(child, checks));
+}
+
+function simpleSummary(data) {
+  const metrics = data.metrics;
+  const failedRate = metricValue(metrics, 'http_req_failed', 'rate');
+  const checkRate = metricValue(metrics, 'checks', 'rate');
+  const p95 = metricValue(metrics, 'http_req_duration', 'p(95)');
+  const httpRequests = metricValue(metrics, 'http_reqs', 'count');
+
+  return [
+    '',
+    'k6 summary',
+    `  http_reqs: ${formatNumber(httpRequests)}`,
+    `  http_req_failed: ${formatPercent(failedRate)}`,
+    `  checks: ${formatPercent(checkRate)}`,
+    `  http_req_duration p95: ${formatMs(p95)}`,
+    '',
+  ].join('\n');
+}
+
+function formatNumber(value) {
+  return value === undefined || value === null ? 'n/a' : String(value);
+}
+
+function formatPercent(value) {
+  return value === undefined || value === null ? 'n/a' : `${Math.round(value * 10000) / 100}%`;
+}
+
+function formatMs(value) {
+  return value === undefined || value === null ? 'n/a' : `${Math.round(value * 100) / 100} ms`;
+}
+
+function metricValue(metrics, metricName, valueName) {
+  const metric = metrics[metricName];
+  if (!metric || !metric.values) {
+    return null;
+  }
+  return metric.values[valueName];
 }
