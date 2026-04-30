@@ -55,7 +55,7 @@ env:
   JACOCO_ARTIFACT_PREFIX: 'jacoco-report'
   MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
   MAVEN_OPTS: '-Xmx3072m'
-  DEPENDENCY_CHECK_VERSION: '12.1.8'
+  DEPENDENCY_CHECK_VERSION: '12.2.1'
   K6_VERSION: '0.49.0'
 
 jobs:
@@ -179,6 +179,12 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Cache Dependency-Check data
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check
+          key: dependency-check-${{ runner.os }}-${{ env.DEPENDENCY_CHECK_VERSION }}
+
       - name: Run OWASP Dependency-Check
         continue-on-error: true
         shell: bash
@@ -187,6 +193,7 @@ jobs:
           read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
           ./mvnw "${maven_args[@]}" \
             "org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:check" \
+            -DdataDirectory="${HOME}/.dependency-check" \
             -Dformat=ALL \
             -DfailBuildOnCVSS=11
 
@@ -401,6 +408,14 @@ jobs:
                   "| \(.path // .name) | \(.fails) | \(.passes) | \(((.rate * 10000 | round) / 100) | tostring)% |"
                 ' target/k6/checks.json
               fi
+            fi
+            if [ -f target/k6/http-status.json ]; then
+              echo
+              echo "### HTTP status distribution"
+              echo
+              echo "| Status | Count |"
+              echo "| --- | ---: |"
+              jq -r '.[] | "| \(.status) | \(.count) |"' target/k6/http-status.json
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
 
