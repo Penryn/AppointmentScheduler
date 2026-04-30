@@ -55,7 +55,7 @@ env:
   JACOCO_ARTIFACT_PREFIX: 'jacoco-report'
   MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
   MAVEN_OPTS: '-Xmx3072m'
-  DEPENDENCY_CHECK_VERSION: '12.1.8'
+  DEPENDENCY_CHECK_VERSION: '12.2.1'
   K6_VERSION: '0.49.0'
 
 jobs:
@@ -184,8 +184,6 @@ jobs:
         with:
           path: ~/.dependency-check
           key: dependency-check-${{ runner.os }}-${{ env.DEPENDENCY_CHECK_VERSION }}
-          restore-keys: |
-            dependency-check-${{ runner.os }}-
 
       - name: Run OWASP Dependency-Check
         continue-on-error: true
