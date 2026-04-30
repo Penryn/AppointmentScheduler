@@ -74,8 +74,8 @@ public class SecurityAndActuatorIT {
     public void shouldRenderServerPaginationForAdminLists() throws Exception {
         mockMvc.perform(get("/customers/all").param("size", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("List pages")))
-                .andExpect(content().string(containsString("Next")));
+                .andExpect(content().string(containsString("分页")))
+                .andExpect(content().string(containsString("下一页")));
     }
 
     @Test
