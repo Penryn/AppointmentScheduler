@@ -55,10 +55,31 @@ env:
   JACOCO_ARTIFACT_PREFIX: 'jacoco-report'
   MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
   MAVEN_OPTS: '-Xmx3072m'
+  ACTIONLINT_VERSION: '1.7.7'
 
 jobs:
+  workflow-lint:
+    name: Workflow Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/repo" \
+            -w /repo \
+            "rhysd/actionlint:${ACTIONLINT_VERSION}"
+
   build-test:
     name: Build and Test
+    needs: workflow-lint
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -75,7 +96,11 @@ jobs:
           cache: maven
 
       - name: Run unit and integration tests
-        run: ./mvnw $MAVEN_CLI_OPTS verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
+          ./mvnw "${maven_args[@]}" verify
 
       - name: Normalize JaCoCo artifact name
         if: always()
@@ -85,7 +110,7 @@ jobs:
           set -euo pipefail
           branch_raw="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           branch_safe="${branch_raw//\//-}"
-          branch_safe="$(echo "${branch_safe}" | tr ' ' '-' | tr -cd '[:alnum:]._-')"
+          branch_safe="$(printf '%s' "${branch_safe}" | tr ' ' '-' | tr -cd '[:alnum:]._-')"
           if [ -z "${branch_safe}" ]; then
             branch_safe="unknown-branch"
           fi
@@ -102,6 +127,14 @@ jobs:
           path: target/site/jacoco
           if-no-files-found: warn
           retention-days: ${{ env.JACOCO_RETENTION_DAYS }}
+
+      - name: Upload application jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Upload test reports
         if: always()
@@ -134,7 +167,11 @@ jobs:
           cache: maven
 
       - name: Run Selenium UI tests
-        run: ./mvnw $MAVEN_CLI_OPTS -Pui-tests verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
+          ./mvnw "${maven_args[@]}" -Pui-tests verify
 
       - name: Upload UI test reports
         if: always()
@@ -159,11 +196,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download application jar
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: target/app
+
+      - name: Prepare application jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          jar_path="$(find target/app -maxdepth 1 -type f -name '*.jar' | head -n 1)"
+          if [ -z "${jar_path}" ]; then
+            echo "No application jar was downloaded."
+            exit 1
+          fi
+          cp "${jar_path}" target/app/app.jar
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build application image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.ci
+          load: true
+          tags: appointmentscheduler:local
+          cache-from: type=gha,scope=appointmentscheduler-ci
+          cache-to: type=gha,mode=max,scope=appointmentscheduler-ci
+
       - name: Start application stack
         shell: bash
         run: |
           set -euo pipefail
-          docker compose up --build -d
+          docker compose up -d
 
       - name: Wait for application health
         shell: bash
@@ -195,11 +262,58 @@ jobs:
           mkdir -p target/k6
           docker run --rm --network host \
             -e BASE_URL=http://localhost:8080 \
+            -e K6_WARM_VUS="${K6_WARM_VUS}" \
+            -e K6_PEAK_VUS="${K6_PEAK_VUS}" \
+            -e K6_RAMP_UP_DURATION="${K6_RAMP_UP_DURATION}" \
+            -e K6_STEADY_DURATION="${K6_STEADY_DURATION}" \
+            -e K6_RAMP_DOWN_DURATION="${K6_RAMP_DOWN_DURATION}" \
             -v "${PWD}:/workspace" \
             -w /workspace \
             grafana/k6:0.49.0 run \
-            --summary-export target/k6/summary.json \
-            performance/k6/appointmentscheduler-smoke.js
+            performance/k6/appointmentscheduler-smoke.js | tee target/k6/output.log
+
+      - name: Publish k6 summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f target/k6/summary.json ]; then
+            echo "No k6 summary was generated." >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          {
+            echo "## k6 Performance Summary"
+            echo
+            echo "| Metric | Value |"
+            echo "| --- | ---: |"
+            jq -r '
+              def pct($v): if $v == null then "n/a" else (((($v * 10000) | round) / 100) | tostring) + "%" end;
+              def ms($v): if $v == null then "n/a" else (((($v * 100) | round) / 100) | tostring) + " ms" end;
+              [
+                ["HTTP requests", (.metrics.http_reqs.values.count // 0 | tostring)],
+                ["Failed request rate", pct(.metrics.http_req_failed.values.rate)],
+                ["Check success rate", pct(.metrics.checks.values.rate)],
+                ["Avg duration", ms(.metrics.http_req_duration.values.avg)],
+                ["P95 duration", ms(.metrics.http_req_duration.values["p(95)"])],
+                ["Max duration", ms(.metrics.http_req_duration.values.max)]
+              ][] | "| \(.[0]) | \(.[1]) |"
+            ' target/k6/summary.json
+            if [ -f target/k6/checks.json ]; then
+              failed_checks="$(jq '[.[] | select(.fails > 0)] | sort_by(.fails) | reverse | .[:10]' target/k6/checks.json)"
+              if [ "${failed_checks}" != "[]" ]; then
+                echo
+                echo "### Failed checks"
+                echo
+                echo "| Check | Fails | Passes | Success rate |"
+                echo "| --- | ---: | ---: | ---: |"
+                jq -r '
+                  [.[] | select(.fails > 0)] | sort_by(.fails) | reverse | .[:10][] |
+                  "| \(.path // .name) | \(.fails) | \(.passes) | \(((.rate * 10000 | round) / 100) | tostring)% |"
+                ' target/k6/checks.json
+              fi
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Capture application logs
         if: always()
@@ -256,7 +370,8 @@ jobs:
           fi
 
           short_sha="${GITHUB_SHA::8}"
-          ./mvnw $MAVEN_CLI_OPTS \
+          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
+          ./mvnw "${maven_args[@]}" \
             -Djib.to.auth.username="${DOCKER_USERNAME}" \
             -Djib.to.auth.password="${DOCKER_PASSWORD}" \
             -Djib.to.tags="latest,${GITHUB_RUN_NUMBER},${short_sha}" \
