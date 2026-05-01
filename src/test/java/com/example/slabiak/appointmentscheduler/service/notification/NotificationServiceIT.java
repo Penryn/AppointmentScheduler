@@ -3,6 +3,8 @@ package com.example.slabiak.appointmentscheduler.service.notification;
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
 import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
+import com.example.slabiak.appointmentscheduler.entity.ChatMessage;
+import com.example.slabiak.appointmentscheduler.entity.Notification;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
@@ -17,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -53,6 +56,31 @@ public class NotificationServiceIT {
 
     @Test
     @Transactional
+    @WithUserDetails("customer_r")
+    public void shouldNotMarkOtherUsersNotificationAsRead() {
+        notificationService.newNotification("provider", "m", "/appointments/1", userService.getProviderById(2));
+        Notification providerNotification = notificationService.getAll(2).get(0);
+
+        assertThatThrownBy(() -> notificationService.markAsRead(providerNotification.getId(), 3))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        assertThat(notificationService.getNotificationById(providerNotification.getId()).isRead()).isFalse();
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("admin")
+    public void shouldMarkAllAsReadOnlyForRequestedUser() {
+        notificationService.newNotification("customer", "m", "/appointments/1", userService.getCustomerById(3));
+        notificationService.newNotification("provider", "m", "/appointments/1", userService.getProviderById(2));
+
+        notificationService.markAllAsRead(3);
+
+        assertThat(notificationService.countUnreadNotifications(3)).isZero();
+        assertThat(notificationService.countUnreadNotifications(2)).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
     @WithUserDetails("admin")
     public void shouldCreateProviderNotificationWhenAppointmentIsScheduled() {
         Appointment appointment = appointment();
@@ -83,6 +111,29 @@ public class NotificationServiceIT {
                     assertThat(notification.getUrl()).isEqualTo("/appointments/" + appointment.getId());
                     assertThat(notification.isRead()).isFalse();
                 });
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("admin")
+    public void shouldSendChatMessageNotificationToOtherAppointmentParty() {
+        Appointment appointment = appointment();
+        appointmentRepository.saveAndFlush(appointment);
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setAuthor(appointment.getCustomer());
+        chatMessage.setAppointment(appointment);
+        chatMessage.setCreatedAt(java.time.LocalDateTime.now());
+
+        notificationService.newChatMessageNotification(chatMessage, true);
+
+        assertThat(notificationService.getAll(2))
+                .anySatisfy(notification -> {
+                    assertThat(notification.getTitle()).isEqualTo("新的预约消息");
+                    assertThat(notification.getUrl()).isEqualTo("/appointments/" + appointment.getId());
+                });
+        assertThat(notificationService.getAll(3))
+                .noneMatch(notification -> notification.getTitle().equals("新的预约消息")
+                        && notification.getUrl().equals("/appointments/" + appointment.getId()));
     }
 
     private Appointment appointment() {

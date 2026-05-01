@@ -5,6 +5,7 @@ import com.example.slabiak.appointmentscheduler.dao.InvoiceRepository;
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
 import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
 import com.example.slabiak.appointmentscheduler.entity.Invoice;
+import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.InvoiceService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
@@ -15,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,6 +98,38 @@ public class InvoiceServiceIT {
                 .isInstanceOf(AccessDeniedException.class);
     }
 
+    @Test
+    @Transactional
+    @WithUserDetails("admin")
+    public void shouldAllowAdminToDownloadAnyInvoice() {
+        Invoice invoice = invoiceWithAppointment(3);
+
+        boolean allowed = invoiceService.isUserAllowedToDownloadInvoice(user(1, "ROLE_ADMIN"), invoice);
+
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("admin")
+    public void shouldAllowInvoiceCustomerAndProviderToDownloadInvoice() {
+        Invoice invoice = invoiceWithAppointment(3);
+
+        assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(3, "ROLE_CUSTOMER"), invoice)).isTrue();
+        assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(2, "ROLE_PROVIDER"), invoice)).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("admin")
+    public void shouldDenyUnrelatedUserFromDownloadingInvoice() {
+        Invoice invoice = invoiceWithAppointment(3);
+
+        boolean allowed = invoiceService.isUserAllowedToDownloadInvoice(user(1001, "ROLE_CUSTOMER"), invoice);
+
+        assertThat(allowed).isFalse();
+    }
+
     private Appointment appointment(int year, int month, int day, int hour, int minute, int customerId) {
         LocalDateTime start = LocalDateTime.of(year, month, day, hour, minute);
         Appointment appointment = new Appointment(
@@ -106,5 +141,20 @@ public class InvoiceServiceIT {
         );
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         return appointment;
+    }
+
+    private Invoice invoiceWithAppointment(int customerId) {
+        return new Invoice("FV/test/download", "issued", LocalDateTime.now(), List.of(appointment(2032, 1, 18, 10, 0, customerId)));
+    }
+
+    private CustomUserDetails user(int userId, String role) {
+        return new CustomUserDetails(
+                userId,
+                "Test",
+                "User",
+                "test" + userId,
+                "test" + userId + "@example.com",
+                "password",
+                List.of(new SimpleGrantedAuthority(role)));
     }
 }

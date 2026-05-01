@@ -56,6 +56,14 @@ public class JwtTokenServiceTest {
         assertThat(jwtTokenService.validateToken("not-a-jwt-token")).isFalse();
     }
 
+    @Test
+    public void shouldRejectTamperedToken() {
+        String token = jwtTokenService.generateAppointmentRejectionToken(appointment(LocalDateTime.now().plusDays(2)));
+        String tamperedToken = token.substring(0, token.length() - 2) + "xx";
+
+        assertThat(jwtTokenService.validateToken(tamperedToken)).isFalse();
+    }
+
     private Appointment appointment(LocalDateTime end) {
         Customer customer = new Customer();
         customer.setId(3);

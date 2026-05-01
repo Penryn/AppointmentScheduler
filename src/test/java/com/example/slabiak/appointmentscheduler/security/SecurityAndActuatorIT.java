@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -52,6 +53,47 @@ public class SecurityAndActuatorIT {
 
         assertThat(StringUtils.countOccurrencesOf(result.getResponse().getContentAsString(), "<body")).isEqualTo(1);
         assertThat(result.getResponse().getContentAsString()).contains("_csrf");
+    }
+
+    @Test
+    public void shouldReturnRegistrationFormWithValidationErrorsForInvalidRetailCustomer() throws Exception {
+        mockMvc.perform(post("/customers/new/retail")
+                        .with(csrf())
+                        .param("userName", "")
+                        .param("password", "short")
+                        .param("matchingPassword", "different")
+                        .param("firstName", "")
+                        .param("lastName", "")
+                        .param("email", "not-an-email")
+                        .param("mobile", "123")
+                        .param("street", "x")
+                        .param("postcode", "abc")
+                        .param("city", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("users/createUserForm"))
+                .andExpect(content().string(containsString("用户名不能为空")))
+                .andExpect(content().string(containsString("邮箱格式不正确")));
+    }
+
+    @Test
+    public void shouldCreateRetailCustomerFromValidRegistrationForm() throws Exception {
+        String username = "ci" + Math.abs(System.nanoTime() % 1_000_000_000L);
+
+        mockMvc.perform(post("/customers/new/retail")
+                        .with(csrf())
+                        .param("userName", username)
+                        .param("password", "qwerty")
+                        .param("matchingPassword", "qwerty")
+                        .param("firstName", "Ci")
+                        .param("lastName", "User")
+                        .param("email", username + "@example.com")
+                        .param("mobile", "13800009999")
+                        .param("street", "Test Street")
+                        .param("postcode", "100000")
+                        .param("city", "Shanghai"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("users/login"))
+                .andExpect(content().string(containsString(username)));
     }
 
     @Test

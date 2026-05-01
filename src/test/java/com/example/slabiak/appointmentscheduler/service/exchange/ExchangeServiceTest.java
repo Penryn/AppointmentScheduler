@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -125,6 +126,65 @@ public class ExchangeServiceTest {
 
         assertThatThrownBy(() -> exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 1001))
                 .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    public void shouldNotRequestExchangeWhenOldAppointmentIsNotScheduled() {
+        Appointment oldAppointment = appointment(10, 3, 2, LocalDateTime.now().plusDays(5));
+        oldAppointment.setStatus(AppointmentStatus.CANCELED);
+        Appointment newAppointment = appointment(11, 1001, 2, LocalDateTime.now().plusDays(6));
+        when(appointmentRepository.findById(oldAppointment.getId())).thenReturn(Optional.of(oldAppointment));
+        when(appointmentRepository.findById(newAppointment.getId())).thenReturn(Optional.of(newAppointment));
+
+        boolean requested = exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 3);
+
+        assertThat(requested).isFalse();
+        verify(exchangeRequestRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    public void shouldNotRequestExchangeWhenNewAppointmentIsNotScheduled() {
+        Appointment oldAppointment = appointment(10, 3, 2, LocalDateTime.now().plusDays(5));
+        Appointment newAppointment = appointment(11, 1001, 2, LocalDateTime.now().plusDays(6));
+        newAppointment.setStatus(AppointmentStatus.CANCELED);
+        when(appointmentRepository.findById(oldAppointment.getId())).thenReturn(Optional.of(oldAppointment));
+        when(appointmentRepository.findById(newAppointment.getId())).thenReturn(Optional.of(newAppointment));
+
+        boolean requested = exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 3);
+
+        assertThat(requested).isFalse();
+        verify(exchangeRequestRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    public void shouldNotAcceptAlreadyRejectedExchange() {
+        Appointment requestor = appointment(10, 3, 2, LocalDateTime.now().plusDays(5));
+        Appointment requested = appointment(11, 1001, 2, LocalDateTime.now().plusDays(6));
+        ExchangeRequest exchangeRequest = new ExchangeRequest(requestor, requested, ExchangeStatus.REJECTED);
+        exchangeRequest.setId(20);
+        when(exchangeRequestRepository.findById(exchangeRequest.getId())).thenReturn(Optional.of(exchangeRequest));
+
+        boolean accepted = exchangeService.acceptExchange(exchangeRequest.getId(), 1001);
+
+        assertThat(accepted).isFalse();
+        assertThat(requestor.getCustomer().getId()).isEqualTo(3);
+        assertThat(requested.getCustomer().getId()).isEqualTo(1001);
+        verify(notificationService, never()).newExchangeAcceptedNotification(exchangeRequest, true);
+    }
+
+    @Test
+    public void shouldNotRejectAlreadyAcceptedExchange() {
+        Appointment requestor = appointment(10, 3, 2, LocalDateTime.now().plusDays(5));
+        Appointment requested = appointment(11, 1001, 2, LocalDateTime.now().plusDays(6));
+        ExchangeRequest exchangeRequest = new ExchangeRequest(requestor, requested, ExchangeStatus.ACCEPTED);
+        exchangeRequest.setId(20);
+        when(exchangeRequestRepository.findById(exchangeRequest.getId())).thenReturn(Optional.of(exchangeRequest));
+
+        boolean rejected = exchangeService.rejectExchange(exchangeRequest.getId(), 1001);
+
+        assertThat(rejected).isFalse();
+        assertThat(exchangeRequest.getStatus()).isEqualTo(ExchangeStatus.ACCEPTED);
+        verify(notificationService, never()).newExchangeRejectedNotification(exchangeRequest, true);
     }
 
     private Appointment appointment(int appointmentId, int customerId, int providerId, LocalDateTime start) {

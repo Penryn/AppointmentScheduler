@@ -17,12 +17,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,6 +104,68 @@ public class AppointmentStatusTransitionTest {
         assertThat(scheduled.getCanceledAt()).isNotNull();
         verify(appointmentRepository).save(scheduled);
         verify(notificationService).newAppointmentCanceledByCustomerNotification(scheduled, true);
+    }
+
+    @Test
+    public void shouldCancelAppointmentWhenProviderOwnsIt() {
+        Appointment scheduled = appointment(AppointmentStatus.SCHEDULED, LocalDateTime.now().plusDays(3));
+        scheduled.setId(15);
+        when(appointmentRepository.findById(scheduled.getId())).thenReturn(Optional.of(scheduled));
+        User canceler = new User();
+        canceler.setId(provider.getId());
+        when(userService.getUserById(provider.getId())).thenReturn(canceler);
+
+        appointmentService.cancelUserAppointmentById(scheduled.getId(), provider.getId());
+
+        assertThat(scheduled.getStatus()).isEqualTo(AppointmentStatus.CANCELED);
+        assertThat(scheduled.getCanceler()).isEqualTo(canceler);
+        verify(appointmentRepository).save(scheduled);
+        verify(notificationService).newAppointmentCanceledByProviderNotification(scheduled, true);
+    }
+
+    @Test
+    public void shouldDenyCancelWhenUserDoesNotBelongToAppointment() {
+        Appointment scheduled = appointment(AppointmentStatus.SCHEDULED, LocalDateTime.now().plusDays(3));
+        scheduled.setId(16);
+        when(appointmentRepository.findById(scheduled.getId())).thenReturn(Optional.of(scheduled));
+
+        assertThatThrownBy(() -> appointmentService.cancelUserAppointmentById(scheduled.getId(), 999))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    public void shouldExplainCustomerCannotCancelLessThanTwentyFourHoursBeforeStart() {
+        Appointment scheduled = appointment(AppointmentStatus.SCHEDULED, LocalDateTime.now().plusHours(2));
+        scheduled.setId(17);
+        when(appointmentRepository.findById(scheduled.getId())).thenReturn(Optional.of(scheduled));
+
+        String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), scheduled.getId());
+
+        assertThat(reason).isEqualTo("距离开始不足 24 小时的预约不能取消。");
+    }
+
+    @Test
+    public void shouldExplainCustomerCannotCancelAfterMonthlyLimit() {
+        Appointment scheduled = appointment(AppointmentStatus.SCHEDULED, LocalDateTime.now().plusDays(3));
+        scheduled.setId(18);
+        when(appointmentRepository.findById(scheduled.getId())).thenReturn(Optional.of(scheduled));
+        when(appointmentRepository.findByCustomerIdCanceledAfterDate(org.mockito.ArgumentMatchers.eq(customer.getId()), org.mockito.ArgumentMatchers.any(LocalDateTime.class)))
+                .thenReturn(List.of(appointment(AppointmentStatus.CANCELED, LocalDateTime.now().minusDays(1))));
+
+        String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), scheduled.getId());
+
+        assertThat(reason).isEqualTo("本月取消次数已达上限，无法取消该预约。");
+    }
+
+    @Test
+    public void shouldExplainOnlyScheduledAppointmentsCanBeCanceled() {
+        Appointment finished = appointment(AppointmentStatus.FINISHED, LocalDateTime.now().minusHours(1));
+        finished.setId(19);
+        when(appointmentRepository.findById(finished.getId())).thenReturn(Optional.of(finished));
+
+        String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), finished.getId());
+
+        assertThat(reason).isEqualTo("只有已预约状态的预约可以取消。");
     }
 
     @Test

@@ -48,6 +48,8 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (oldAppointment.getCustomer().getId() == userId) {
             return oldAppointment.getWork().getId().equals(newAppointment.getWork().getId())
                     && oldAppointment.getProvider().getId().equals(newAppointment.getProvider().getId())
+                    && oldAppointment.getStatus().equals(AppointmentStatus.SCHEDULED)
+                    && newAppointment.getStatus().equals(AppointmentStatus.SCHEDULED)
                     && oldAppointment.getStart().minusHours(24).isAfter(LocalDateTime.now())
                     && newAppointment.getStart().minusHours(24).isAfter(LocalDateTime.now());
         } else {
@@ -63,6 +65,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         Appointment requested = exchangeRequest.getRequested();
         if (requested.getCustomer().getId() != userId) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
+        }
+        if (!exchangeRequest.getStatus().equals(ExchangeStatus.PENDING)) {
+            return false;
         }
         Customer tempCustomer = requestor.getCustomer();
         requestor.setStatus(AppointmentStatus.SCHEDULED);
@@ -81,6 +86,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         ExchangeRequest exchangeRequest = getExchangeRequestOrThrow(exchangeId);
         if (exchangeRequest.getRequested().getCustomer().getId() != userId) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
+        }
+        if (!exchangeRequest.getStatus().equals(ExchangeStatus.PENDING)) {
+            return false;
         }
         Appointment requestor = exchangeRequest.getRequestor();
         exchangeRequest.setStatus(ExchangeStatus.REJECTED);
