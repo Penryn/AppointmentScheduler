@@ -357,6 +357,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -379,10 +381,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
@@ -474,6 +476,8 @@ jobs:
       contents: read
       security-events: write
       actions: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -496,10 +500,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
@@ -527,7 +531,7 @@ jobs:
 
       - name: Upload Trivy results to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: target/trivy/image-scan.sarif
 
@@ -562,6 +566,8 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -584,10 +590,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
