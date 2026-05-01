@@ -315,7 +315,7 @@ npm run test:visual:update
   - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check
   - `master` push 或手动触发会运行 Selenium UI 测试、Playwright 视觉回归测试与 k6 性能测试
   - PR 会通过 Dependency Review Job 检查依赖变更风险
-  - `master` push、手动触发或定时任务会运行容器镜像安全扫描 Job，并将 SARIF 上传到 GitHub Code Scanning
+  - `master` push、手动触发或定时任务会运行容器镜像安全扫描 Job，并将 SARIF 上传到 GitHub Code Scanning；该 Job 以报告为主，不因发现漏洞直接阻断 CI
   - UI 测试跳过重复的单元测试，并上传测试报告、截图和测试输出产物
   - Playwright 在独立的 Visual Regression Tests Job 中执行，并上传视觉测试报告、trace、截图和基线产物
   - k6 会上传 JSON、HTML 报告和应用日志产物，并按接口维护延迟阈值
