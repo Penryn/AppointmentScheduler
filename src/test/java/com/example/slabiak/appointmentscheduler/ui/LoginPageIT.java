@@ -1,13 +1,17 @@
 package com.example.slabiak.appointmentscheduler.ui;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -24,6 +28,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -41,9 +48,18 @@ public class LoginPageIT {
     @LocalServerPort
     private int port;
 
-    @Rule
     public BrowserWebDriverContainer chrome = new BrowserWebDriverContainer()
             .withCapabilities(new ChromeOptions());
+
+    private final TestWatcher screenshotOnFailure = new TestWatcher() {
+        @Override
+        protected void failed(Throwable e, Description description) {
+            captureScreenshot(description);
+        }
+    };
+
+    @Rule
+    public TestRule uiFailureArtifacts = RuleChain.outerRule(chrome).around(screenshotOnFailure);
 
     @Test
     public void shouldShowLoginPageAndSuccessfullyLoginToAdminAccountUsingAdminCredentials() {
@@ -212,6 +228,23 @@ public class LoginPageIT {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while waiting for Selenium element", e);
         }
+    }
+
+    private void captureScreenshot(Description description) {
+        try {
+            RemoteWebDriver driver = chrome.getWebDriver();
+            byte[] screenshot = driver.getScreenshotAs(OutputType.BYTES);
+            Path screenshotDirectory = Path.of("target", "screenshots");
+            Files.createDirectories(screenshotDirectory);
+            Files.write(screenshotDirectory.resolve(screenshotFileName(description)), screenshot);
+        } catch (RuntimeException | IOException screenshotError) {
+            System.err.println("Unable to capture Selenium failure screenshot: " + screenshotError.getMessage());
+        }
+    }
+
+    private String screenshotFileName(Description description) {
+        String rawName = description.getClassName() + "-" + description.getMethodName();
+        return rawName.replaceAll("[^A-Za-z0-9._-]", "_") + ".png";
     }
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
