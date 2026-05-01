@@ -36,6 +36,7 @@ AppointmentScheduler 是一个基于 Spring Boot 的预约管理系统，用于�
 
 - JDK 17
 - Maven 3.9+
+- Node.js 20
 - MySQL 8
 - Docker
   - 运行 `mvn verify` 时需要 Docker，因为集成测试依赖 Testcontainers MySQL
@@ -163,6 +164,17 @@ docker compose down -v
 
 ## 测试
 
+当前测试体系覆盖：
+
+- 单元测试
+- 集成测试
+- API 契约测试
+- 安全权限测试
+- 并发测试
+- Selenium UI 测试
+- Playwright 视觉回归测试
+- k6 性能测试
+
 仅运行单元测试：
 
 ```bash
@@ -175,10 +187,30 @@ mvn test
 mvn clean verify
 ```
 
+运行 Selenium UI 测试：
+
+```bash
+./mvnw -Pui-tests verify -Dskip.surefire.tests=true
+```
+
+运行 Playwright 视觉回归测试：
+
+```bash
+npm ci
+npm run test:visual
+```
+
+首次生成或更新视觉基线截图：
+
+```bash
+npm run test:visual:update
+```
+
 说明：
 
 - 集成测试通过 Testcontainers 拉起 MySQL，因此需要 Docker
 - `src/test/java/**/ui/**` 下的 UI 测试默认不会在 `verify` 流程中执行
+- Playwright 测试默认访问 `http://localhost:8080`，可通过 `BASE_URL` 覆盖
 
 ## 角色说明
 
@@ -265,12 +297,15 @@ mvn clean verify
   - 使用 Maven 缓存加速依赖下载
   - 发布 Surefire/Failsafe 测试报告产物
   - 生成并发布 JaCoCo 报告产物
+  - 在 PR 中评论 JaCoCo 覆盖率报告
   - JaCoCo 产物名采用规范格式：`jacoco-report-分支-rRunNumber-短SHA`
   - JaCoCo 产物默认保留 30 天
 - 安全与性能阶段
   - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check
-  - `master` push 或手动触发会运行 UI 测试与 k6 性能测试
-  - k6 会上传 JSON、HTML 报告和应用日志产物
+  - `master` push 或手动触发会运行 Selenium UI 测试、Playwright 视觉回归测试与 k6 性能测试
+  - UI 测试跳过重复的单元测试，并上传测试报告、截图和测试输出产物
+  - Playwright 会上传视觉测试报告、trace、截图和基线产物
+  - k6 会上传 JSON、HTML 报告和应用日志产物，并按接口维护延迟阈值
 
 
 ### 如何启用这条 GitHub Actions 流水线
