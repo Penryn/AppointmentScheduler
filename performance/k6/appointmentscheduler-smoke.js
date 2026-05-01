@@ -67,6 +67,10 @@ export const options = {
     'http_req_duration{type:page}': ['p(95)<800'],
     'http_req_duration{type:api}': ['p(95)<300'],
     'http_req_duration{type:asset}': ['p(95)<300'],
+    'http_req_duration{endpoint:availableHours}': ['p(95)<500'],
+    'http_req_duration{endpoint:calendar}': ['p(95)<500'],
+    'http_req_duration{endpoint:notifications}': ['p(95)<300'],
+    'http_req_duration{endpoint:createAppointment}': ['p(95)<1000'],
     http_req_duration: ['p(95)<1000'],
     checks: ['rate>0.99'],
   },
@@ -335,8 +339,28 @@ function requestOptions(name, type) {
 function requestTags(name, type) {
   return Object.assign({}, currentTags, {
     name,
+    endpoint: endpointTag(name),
     type: type || 'other',
   });
+}
+
+function endpointTag(name) {
+  if (name.includes('available-hours')) {
+    return 'availableHours';
+  }
+  if (name.includes('calendar-api') || name.includes('find-created-appointment')) {
+    return 'calendar';
+  }
+  if (name.includes('notifications-api')) {
+    return 'notifications';
+  }
+  if (name.includes('create-appointment')) {
+    return 'createAppointment';
+  }
+  if (name.includes('login')) {
+    return 'login';
+  }
+  return 'other';
 }
 
 function get(url, name, type) {

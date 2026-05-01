@@ -116,6 +116,47 @@ public class AppointmentServiceIT {
                 .hasSize(1);
     }
 
+    @Test
+    @WithUserDetails("admin")
+    public void shouldAllowOnlyOneConcurrentInsertForTheSameCustomerAndStart() throws Exception {
+        LocalDateTime start = LocalDateTime.of(2031, 1, 12, 10, 0);
+        Customer customer = userService.getCustomerById(3);
+        Work work = workService.getWorkById(1);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch startTogether = new CountDownLatch(1);
+        AtomicInteger successfulInserts = new AtomicInteger();
+
+        Runnable insertAppointment = () -> {
+            ready.countDown();
+            try {
+                startTogether.await(5, TimeUnit.SECONDS);
+                Appointment appointment = new Appointment(start, start.plusHours(1), customer, userService.getProviderById(2), work);
+                appointment.setStatus(AppointmentStatus.SCHEDULED);
+                appointmentRepository.saveAndFlush(appointment);
+                successfulInserts.incrementAndGet();
+            } catch (DataIntegrityViolationException expected) {
+                // The customer/start uniqueness guard should reject the racing insert.
+            } catch (Exception exception) {
+                throw new IllegalStateException(exception);
+            }
+        };
+
+        Thread firstThread = new Thread(insertAppointment);
+        Thread secondThread = new Thread(insertAppointment);
+        firstThread.start();
+        secondThread.start();
+
+        assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+        startTogether.countDown();
+        firstThread.join(10_000);
+        secondThread.join(10_000);
+
+        assertThat(successfulInserts.get()).isEqualTo(1);
+        assertThat(appointmentRepository.findByCustomerIdWithStartInPeroid(3, start.toLocalDate().atStartOfDay(), start.toLocalDate().atStartOfDay().plusDays(1)))
+                .filteredOn(appointment -> appointment.getStart().equals(start))
+                .hasSize(1);
+    }
+
     private Appointment appointment(int customerId, int providerId, LocalDateTime start) {
         Appointment appointment = new Appointment(
                 start,

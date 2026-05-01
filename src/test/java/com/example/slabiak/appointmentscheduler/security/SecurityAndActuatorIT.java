@@ -132,6 +132,41 @@ public class SecurityAndActuatorIT {
     }
 
     @Test
+    @WithUserDetails("customer_r")
+    public void shouldDenyCustomerAccessToInvoiceAdministration() throws Exception {
+        mockMvc.perform(get("/invoices/all"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldDenyCustomerFromIssuingInvoices() throws Exception {
+        mockMvc.perform(post("/invoices/issue").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("provider")
+    public void shouldDenyProviderAccessToAnotherProviderAvailability() throws Exception {
+        mockMvc.perform(post("/providers/availability/breakes/add")
+                        .with(csrf())
+                        .param("planId", "1101")
+                        .param("dayOfWeek", "monday")
+                        .param("start", "10:00")
+                        .param("end", "11:00"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldDenyCustomerFromDeletingWorks() throws Exception {
+        mockMvc.perform(post("/works/delete")
+                        .with(csrf())
+                        .param("workId", "1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithUserDetails("load_customer_01")
     public void shouldDenyCustomerAccessToAnotherCustomerProfile() throws Exception {
         mockMvc.perform(get("/customers/3"))

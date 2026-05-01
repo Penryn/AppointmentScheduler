@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,5 +125,42 @@ public class AjaxControllerIT {
         mockMvc.perform(get("/api/user/notifications"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(2));
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldKeepAvailableHoursApiContractStable() throws Exception {
+        mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].workId").value(1))
+                .andExpect(jsonPath("$[0].providerId").value(2))
+                .andExpect(jsonPath("$[0].start").exists())
+                .andExpect(jsonPath("$[0].end").exists());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldKeepCalendarApiContractStable() throws Exception {
+        mockMvc.perform(get("/api/user/3/appointments")
+                        .param("start", "2030-01-01T00:00:00Z")
+                        .param("end", "2030-01-31T23:59:00Z"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    public void shouldRequireAuthenticationForApiEndpoints() throws Exception {
+        mockMvc.perform(get("/api/user/notifications"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithUserDetails("provider")
+    public void shouldRejectProviderAccessToCustomerAvailableHoursContract() throws Exception {
+        mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
+                .andExpect(status().isForbidden());
     }
 }

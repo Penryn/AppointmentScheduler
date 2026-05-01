@@ -62,6 +62,10 @@ export const options = {
     'http_req_duration{type:api}': ['p(95)<300'],
     'http_req_duration{type:asset}': ['p(95)<300'],
     'http_req_duration{type:write}': ['p(95)<1000'],
+    'http_req_duration{endpoint:availableHours}': ['p(95)<500'],
+    'http_req_duration{endpoint:calendar}': ['p(95)<500'],
+    'http_req_duration{endpoint:notifications}': ['p(95)<300'],
+    'http_req_duration{endpoint:createAppointment}': ['p(95)<1000'],
     checks: ['rate>0.99'],
   },
 };

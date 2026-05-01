@@ -1,0 +1,11 @@
+{
+  "name": "appointmentscheduler-quality-tests",
+  "private": true,
+  "scripts": {
+    "test:visual": "playwright test -c playwright.config.ts",
+    "test:visual:update": "playwright test -c playwright.config.ts --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

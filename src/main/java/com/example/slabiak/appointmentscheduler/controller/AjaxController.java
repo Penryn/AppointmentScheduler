@@ -57,6 +57,9 @@ public class AjaxController {
 
     @GetMapping("/availableHours/{providerId}/{workId}/{date}")
     public List<AppointmentRegisterForm> getAvailableHours(@PathVariable("providerId") int providerId, @PathVariable("workId") int workId, @PathVariable("date") String date, @AuthenticationPrincipal CustomUserDetails currentUser) {
+        if (!currentUser.hasRole("ROLE_CUSTOMER")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only customers can query appointment availability");
+        }
         LocalDate localDate = LocalDate.parse(date);
         return appointmentService.getAvailableHours(providerId, currentUser.getId(), workId, localDate)
                 .stream()

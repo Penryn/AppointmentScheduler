@@ -1,4 +1,7 @@
 /target/
+node_modules/
+target/playwright-report/
+target/playwright-results/
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###

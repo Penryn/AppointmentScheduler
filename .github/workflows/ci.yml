@@ -420,6 +420,44 @@ jobs:
           docker compose logs backend
           exit 1
 
+      - name: Set up Node.js for visual tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright visual test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright visual regression tests
+        shell: bash
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          set -euo pipefail
+          if find tests/visual -path '*-snapshots*' -type f | grep -q .; then
+            npm run test:visual
+          else
+            echo "::warning::No Playwright visual baselines were found. Recording baseline screenshots for this run."
+            npm run test:visual:update
+          fi
+
+      - name: Upload Playwright visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-visual-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            target/playwright-report
+            target/playwright-results
+            tests/visual/**/__screenshots__/**
+            tests/visual/**/*-snapshots/**
+          if-no-files-found: warn
+          retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
+
       - name: Set up k6
         uses: grafana/setup-k6-action@v1
         with:
