@@ -42,17 +42,16 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.01'],
+    'http_req_failed{type:page}': ['rate<0.01'],
+    'http_req_failed{type:api}': ['rate<0.01'],
+    'http_req_failed{type:asset}': ['rate<0.01'],
     http_req_duration: ['p(95)<1000'],
     checks: ['rate>0.99'],
-    'http_req_failed{name:customer_r:login-submit}': ['rate<0.01'],
-    'http_req_failed{name:provider:login-submit}': ['rate<0.01'],
-    'http_req_failed{name:admin:login-submit}': ['rate<0.01'],
   },
 };
 
 export function setup() {
-  const health = get(`${BASE_URL}/actuator/health`, 'actuator:health');
+  const health = get(`${BASE_URL}/actuator/health`, 'actuator:health', 'api');
   check(health, {
     'application is healthy': (response) => response.status === 200 && bodyOf(response).includes('UP'),
   });
@@ -77,14 +76,14 @@ function anonymousFlow() {
   group('anonymous pages and assets', () => {
     http.cookieJar().clear(BASE_URL);
 
-    assertPage(get(`${BASE_URL}/login`, 'anonymous:login-page'), 'login page', ['id="login-form"']);
-    assertPage(get(`${BASE_URL}/customers/new/retail`, 'anonymous:retail-registration'), 'retail registration page', ['name="username"']);
-    assertPage(get(`${BASE_URL}/customers/new/corporate`, 'anonymous:corporate-registration'), 'corporate registration page', ['name="username"']);
+    assertPage(get(`${BASE_URL}/login`, 'anonymous:login-page', 'page'), 'login page', ['id="login-form"']);
+    assertPage(get(`${BASE_URL}/customers/new/retail`, 'anonymous:retail-registration', 'page'), 'retail registration page', ['name="username"']);
+    assertPage(get(`${BASE_URL}/customers/new/corporate`, 'anonymous:corporate-registration', 'page'), 'corporate registration page', ['name="username"']);
 
     const assets = http.batch([
-      ['GET', `${BASE_URL}/css/style.css`, null, requestOptions('asset:style.css')],
-      ['GET', `${BASE_URL}/webjars/bootstrap/5.3.8/css/bootstrap.min.css`, null, requestOptions('asset:bootstrap.css')],
-      ['GET', `${BASE_URL}/actuator/info`, null, requestOptions('actuator:info')],
+      ['GET', `${BASE_URL}/css/style.css`, null, requestOptions('asset:style.css', 'asset')],
+      ['GET', `${BASE_URL}/webjars/bootstrap/5.3.8/css/bootstrap.min.css`, null, requestOptions('asset:bootstrap.css', 'asset')],
+      ['GET', `${BASE_URL}/actuator/info`, null, requestOptions('actuator:info', 'api')],
     ]);
     assets.forEach(recordStatus);
     check(assets[0], { 'style.css is available': (response) => response.status === 200 });
@@ -97,30 +96,30 @@ function customerFlow() {
   group('customer appointment discovery flow', () => {
     loginAs(USERS.customer);
 
-    assertPage(get(`${BASE_URL}/`, 'customer:home'), 'customer home page', ['id="calendar"']);
-    assertPage(get(`${BASE_URL}/appointments/all`, 'customer:appointments'), 'customer appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'customer:appointments-filtered'), 'filtered customer appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'customer:profile'), 'customer profile page', ['id="profile"']);
-    assertPage(get(`${BASE_URL}/notifications`, 'customer:notifications'), 'customer notifications page', ['id="notifications"']);
+    assertPage(get(`${BASE_URL}/`, 'customer:home', 'page'), 'customer home page', ['id="calendar"']);
+    assertPage(get(`${BASE_URL}/appointments/all`, 'customer:appointments', 'page'), 'customer appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'customer:appointments-filtered', 'page'), 'filtered customer appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'customer:profile', 'page'), 'customer profile page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/notifications`, 'customer:notifications', 'page'), 'customer notifications page', ['id="notifications"']);
 
-    assertPage(get(`${BASE_URL}/appointments/new`, 'customer:appointment-new'), 'appointment provider selection page', ['选择']);
-    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}`, 'customer:appointment-provider'), 'appointment service selection page', ['id="customers"']);
-    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}/${IDS.work}`, 'customer:appointment-work'), 'appointment date selection page', ['id="calendar"']);
+    assertPage(get(`${BASE_URL}/appointments/new`, 'customer:appointment-new', 'page'), 'appointment provider selection page', ['选择']);
+    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}`, 'customer:appointment-provider', 'page'), 'appointment service selection page', ['id="customers"']);
+    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}/${IDS.work}`, 'customer:appointment-work', 'page'), 'appointment date selection page', ['id="calendar"']);
 
     const date = nextIsoDate(2);
-    const availableHours = get(`${BASE_URL}/api/availableHours/${IDS.provider}/${IDS.work}/${date}`, 'customer:available-hours-api');
+    const availableHours = get(`${BASE_URL}/api/availableHours/${IDS.provider}/${IDS.work}/${date}`, 'customer:available-hours-api', 'api');
     check(availableHours, {
       'available hours api is available': (response) => response.status === 200,
       'available hours api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
     });
 
-    const userAppointments = get(`${BASE_URL}/api/user/${IDS.customer}/appointments?${calendarWindowQuery()}`, 'customer:calendar-api');
+    const userAppointments = get(`${BASE_URL}/api/user/${IDS.customer}/appointments?${calendarWindowQuery()}`, 'customer:calendar-api', 'api');
     check(userAppointments, {
       'customer calendar api is available': (response) => response.status === 200,
       'customer calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
     });
 
-    const notifications = get(`${BASE_URL}/api/user/notifications`, 'customer:notifications-api');
+    const notifications = get(`${BASE_URL}/api/user/notifications`, 'customer:notifications-api', 'api');
     check(notifications, {
       'customer notifications api is available': (response) => response.status === 200,
     });
@@ -131,13 +130,13 @@ function providerFlow() {
   group('provider dashboard flow', () => {
     loginAs(USERS.provider);
 
-    assertPage(get(`${BASE_URL}/`, 'provider:home'), 'provider home page', ['id="calendar"']);
-    assertPage(get(`${BASE_URL}/appointments/all`, 'provider:appointments'), 'provider appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'provider:appointments-filtered'), 'filtered provider appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'provider:profile'), 'provider profile page', ['id="profile"']);
-    assertPage(get(`${BASE_URL}/providers/availability`, 'provider:availability'), 'provider availability page', ['name="monday.workingHours.start"']);
+    assertPage(get(`${BASE_URL}/`, 'provider:home', 'page'), 'provider home page', ['id="calendar"']);
+    assertPage(get(`${BASE_URL}/appointments/all`, 'provider:appointments', 'page'), 'provider appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'provider:appointments-filtered', 'page'), 'filtered provider appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'provider:profile', 'page'), 'provider profile page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/providers/availability`, 'provider:availability', 'page'), 'provider availability page', ['name="monday.workingHours.start"']);
 
-    const providerAppointments = get(`${BASE_URL}/api/user/${IDS.provider}/appointments?${calendarWindowQuery()}`, 'provider:calendar-api');
+    const providerAppointments = get(`${BASE_URL}/api/user/${IDS.provider}/appointments?${calendarWindowQuery()}`, 'provider:calendar-api', 'api');
     check(providerAppointments, {
       'provider calendar api is available': (response) => response.status === 200,
       'provider calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
@@ -149,22 +148,22 @@ function adminFlow() {
   group('admin management flow', () => {
     loginAs(USERS.admin);
 
-    assertPage(get(`${BASE_URL}/`, 'admin:home'), 'admin home page', ['id="calendar"']);
-    assertPage(get(`${BASE_URL}/appointments/all`, 'admin:appointments'), 'admin appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/customers/all`, 'admin:customers'), 'admin customers page', ['id="customers"']);
-    assertPage(get(`${BASE_URL}/providers/all`, 'admin:providers'), 'admin providers page', ['id="providers"']);
-    assertPage(get(`${BASE_URL}/works/all`, 'admin:works'), 'admin works page', ['id="works"']);
-    assertPage(get(`${BASE_URL}/invoices/all`, 'admin:invoices'), 'admin invoices page', ['发票']);
-    assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'admin:customer-detail'), 'admin customer detail page', ['id="profile"']);
-    assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'admin:provider-detail'), 'admin provider detail page', ['id="profile"']);
-    assertPage(get(`${BASE_URL}/works/${IDS.work}`, 'admin:work-detail'), 'admin work detail page', ['name="name"']);
+    assertPage(get(`${BASE_URL}/`, 'admin:home', 'page'), 'admin home page', ['id="calendar"']);
+    assertPage(get(`${BASE_URL}/appointments/all`, 'admin:appointments', 'page'), 'admin appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/customers/all`, 'admin:customers', 'page'), 'admin customers page', ['id="customers"']);
+    assertPage(get(`${BASE_URL}/providers/all`, 'admin:providers', 'page'), 'admin providers page', ['id="providers"']);
+    assertPage(get(`${BASE_URL}/works/all`, 'admin:works', 'page'), 'admin works page', ['id="works"']);
+    assertPage(get(`${BASE_URL}/invoices/all`, 'admin:invoices', 'page'), 'admin invoices page', ['发票']);
+    assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'admin:customer-detail', 'page'), 'admin customer detail page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'admin:provider-detail', 'page'), 'admin provider detail page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/works/${IDS.work}`, 'admin:work-detail', 'page'), 'admin work detail page', ['name="name"']);
   });
 }
 
 function loginAs(username) {
   http.cookieJar().clear(BASE_URL);
 
-  const loginPage = get(`${BASE_URL}/login`, `${username}:login-page`);
+  const loginPage = get(`${BASE_URL}/login`, `${username}:login-page`, 'login');
   check(loginPage, {
     'login page is available before authentication': (response) => response.status === 200,
     'login form is rendered before authentication': (response) => bodyOf(response).includes('id="login-form"'),
@@ -182,7 +181,7 @@ function loginAs(username) {
 
   const login = post(`${BASE_URL}/perform_login`, payload, {
     redirects: 0,
-  }, `${username}:login-submit`);
+  }, `${username}:login-submit`, 'login');
   check(login, {
     [`${username} login redirects after success`]: (response) => response.status === 302,
     [`${username} login does not return error redirect`]: (response) => !String(response.headers.Location || '').includes('error'),
@@ -201,27 +200,28 @@ function assertPage(response, name, expectedFragments = []) {
   check(response, checks);
 }
 
-function requestOptions(name) {
+function requestOptions(name, type) {
   return {
-    tags: requestTags(name),
+    tags: requestTags(name, type),
   };
 }
 
-function requestTags(name) {
+function requestTags(name, type) {
   return {
     name,
+    type: type || 'other',
   };
 }
 
-function get(url, name) {
-  const response = http.get(url, requestOptions(name));
+function get(url, name, type) {
+  const response = http.get(url, requestOptions(name, type));
   recordStatus(response);
   return response;
 }
 
-function post(url, payload, options, name) {
+function post(url, payload, options, name, type) {
   const requestConfig = options || {};
-  requestConfig.tags = Object.assign({}, requestConfig.tags || {}, requestTags(name));
+  requestConfig.tags = Object.assign({}, requestConfig.tags || {}, requestTags(name, type));
   const response = http.post(url, payload, requestConfig);
   recordStatus(response);
   return response;
@@ -284,16 +284,37 @@ function simpleSummary(data) {
   const checkRate = metricValue(metrics, 'checks', 'rate');
   const p95 = metricValue(metrics, 'http_req_duration', 'p(95)');
   const httpRequests = metricValue(metrics, 'http_reqs', 'count');
+  const failedChecks = checkSummary(data)
+    .filter((result) => result.fails > 0)
+    .sort((left, right) => right.fails - left.fails)
+    .slice(0, 10);
+  const statuses = httpStatusSummary(data);
 
-  return [
+  const lines = [
     '',
     'k6 summary',
     `  http_reqs: ${formatNumber(httpRequests)}`,
     `  http_req_failed: ${formatPercent(failedRate)}`,
     `  checks: ${formatPercent(checkRate)}`,
     `  http_req_duration p95: ${formatMs(p95)}`,
-    '',
-  ].join('\n');
+  ];
+
+  if (failedChecks.length > 0) {
+    lines.push('', 'failed checks:');
+    failedChecks.forEach((result) => {
+      lines.push(`  ${result.path || result.name}: ${result.fails} failed, ${result.passes} passed, ${formatPercent(result.rate)} success`);
+    });
+  }
+
+  if (statuses.length > 0) {
+    lines.push('', 'http status distribution:');
+    statuses.forEach((result) => {
+      lines.push(`  ${result.status}: ${result.count}`);
+    });
+  }
+
+  lines.push('');
+  return lines.join('\n');
 }
 
 function httpStatusSummary(data) {
