@@ -19,6 +19,7 @@
 		<testcontainers.version>1.21.4</testcontainers.version>
 		<failsafe.includes>**/*IT.java</failsafe.includes>
 		<failsafe.excludes>**/ui/**</failsafe.excludes>
+		<skip.surefire.tests>false</skip.surefire.tests>
 	</properties>
 
 	<dependencies>
@@ -197,6 +198,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<skipTests>${skip.surefire.tests}</skipTests>
 					<includes>
 						<include>**/*Test.java</include>
 					</includes>

@@ -114,6 +114,7 @@ jobs:
     permissions:
       contents: read
       checks: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -167,6 +168,16 @@ jobs:
           path: target/site/jacoco
           if-no-files-found: warn
           retention-days: ${{ env.JACOCO_RETENTION_DAYS }}
+
+      - name: Publish JaCoCo report to PR
+        if: github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v1.7.2
+        with:
+          paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code Coverage
+          update-comment: true
+          comment-type: both
 
       - name: Upload application jar
         uses: actions/upload-artifact@v4
@@ -290,7 +301,7 @@ jobs:
         run: |
           set -euo pipefail
           read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
-          ./mvnw "${maven_args[@]}" -Pui-tests verify
+          ./mvnw "${maven_args[@]}" -Pui-tests verify -Dskip.surefire.tests=true
 
       - name: Publish UI JUnit test report
         if: always()
@@ -310,6 +321,12 @@ jobs:
           path: |
             **/surefire-reports/TEST-*.xml
             **/failsafe-reports/TEST-*.xml
+            **/screenshots/**
+            **/selenium-screenshots/**
+            **/videos/**
+            **/recordings/**
+            **/html-reports/**
+            **/test-output/**
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
 
