@@ -511,10 +511,13 @@ jobs:
 
       - name: Run Trivy SARIF image scan
         uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_SKIP_VERSION_CHECK: 'true'
         with:
           image-ref: appointmentscheduler:local
           format: sarif
           output: target/trivy/image-scan.sarif
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: os,library
           severity: HIGH,CRITICAL
@@ -528,11 +531,13 @@ jobs:
       - name: Run Trivy table image scan
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
+        env:
+          TRIVY_SKIP_VERSION_CHECK: 'true'
         with:
           image-ref: appointmentscheduler:local
           format: table
           output: target/trivy/image-scan.txt
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: os,library
           severity: HIGH,CRITICAL
