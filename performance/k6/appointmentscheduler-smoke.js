@@ -4,6 +4,7 @@ import { Counter } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const PASSWORD = __ENV.K6_PASSWORD || 'qwerty123';
+const CLEANUP_WRITES = (__ENV.K6_CLEANUP_WRITES || 'true').toLowerCase() !== 'false';
 
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 399 }));
 
@@ -39,6 +40,7 @@ const LOAD = {
 };
 
 const httpStatusCount = new Counter('http_status_count');
+let currentTags = {};
 
 export const ids = IDS;
 export const baseUrl = BASE_URL;
@@ -71,9 +73,11 @@ export const options = {
 };
 
 export function setup() {
-  const health = get(`${BASE_URL}/actuator/health`, 'actuator:health', 'api');
-  check(health, {
-    'application is healthy': (response) => response.status === 200 && bodyOf(response).includes('UP'),
+  withTags({ role: 'system', flow: 'setup' }, () => {
+    const health = get(`${BASE_URL}/actuator/health`, 'actuator:health', 'api');
+    check(health, {
+      'application is healthy': (response) => response.status === 200 && bodyOf(response).includes('UP'),
+    });
   });
 }
 
@@ -93,7 +97,7 @@ export default function () {
 }
 
 export function anonymousFlow() {
-  group('anonymous pages and assets', () => {
+  withTags({ role: 'anonymous', flow: 'anonymous_pages' }, () => group('anonymous pages and assets', () => {
     http.cookieJar().clear(BASE_URL);
 
     assertPage(get(`${BASE_URL}/login`, 'anonymous:login-page', 'page'), 'login page', ['id="login-form"']);
@@ -109,11 +113,11 @@ export function anonymousFlow() {
     check(assets[0], { 'style.css is available': (response) => response.status === 200 });
     check(assets[1], { 'bootstrap css is available': (response) => response.status === 200 });
     check(assets[2], { 'actuator info is available': (response) => response.status === 200 });
-  });
+  }));
 }
 
 export function customerFlow() {
-  group('customer appointment discovery flow', () => {
+  withTags({ role: 'customer', flow: 'appointment_discovery' }, () => group('customer appointment discovery flow', () => {
     const customer = currentCustomer();
     const provider = currentProvider();
     loginAs(customer.username);
@@ -145,11 +149,11 @@ export function customerFlow() {
     check(notifications, {
       'customer notifications api is available': (response) => response.status === 200,
     });
-  });
+  }));
 }
 
 export function providerFlow() {
-  group('provider dashboard flow', () => {
+  withTags({ role: 'provider', flow: 'provider_dashboard' }, () => group('provider dashboard flow', () => {
     const provider = currentProvider();
     loginAs(provider.username);
 
@@ -164,11 +168,11 @@ export function providerFlow() {
       'provider calendar api is available': (response) => response.status === 200,
       'provider calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
     });
-  });
+  }));
 }
 
 export function adminFlow() {
-  group('admin management flow', () => {
+  withTags({ role: 'admin', flow: 'admin_management' }, () => group('admin management flow', () => {
     loginAs(USERS.admin);
 
     assertPage(get(`${BASE_URL}/`, 'admin:home', 'page'), 'admin home page', ['id="calendar"']);
@@ -180,7 +184,7 @@ export function adminFlow() {
     assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'admin:customer-detail', 'page'), 'admin customer detail page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'admin:provider-detail', 'page'), 'admin provider detail page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/works/${IDS.work}`, 'admin:work-detail', 'page'), 'admin work detail page', ['name="name"']);
-  });
+  }));
 }
 
 function loginAs(username) {
@@ -212,7 +216,7 @@ function loginAs(username) {
 }
 
 export function customerWriteFlow() {
-  group('customer appointment write flow', () => {
+  withTags({ role: 'customer', flow: 'appointment_write' }, () => group('customer appointment write flow', () => {
     const customer = currentCustomer();
     const provider = currentProvider();
     loginAs(customer.username);
@@ -247,6 +251,39 @@ export function customerWriteFlow() {
       'write flow appointment creation redirects': (response) => response.status === 302,
       'write flow appointment creation goes to list': (response) => String(response.headers.Location || '').includes('/appointments/all'),
     });
+
+    if (CLEANUP_WRITES && create.status === 302) {
+      cleanupCreatedAppointment(customer, provider, start);
+    }
+  }));
+}
+
+function cleanupCreatedAppointment(customer, provider, start) {
+  const appointments = withTags({ role: 'customer', flow: 'appointment_cleanup' }, () => (
+    get(`${BASE_URL}/api/user/${customer.id}/appointments?${appointmentWindowQuery(start)}`, 'customer-write:find-created-appointment', 'api')
+  ));
+  const createdAppointment = parseJsonArray(appointments).find((appointment) => appointment.start === start);
+
+  check(appointments, {
+    'write cleanup finds created appointment': () => Boolean(createdAppointment && createdAppointment.id),
+  });
+
+  if (!createdAppointment || !createdAppointment.id) {
+    return;
+  }
+
+  const cancel = withTags({ role: 'provider', flow: 'appointment_cleanup' }, () => {
+    loginAs(provider.username);
+    return post(`${BASE_URL}/appointments/cancel`, {
+      appointmentId: createdAppointment.id,
+    }, {
+      redirects: 0,
+    }, 'customer-write:cleanup-cancel-appointment', 'write');
+  });
+
+  check(cancel, {
+    'write cleanup cancellation redirects': (response) => response.status === 302,
+    'write cleanup cancellation goes to list': (response) => String(response.headers.Location || '').includes('/appointments/all'),
   });
 }
 
@@ -279,6 +316,16 @@ function assertPage(response, name, expectedFragments = []) {
   check(response, checks);
 }
 
+function withTags(tags, callback) {
+  const previousTags = currentTags;
+  currentTags = Object.assign({}, currentTags, tags);
+  try {
+    return callback();
+  } finally {
+    currentTags = previousTags;
+  }
+}
+
 function requestOptions(name, type) {
   return {
     tags: requestTags(name, type),
@@ -286,10 +333,10 @@ function requestOptions(name, type) {
 }
 
 function requestTags(name, type) {
-  return {
+  return Object.assign({}, currentTags, {
     name,
     type: type || 'other',
-  };
+  });
 }
 
 function get(url, name, type) {
@@ -340,6 +387,13 @@ function calendarWindowQuery() {
   return `start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
 }
 
+function appointmentWindowQuery(start) {
+  const startDate = new Date(`${start}:00Z`);
+  const windowStart = new Date(startDate.getTime() - 60 * 60 * 1000).toISOString();
+  const windowEnd = new Date(startDate.getTime() + 2 * 60 * 60 * 1000).toISOString();
+  return `start=${encodeURIComponent(windowStart)}&end=${encodeURIComponent(windowEnd)}`;
+}
+
 function extractCsrfToken(body) {
   const match = String(body).match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"[^>]*>/)
     || String(body).match(/<input[^>]*value="([^"]+)"[^>]*name="_csrf"[^>]*>/);
@@ -386,8 +440,23 @@ export function handleSummary(data) {
   return {
     stdout: simpleSummary(data),
     'target/k6/summary.json': JSON.stringify(data, null, 2),
+    'target/k6/metrics.json': JSON.stringify(metricsSummary(data), null, 2),
     'target/k6/checks.json': JSON.stringify(checkSummary(data), null, 2),
     'target/k6/http-status.json': JSON.stringify(httpStatusSummary(data), null, 2),
+    'target/k6/report.html': htmlSummary(data),
+  };
+}
+
+function metricsSummary(data) {
+  const metrics = data.metrics || {};
+  return {
+    http_reqs: metricValue(metrics, 'http_reqs', 'count'),
+    http_req_failed_rate: metricValue(metrics, 'http_req_failed', 'rate'),
+    checks_rate: metricValue(metrics, 'checks', 'rate'),
+    http_req_duration_avg_ms: metricValue(metrics, 'http_req_duration', 'avg'),
+    http_req_duration_p90_ms: metricValue(metrics, 'http_req_duration', 'p(90)'),
+    http_req_duration_p95_ms: metricValue(metrics, 'http_req_duration', 'p(95)'),
+    http_req_duration_max_ms: metricValue(metrics, 'http_req_duration', 'max'),
   };
 }
 
@@ -447,6 +516,53 @@ function simpleSummary(data) {
   return lines.join('\n');
 }
 
+function htmlSummary(data) {
+  const metrics = metricsSummary(data);
+  const failedChecks = checkSummary(data)
+    .filter((result) => result.fails > 0)
+    .sort((left, right) => right.fails - left.fails)
+    .slice(0, 20);
+  const statuses = httpStatusSummary(data);
+  const metricRows = [
+    ['HTTP requests', formatNumber(metrics.http_reqs)],
+    ['Failed request rate', formatPercent(metrics.http_req_failed_rate)],
+    ['Check success rate', formatPercent(metrics.checks_rate)],
+    ['Avg duration', formatMs(metrics.http_req_duration_avg_ms)],
+    ['P90 duration', formatMs(metrics.http_req_duration_p90_ms)],
+    ['P95 duration', formatMs(metrics.http_req_duration_p95_ms)],
+    ['Max duration', formatMs(metrics.http_req_duration_max_ms)],
+  ];
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>k6 Performance Report</title>
+  <style>
+    body { color: #17202a; font-family: Arial, sans-serif; margin: 32px; }
+    h1, h2 { margin-bottom: 12px; }
+    table { border-collapse: collapse; margin-bottom: 28px; min-width: 520px; }
+    th, td { border: 1px solid #d5d8dc; padding: 8px 10px; text-align: left; }
+    th { background: #f4f6f7; }
+    .ok { color: #1e8449; font-weight: 700; }
+    .bad { color: #b03a2e; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>k6 Performance Report</h1>
+  <h2>Metrics</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+    <tbody>${metricRows.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join('')}</tbody>
+  </table>
+  <h2>Failed Checks</h2>
+  ${failedChecks.length === 0 ? '<p class="ok">No failed checks.</p>' : `<table><thead><tr><th>Check</th><th>Fails</th><th>Passes</th><th>Success rate</th></tr></thead><tbody>${failedChecks.map((result) => `<tr><td>${escapeHtml(result.path || result.name)}</td><td class="bad">${result.fails}</td><td>${result.passes}</td><td>${formatPercent(result.rate)}</td></tr>`).join('')}</tbody></table>`}
+  <h2>HTTP Status Distribution</h2>
+  ${statuses.length === 0 ? '<p>No status metrics were recorded.</p>' : `<table><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>${statuses.map((result) => `<tr><td>${escapeHtml(result.status)}</td><td>${result.count}</td></tr>`).join('')}</tbody></table>`}
+</body>
+</html>`;
+}
+
 function httpStatusSummary(data) {
   const statuses = {};
   Object.entries(data.metrics || {}).forEach(([metricName, metric]) => {
@@ -479,4 +595,13 @@ function metricValue(metrics, metricName, valueName) {
     return null;
   }
   return metric.values[valueName];
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

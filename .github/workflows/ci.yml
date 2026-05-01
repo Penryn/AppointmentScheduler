@@ -229,7 +229,25 @@ jobs:
           )
 
           if [ -n "${NVD_API_KEY}" ]; then
-            dependency_check_args+=("-DnvdApiKey=${NVD_API_KEY}" "-DnvdApiDelay=3500")
+            nvd_status="$(
+              curl --silent --show-error --location \
+                --connect-timeout 10 \
+                --max-time 30 \
+                --header "apiKey: ${NVD_API_KEY}" \
+                --output /dev/null \
+                --write-out '%{http_code}' \
+                'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1' || true
+            )"
+
+            if [ "${nvd_status}" = "200" ]; then
+              dependency_check_args+=("-DnvdApiKeyEnvironmentVariable=NVD_API_KEY" "-DnvdApiDelay=3500")
+            else
+              echo "::warning::NVD_API_KEY is configured but NVD rejected it or could not validate it (HTTP ${nvd_status:-unknown}). Running Dependency-Check without an API key."
+              unset NVD_API_KEY
+              dependency_check_args+=("-DnvdApiDelay=8000")
+            fi
+          else
+            dependency_check_args+=("-DnvdApiDelay=8000")
           fi
 
           ./mvnw "${maven_args[@]}" \
@@ -389,12 +407,21 @@ jobs:
 
       - name: Prepare k6 output directory
         shell: bash
-        run: mkdir -p target/k6
+        run: mkdir -p target/k6 target/k6-baseline
+
+      - name: Restore k6 performance baseline
+        uses: actions/cache@v4
+        with:
+          path: target/k6-baseline
+          key: k6-baseline-${{ runner.os }}-${{ github.ref_name }}-${{ github.event.inputs.k6_profile || 'smoke' }}-${{ github.run_id }}
+          restore-keys: |
+            k6-baseline-${{ runner.os }}-${{ github.ref_name }}-${{ github.event.inputs.k6_profile || 'smoke' }}-
 
       - name: Run k6 smoke load test
         uses: grafana/run-k6-action@v1
         env:
           BASE_URL: http://localhost:8080
+          K6_CLEANUP_WRITES: 'true'
           K6_WARM_VUS: ${{ github.event.inputs.k6_warm_vus || '5' }}
           K6_PEAK_VUS: ${{ github.event.inputs.k6_peak_vus || '10' }}
           K6_RAMP_UP_DURATION: ${{ github.event.inputs.k6_ramp_up_duration || '20s' }}
@@ -461,6 +488,69 @@ jobs:
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
 
+      - name: Compare k6 performance baseline
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f target/k6/metrics.json ]; then
+            echo "No k6 metrics were generated for baseline comparison." >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          previous_baseline="target/k6-baseline/baseline.json"
+          current_metrics="target/k6/metrics.json"
+
+          {
+            echo
+            echo "## k6 Baseline Comparison"
+            echo
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          if [ -f "${previous_baseline}" ]; then
+            jq -n \
+              --slurpfile previous "${previous_baseline}" \
+              --slurpfile current "${current_metrics}" '
+              def pct($v): if $v == null then "n/a" else (((($v * 10000) | round) / 100) | tostring) + "%" end;
+              def ms($v): if $v == null then "n/a" else (((($v * 100) | round) / 100) | tostring) + " ms" end;
+              def num($v): if $v == null then "n/a" else ($v | tostring) end;
+              def delta_pct($old; $new):
+                if $old == null or $old == 0 or $new == null then "n/a" else (((((($new - $old) / $old) * 10000) | round) / 100) | tostring) + "%" end;
+              def delta_num($old; $new):
+                if $old == null or $new == null then "n/a" else (($new - $old) | tostring) end;
+              def delta_ms($old; $new):
+                if $old == null or $new == null then "n/a" else ms($new - $old) end;
+              def delta_rate($old; $new):
+                if $old == null or $new == null then "n/a" else pct($new - $old) end;
+              ($previous[0]) as $p |
+              ($current[0]) as $c |
+              [
+                ["HTTP requests", num($p.http_reqs), num($c.http_reqs), delta_num($p.http_reqs; $c.http_reqs), delta_pct($p.http_reqs; $c.http_reqs)],
+                ["Failed request rate", pct($p.http_req_failed_rate), pct($c.http_req_failed_rate), delta_rate($p.http_req_failed_rate; $c.http_req_failed_rate), "n/a"],
+                ["Check success rate", pct($p.checks_rate), pct($c.checks_rate), delta_rate($p.checks_rate; $c.checks_rate), "n/a"],
+                ["Avg duration", ms($p.http_req_duration_avg_ms), ms($c.http_req_duration_avg_ms), delta_ms($p.http_req_duration_avg_ms; $c.http_req_duration_avg_ms), delta_pct($p.http_req_duration_avg_ms; $c.http_req_duration_avg_ms)],
+                ["P90 duration", ms($p.http_req_duration_p90_ms), ms($c.http_req_duration_p90_ms), delta_ms($p.http_req_duration_p90_ms; $c.http_req_duration_p90_ms), delta_pct($p.http_req_duration_p90_ms; $c.http_req_duration_p90_ms)],
+                ["P95 duration", ms($p.http_req_duration_p95_ms), ms($c.http_req_duration_p95_ms), delta_ms($p.http_req_duration_p95_ms; $c.http_req_duration_p95_ms), delta_pct($p.http_req_duration_p95_ms; $c.http_req_duration_p95_ms)]
+              ] as $rows |
+              "| Metric | Previous | Current | Delta | Delta % |\n| --- | ---: | ---: | ---: | ---: |\n" +
+              ($rows | map("| \(.[0]) | \(.[1]) | \(.[2]) | \(.[3]) | \(.[4]) |") | join("\n"))
+            ' -r >> "${GITHUB_STEP_SUMMARY}"
+
+            p95_regressed="$(jq -n --slurpfile previous "${previous_baseline}" --slurpfile current "${current_metrics}" '($previous[0].http_req_duration_p95_ms // 0) as $p | ($current[0].http_req_duration_p95_ms // 0) as $c | $p > 0 and $c > ($p * 1.2)')"
+            failed_regressed="$(jq -n --slurpfile previous "${previous_baseline}" --slurpfile current "${current_metrics}" '($previous[0].http_req_failed_rate // 0) as $p | ($current[0].http_req_failed_rate // 0) as $c | $c > ($p + 0.01)')"
+
+            if [ "${p95_regressed}" = "true" ]; then
+              echo "::warning::k6 P95 latency regressed by more than 20% compared with the previous baseline."
+            fi
+            if [ "${failed_regressed}" = "true" ]; then
+              echo "::warning::k6 failed request rate increased by more than 1 percentage point compared with the previous baseline."
+            fi
+          else
+            echo "No previous k6 baseline was restored. This run will become the new baseline." >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+          cp "${current_metrics}" "${previous_baseline}"
+
       - name: Capture application logs
         if: always()
         shell: bash
@@ -481,45 +571,3 @@ jobs:
           path: target/k6
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
-
-  publish-image:
-    name: Publish Docker Image
-    needs:
-      - build-test
-      - dependency-check
-      - ui-test
-      - performance-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
-
-      - name: Build and push image with Jib
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [ -z "${DOCKER_USERNAME}" ] || [ -z "${DOCKER_PASSWORD}" ]; then
-            echo "DOCKERHUB_USERNAME 或 DOCKERHUB_PASSWORD 未配置。"
-            exit 1
-          fi
-
-          short_sha="${GITHUB_SHA::8}"
-          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
-          ./mvnw "${maven_args[@]}" \
-            -Djib.to.auth.username="${DOCKER_USERNAME}" \
-            -Djib.to.auth.password="${DOCKER_PASSWORD}" \
-            -Djib.to.tags="latest,${GITHUB_RUN_NUMBER},${short_sha}" \
-            jib:build
