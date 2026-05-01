@@ -168,7 +168,7 @@ docker compose down -v
 
 - 单元测试
 - 集成测试
-- API 契约测试
+- API 集成测试 / 接口回归测试
 - 安全权限测试
 - 并发测试
 - Selenium UI 测试
