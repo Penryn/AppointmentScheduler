@@ -229,7 +229,25 @@ jobs:
           )
 
           if [ -n "${NVD_API_KEY}" ]; then
-            dependency_check_args+=("-DnvdApiKey=${NVD_API_KEY}" "-DnvdApiDelay=3500")
+            nvd_status="$(
+              curl --silent --show-error --location \
+                --connect-timeout 10 \
+                --max-time 30 \
+                --header "apiKey: ${NVD_API_KEY}" \
+                --output /dev/null \
+                --write-out '%{http_code}' \
+                'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1' || true
+            )"
+
+            if [ "${nvd_status}" = "200" ]; then
+              dependency_check_args+=("-DnvdApiKeyEnvironmentVariable=NVD_API_KEY" "-DnvdApiDelay=3500")
+            else
+              echo "::warning::NVD_API_KEY is configured but NVD rejected it or could not validate it (HTTP ${nvd_status:-unknown}). Running Dependency-Check without an API key."
+              unset NVD_API_KEY
+              dependency_check_args+=("-DnvdApiDelay=8000")
+            fi
+          else
+            dependency_check_args+=("-DnvdApiDelay=8000")
           fi
 
           ./mvnw "${maven_args[@]}" \
@@ -481,45 +499,3 @@ jobs:
           path: target/k6
           if-no-files-found: warn
           retention-days: ${{ env.TEST_REPORT_RETENTION_DAYS }}
-
-  publish-image:
-    name: Publish Docker Image
-    needs:
-      - build-test
-      - dependency-check
-      - ui-test
-      - performance-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
-
-      - name: Build and push image with Jib
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [ -z "${DOCKER_USERNAME}" ] || [ -z "${DOCKER_PASSWORD}" ]; then
-            echo "DOCKERHUB_USERNAME 或 DOCKERHUB_PASSWORD 未配置。"
-            exit 1
-          fi
-
-          short_sha="${GITHUB_SHA::8}"
-          read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
-          ./mvnw "${maven_args[@]}" \
-            -Djib.to.auth.username="${DOCKER_USERNAME}" \
-            -Djib.to.auth.password="${DOCKER_PASSWORD}" \
-            -Djib.to.tags="latest,${GITHUB_RUN_NUMBER},${short_sha}" \
-            jib:build
