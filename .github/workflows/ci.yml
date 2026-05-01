@@ -82,6 +82,7 @@ env:
   MAVEN_CLI_OPTS: '-B -ntp -Dmaven.wagon.http.retryHandler.count=3'
   MAVEN_OPTS: '-Xmx3072m'
   DEPENDENCY_CHECK_VERSION: '12.2.1'
+  DEPENDENCY_CHECK_NVD_VALID_FOR_HOURS: '168'
   K6_VERSION: '0.49.0'
 
 jobs:
@@ -223,6 +224,8 @@ jobs:
           dependency_check_args=(
             "org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:check"
             "-DdataDirectory=${HOME}/.dependency-check"
+            "-DnvdValidForHours=${DEPENDENCY_CHECK_NVD_VALID_FOR_HOURS}"
+            "-DnvdApiResultsPerPage=2000"
             "-Dformat=ALL"
             "-DfailBuildOnCVSS=11"
             "-DnvdMaxRetryCount=10"
