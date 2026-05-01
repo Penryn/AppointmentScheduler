@@ -77,8 +77,8 @@ function anonymousFlow() {
     http.cookieJar().clear(BASE_URL);
 
     assertPage(get(`${BASE_URL}/login`, 'anonymous:login-page', 'page'), 'login page', ['id="login-form"']);
-    assertPage(get(`${BASE_URL}/customers/new/retail`, 'anonymous:retail-registration', 'page'), 'retail registration page', ['name="username"']);
-    assertPage(get(`${BASE_URL}/customers/new/corporate`, 'anonymous:corporate-registration', 'page'), 'corporate registration page', ['name="username"']);
+    assertPage(get(`${BASE_URL}/customers/new/retail`, 'anonymous:retail-registration', 'page'), 'retail registration page', ['注册个人客户账号']);
+    assertPage(get(`${BASE_URL}/customers/new/corporate`, 'anonymous:corporate-registration', 'page'), 'corporate registration page', ['注册企业客户账号']);
 
     const assets = http.batch([
       ['GET', `${BASE_URL}/css/style.css`, null, requestOptions('asset:style.css', 'asset')],
@@ -98,7 +98,7 @@ function customerFlow() {
 
     assertPage(get(`${BASE_URL}/`, 'customer:home', 'page'), 'customer home page', ['id="calendar"']);
     assertPage(get(`${BASE_URL}/appointments/all`, 'customer:appointments', 'page'), 'customer appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'customer:appointments-filtered', 'page'), 'filtered customer appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/appointments/all?status=SCHEDULED&page=0&size=10`, 'customer:appointments-filtered', 'page'), 'filtered customer appointments page', ['id="appointments"']);
     assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'customer:profile', 'page'), 'customer profile page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/notifications`, 'customer:notifications', 'page'), 'customer notifications page', ['id="notifications"']);
 
@@ -132,7 +132,7 @@ function providerFlow() {
 
     assertPage(get(`${BASE_URL}/`, 'provider:home', 'page'), 'provider home page', ['id="calendar"']);
     assertPage(get(`${BASE_URL}/appointments/all`, 'provider:appointments', 'page'), 'provider appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/appointments/all?status=CREATED&page=0&size=10`, 'provider:appointments-filtered', 'page'), 'filtered provider appointments page', ['id="appointments"']);
+    assertPage(get(`${BASE_URL}/appointments/all?status=SCHEDULED&page=0&size=10`, 'provider:appointments-filtered', 'page'), 'filtered provider appointments page', ['id="appointments"']);
     assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'provider:profile', 'page'), 'provider profile page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/providers/availability`, 'provider:availability', 'page'), 'provider availability page', ['name="monday.workingHours.start"']);
 
