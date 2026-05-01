@@ -294,7 +294,16 @@ npm run test:visual:update
   - `develop`、`master` 分支的 push 会触发
   - 指向 `develop`、`master` 的 PR 会触发
   - 文档和构建产物目录变更（如 `docs/**`、`target/**`）默认不触发
-- CI 阶段（Build and Test）
+- 当前 CI Job
+  - Workflow Lint
+  - Dependency Review
+  - Build and Test
+  - OWASP Dependency Check
+  - UI Tests
+  - Visual Regression Tests
+  - Container Image Security Scan
+  - k6 Performance Test
+- Build and Test
   - 在 Java 17 环境执行 `./mvnw verify`
   - 使用 Maven 缓存加速依赖下载
   - 发布 Surefire/Failsafe 测试报告产物
@@ -305,6 +314,8 @@ npm run test:visual:update
 - 扩展验证阶段
   - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check
   - `master` push 或手动触发会运行 Selenium UI 测试、Playwright 视觉回归测试与 k6 性能测试
+  - PR 会通过 Dependency Review Job 检查依赖变更风险
+  - `master` push、手动触发或定时任务会运行容器镜像安全扫描 Job，并将 SARIF 上传到 GitHub Code Scanning
   - UI 测试跳过重复的单元测试，并上传测试报告、截图和测试输出产物
   - Playwright 在独立的 Visual Regression Tests Job 中执行，并上传视觉测试报告、trace、截图和基线产物
   - k6 会上传 JSON、HTML 报告和应用日志产物，并按接口维护延迟阈值
