@@ -20,6 +20,16 @@ const IDS = {
   work: Number(__ENV.K6_WORK_ID || 1),
 };
 
+const DEFAULT_CUSTOMER_USERS = [USERS.customer].concat(numberedNames('load_customer_', 20));
+const DEFAULT_CUSTOMER_IDS = [IDS.customer].concat(numberedIds(1001, 20));
+const DEFAULT_PROVIDER_USERS = [USERS.provider].concat(numberedNames('load_provider_', 3));
+const DEFAULT_PROVIDER_IDS = [IDS.provider].concat(numberedIds(1101, 3));
+
+const CUSTOMER_USERS = listFromEnv('K6_CUSTOMER_USERS', DEFAULT_CUSTOMER_USERS);
+const CUSTOMER_IDS = numberListFromEnv('K6_CUSTOMER_IDS', DEFAULT_CUSTOMER_IDS);
+const PROVIDER_USERS = listFromEnv('K6_PROVIDER_USERS', DEFAULT_PROVIDER_USERS);
+const PROVIDER_IDS = numberListFromEnv('K6_PROVIDER_IDS', DEFAULT_PROVIDER_IDS);
+
 const LOAD = {
   rampUp: __ENV.K6_RAMP_UP_DURATION || '20s',
   steady: __ENV.K6_STEADY_DURATION || '40s',
@@ -29,6 +39,13 @@ const LOAD = {
 };
 
 const httpStatusCount = new Counter('http_status_count');
+
+export const ids = IDS;
+export const baseUrl = BASE_URL;
+export const userPools = {
+  customers: CUSTOMER_USERS,
+  providers: PROVIDER_USERS,
+};
 
 export const options = {
   scenarios: {
@@ -45,6 +62,9 @@ export const options = {
     'http_req_failed{type:page}': ['rate<0.01'],
     'http_req_failed{type:api}': ['rate<0.01'],
     'http_req_failed{type:asset}': ['rate<0.01'],
+    'http_req_duration{type:page}': ['p(95)<800'],
+    'http_req_duration{type:api}': ['p(95)<300'],
+    'http_req_duration{type:asset}': ['p(95)<300'],
     http_req_duration: ['p(95)<1000'],
     checks: ['rate>0.99'],
   },
@@ -69,10 +89,10 @@ export default function () {
     adminFlow();
   }
 
-  sleep(1);
+  thinkTime(1, 3);
 }
 
-function anonymousFlow() {
+export function anonymousFlow() {
   group('anonymous pages and assets', () => {
     http.cookieJar().clear(BASE_URL);
 
@@ -92,28 +112,30 @@ function anonymousFlow() {
   });
 }
 
-function customerFlow() {
+export function customerFlow() {
   group('customer appointment discovery flow', () => {
-    loginAs(USERS.customer);
+    const customer = currentCustomer();
+    const provider = currentProvider();
+    loginAs(customer.username);
 
     assertPage(get(`${BASE_URL}/`, 'customer:home', 'page'), 'customer home page', ['id="calendar"']);
     assertPage(get(`${BASE_URL}/appointments/all`, 'customer:appointments', 'page'), 'customer appointments page', ['id="appointments"']);
     assertPage(get(`${BASE_URL}/appointments/all?status=SCHEDULED&page=0&size=10`, 'customer:appointments-filtered', 'page'), 'filtered customer appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/customers/${IDS.customer}`, 'customer:profile', 'page'), 'customer profile page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/customers/${customer.id}`, 'customer:profile', 'page'), 'customer profile page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/notifications`, 'customer:notifications', 'page'), 'customer notifications page', ['id="notifications"']);
 
     assertPage(get(`${BASE_URL}/appointments/new`, 'customer:appointment-new', 'page'), 'appointment provider selection page', ['选择']);
-    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}`, 'customer:appointment-provider', 'page'), 'appointment service selection page', ['id="customers"']);
-    assertPage(get(`${BASE_URL}/appointments/new/${IDS.provider}/${IDS.work}`, 'customer:appointment-work', 'page'), 'appointment date selection page', ['id="calendar"']);
+    assertPage(get(`${BASE_URL}/appointments/new/${provider.id}`, 'customer:appointment-provider', 'page'), 'appointment service selection page', ['id="customers"']);
+    assertPage(get(`${BASE_URL}/appointments/new/${provider.id}/${IDS.work}`, 'customer:appointment-work', 'page'), 'appointment date selection page', ['id="calendar"']);
 
     const date = nextIsoDate(2);
-    const availableHours = get(`${BASE_URL}/api/availableHours/${IDS.provider}/${IDS.work}/${date}`, 'customer:available-hours-api', 'api');
+    const availableHours = get(`${BASE_URL}/api/availableHours/${provider.id}/${IDS.work}/${date}`, 'customer:available-hours-api', 'api');
     check(availableHours, {
       'available hours api is available': (response) => response.status === 200,
       'available hours api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
     });
 
-    const userAppointments = get(`${BASE_URL}/api/user/${IDS.customer}/appointments?${calendarWindowQuery()}`, 'customer:calendar-api', 'api');
+    const userAppointments = get(`${BASE_URL}/api/user/${customer.id}/appointments?${calendarWindowQuery()}`, 'customer:calendar-api', 'api');
     check(userAppointments, {
       'customer calendar api is available': (response) => response.status === 200,
       'customer calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
@@ -126,17 +148,18 @@ function customerFlow() {
   });
 }
 
-function providerFlow() {
+export function providerFlow() {
   group('provider dashboard flow', () => {
-    loginAs(USERS.provider);
+    const provider = currentProvider();
+    loginAs(provider.username);
 
     assertPage(get(`${BASE_URL}/`, 'provider:home', 'page'), 'provider home page', ['id="calendar"']);
     assertPage(get(`${BASE_URL}/appointments/all`, 'provider:appointments', 'page'), 'provider appointments page', ['id="appointments"']);
     assertPage(get(`${BASE_URL}/appointments/all?status=SCHEDULED&page=0&size=10`, 'provider:appointments-filtered', 'page'), 'filtered provider appointments page', ['id="appointments"']);
-    assertPage(get(`${BASE_URL}/providers/${IDS.provider}`, 'provider:profile', 'page'), 'provider profile page', ['id="profile"']);
+    assertPage(get(`${BASE_URL}/providers/${provider.id}`, 'provider:profile', 'page'), 'provider profile page', ['id="profile"']);
     assertPage(get(`${BASE_URL}/providers/availability`, 'provider:availability', 'page'), 'provider availability page', ['name="monday.workingHours.start"']);
 
-    const providerAppointments = get(`${BASE_URL}/api/user/${IDS.provider}/appointments?${calendarWindowQuery()}`, 'provider:calendar-api', 'api');
+    const providerAppointments = get(`${BASE_URL}/api/user/${provider.id}/appointments?${calendarWindowQuery()}`, 'provider:calendar-api', 'api');
     check(providerAppointments, {
       'provider calendar api is available': (response) => response.status === 200,
       'provider calendar api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
@@ -144,7 +167,7 @@ function providerFlow() {
   });
 }
 
-function adminFlow() {
+export function adminFlow() {
   group('admin management flow', () => {
     loginAs(USERS.admin);
 
@@ -186,6 +209,62 @@ function loginAs(username) {
     [`${username} login redirects after success`]: (response) => response.status === 302,
     [`${username} login does not return error redirect`]: (response) => !String(response.headers.Location || '').includes('error'),
   });
+}
+
+export function customerWriteFlow() {
+  group('customer appointment write flow', () => {
+    const customer = currentCustomer();
+    const provider = currentProvider();
+    loginAs(customer.username);
+
+    const date = nextIsoDate(14 + (((__VU || 1) * 3 + (__ITER || 0)) % 35));
+    const availableHours = get(`${BASE_URL}/api/availableHours/${provider.id}/${IDS.work}/${date}`, 'customer-write:available-hours-api', 'api');
+    check(availableHours, {
+      'write flow available hours api is available': (response) => response.status === 200,
+      'write flow available hours api returns json': (response) => String(response.headers['Content-Type'] || '').includes('application/json'),
+    });
+
+    const slots = parseJsonArray(availableHours);
+    if (slots.length === 0 || !slots[0].start) {
+      check(availableHours, {
+        'write flow has at least one available slot': () => false,
+      });
+      return;
+    }
+
+    const start = slots[(__ITER + __VU) % slots.length].start;
+    assertPage(get(`${BASE_URL}/appointments/new/${provider.id}/${IDS.work}/${start}`, 'customer-write:appointment-summary', 'page'), 'write flow appointment summary page', ['确认预约']);
+
+    const create = post(`${BASE_URL}/appointments/new`, {
+      workId: IDS.work,
+      providerId: provider.id,
+      start,
+    }, {
+      redirects: 0,
+    }, 'customer-write:create-appointment', 'write');
+
+    check(create, {
+      'write flow appointment creation redirects': (response) => response.status === 302,
+      'write flow appointment creation goes to list': (response) => String(response.headers.Location || '').includes('/appointments/all'),
+    });
+  });
+}
+
+function currentCustomer() {
+  return currentAccount(CUSTOMER_USERS, CUSTOMER_IDS, IDS.customer);
+}
+
+function currentProvider() {
+  return currentAccount(PROVIDER_USERS, PROVIDER_IDS, IDS.provider);
+}
+
+function currentAccount(usernames, ids, fallbackId) {
+  const vu = __VU || 1;
+  const index = (vu - 1) % usernames.length;
+  return {
+    username: usernames[index],
+    id: ids[index] || fallbackId,
+  };
 }
 
 function assertPage(response, name, expectedFragments = []) {
@@ -235,6 +314,21 @@ function bodyOf(response) {
   return String(response.body || '');
 }
 
+export function thinkTime(minSeconds, maxSeconds) {
+  const min = minSeconds || 1;
+  const max = maxSeconds || min;
+  sleep(min + Math.random() * (max - min));
+}
+
+function parseJsonArray(response) {
+  try {
+    const value = response.json();
+    return Array.isArray(value) ? value : [];
+  } catch (error) {
+    return [];
+  }
+}
+
 function nextIsoDate(offsetDays) {
   const date = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
   return date.toISOString().slice(0, 10);
@@ -250,6 +344,42 @@ function extractCsrfToken(body) {
   const match = String(body).match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"[^>]*>/)
     || String(body).match(/<input[^>]*value="([^"]+)"[^>]*name="_csrf"[^>]*>/);
   return match ? match[1] : null;
+}
+
+function listFromEnv(name, defaults) {
+  const value = __ENV[name];
+  if (!value) {
+    return defaults;
+  }
+  const items = value.split(',').map((item) => item.trim()).filter(Boolean);
+  return items.length > 0 ? items : defaults;
+}
+
+function numberListFromEnv(name, defaults) {
+  const values = listFromEnv(name, defaults.map(String))
+    .map((value) => Number(value))
+    .filter((value) => !Number.isNaN(value));
+  return values.length > 0 ? values : defaults;
+}
+
+function numberedNames(prefix, count) {
+  const names = [];
+  for (let index = 1; index <= count; index += 1) {
+    names.push(`${prefix}${pad2(index)}`);
+  }
+  return names;
+}
+
+function numberedIds(start, count) {
+  const ids = [];
+  for (let index = 0; index < count; index += 1) {
+    ids.push(start + index);
+  }
+  return ids;
+}
+
+function pad2(value) {
+  return value < 10 ? `0${value}` : String(value);
 }
 
 export function handleSummary(data) {

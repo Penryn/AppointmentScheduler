@@ -43,6 +43,30 @@ on:
         description: k6 ramp-down duration
         required: false
         default: '20s'
+      k6_profile:
+        description: k6 script profile to run
+        required: false
+        type: choice
+        options:
+          - smoke
+          - load
+        default: smoke
+      k6_load_duration:
+        description: k6 load profile duration
+        required: false
+        default: '5m'
+      k6_customer_vus:
+        description: Customer browsing VUs for the load profile
+        required: false
+        default: '20'
+      k6_provider_vus:
+        description: Provider dashboard VUs for the load profile
+        required: false
+        default: '5'
+      k6_write_vus:
+        description: Appointment write VUs for the load profile
+        required: false
+        default: '3'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -362,8 +386,12 @@ jobs:
           K6_RAMP_UP_DURATION: ${{ github.event.inputs.k6_ramp_up_duration || '20s' }}
           K6_STEADY_DURATION: ${{ github.event.inputs.k6_steady_duration || '40s' }}
           K6_RAMP_DOWN_DURATION: ${{ github.event.inputs.k6_ramp_down_duration || '20s' }}
+          K6_LOAD_DURATION: ${{ github.event.inputs.k6_load_duration || '5m' }}
+          K6_CUSTOMER_VUS: ${{ github.event.inputs.k6_customer_vus || '20' }}
+          K6_PROVIDER_VUS: ${{ github.event.inputs.k6_provider_vus || '5' }}
+          K6_WRITE_VUS: ${{ github.event.inputs.k6_write_vus || '3' }}
         with:
-          path: performance/k6/appointmentscheduler-smoke.js
+          path: ${{ github.event.inputs.k6_profile == 'load' && 'performance/k6/appointmentscheduler-load.js' || 'performance/k6/appointmentscheduler-smoke.js' }}
           debug: true
           cloud-comment-on-pr: false
           disable-analytics: true
