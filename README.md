@@ -36,7 +36,7 @@ AppointmentScheduler 是一个基于 Spring Boot 的预约管理系统，用于�
 
 - JDK 17
 - Maven 3.9+
-- Node.js 20
+- Node.js 20（仅运行 Playwright 视觉回归测试时需要）
 - MySQL 8
 - Docker
   - 运行 `mvn verify` 时需要 Docker，因为集成测试依赖 Testcontainers MySQL
