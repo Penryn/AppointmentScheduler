@@ -67,6 +67,8 @@ on:
         description: Appointment write VUs for the load profile
         required: false
         default: '3'
+  schedule:
+    - cron: '0 18 * * 0'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -187,9 +189,9 @@ jobs:
   dependency-check:
     name: OWASP Dependency Check
     needs: build-test
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
     permissions:
       contents: read
     steps:
@@ -212,14 +214,26 @@ jobs:
       - name: Run OWASP Dependency-Check
         continue-on-error: true
         shell: bash
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           set -euo pipefail
           read -r -a maven_args <<< "${MAVEN_CLI_OPTS}"
+
+          dependency_check_args=(
+            "org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:check"
+            "-DdataDirectory=${HOME}/.dependency-check"
+            "-Dformat=ALL"
+            "-DfailBuildOnCVSS=11"
+            "-DnvdMaxRetryCount=10"
+          )
+
+          if [ -n "${NVD_API_KEY}" ]; then
+            dependency_check_args+=("-DnvdApiKey=${NVD_API_KEY}" "-DnvdApiDelay=3500")
+          fi
+
           ./mvnw "${maven_args[@]}" \
-            "org.owasp:dependency-check-maven:${DEPENDENCY_CHECK_VERSION}:check" \
-            -DdataDirectory="${HOME}/.dependency-check" \
-            -Dformat=ALL \
-            -DfailBuildOnCVSS=11
+            "${dependency_check_args[@]}"
 
       - name: Upload Dependency-Check report
         if: always()
