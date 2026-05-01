@@ -434,10 +434,10 @@ jobs:
           BASE_URL: http://localhost:8080
         run: |
           set -euo pipefail
-          if find tests/visual -path '*-snapshots*' -type f | grep -q .; then
+          if find tests/visual -path '*-snapshots*' -type f -name '*-linux.png' | grep -q .; then
             npm run test:visual
           else
-            echo "::warning::No Playwright visual baselines were found. Recording baseline screenshots for this run."
+            echo "::warning::No Linux Playwright visual baselines were found. Recording Linux baseline screenshots for this run."
             npm run test:visual:update
           fi
 
@@ -509,8 +509,6 @@ jobs:
           file: Dockerfile.ci
           load: true
           tags: appointmentscheduler:local
-          cache-from: type=gha,scope=appointmentscheduler-image-security
-          cache-to: type=gha,mode=max,scope=appointmentscheduler-image-security
 
       - name: Prepare Trivy output directory
         shell: bash
