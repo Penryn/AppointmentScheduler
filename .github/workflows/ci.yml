@@ -509,8 +509,6 @@ jobs:
           file: Dockerfile.ci
           load: true
           tags: appointmentscheduler:local
-          cache-from: type=gha,scope=appointmentscheduler-image-security
-          cache-to: type=gha,mode=max,scope=appointmentscheduler-image-security
 
       - name: Prepare Trivy output directory
         shell: bash
