@@ -197,6 +197,7 @@ mvn clean verify
 
 ```bash
 npm ci
+npx playwright install --with-deps chromium  # 首次运行或 CI 环境需执行，安装浏览器及系统依赖
 npm run test:visual
 ```
 
