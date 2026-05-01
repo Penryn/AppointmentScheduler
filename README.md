@@ -312,7 +312,7 @@ npm run test:visual:update
   - JaCoCo 产物名采用规范格式：`jacoco-report-分支-rRunNumber-短SHA`
   - JaCoCo 产物默认保留 30 天
 - 扩展验证阶段
-  - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check
+  - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check；NVD 数据源或工具更新异常按 warning 处理，避免外部数据问题阻断主 CI
   - `master` push 或手动触发会运行 Selenium UI 测试、Playwright 视觉回归测试与 k6 性能测试
   - PR 会通过 Dependency Review Job 检查依赖变更风险
   - `master` push、手动触发或定时任务会运行容器镜像安全扫描 Job，并将 SARIF 上传到 GitHub Code Scanning；该 Job 以报告为主，不因发现漏洞直接阻断 CI
