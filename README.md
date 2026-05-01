@@ -213,6 +213,7 @@ npm run test:visual:update
 - `src/test/java/**/ui/**` 下的 Selenium UI 测试通过 Testcontainers 启动浏览器容器，因此同样需要 Docker，并建议为浏览器容器预留足够的 CPU / 内存资源
 - `src/test/java/**/ui/**` 下的 UI 测试默认不会在 `verify` 流程中执行
 - Playwright 测试默认访问 `http://localhost:8080`，可通过 `BASE_URL` 覆盖
+- CI 在 Ubuntu 上运行 Playwright，严格视觉比较需要提交 `*-linux.png` 基线；macOS 本地生成的 `*-darwin.png` 仅适用于本机比较
 
 ## 角色说明
 
