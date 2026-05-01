@@ -75,6 +75,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   JAVA_VERSION: '17'
   JACOCO_RETENTION_DAYS: '30'
   TEST_REPORT_RETENTION_DAYS: '14'
@@ -379,10 +380,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
@@ -496,10 +497,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
@@ -527,7 +528,7 @@ jobs:
 
       - name: Upload Trivy results to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: target/trivy/image-scan.sarif
 
@@ -584,10 +585,10 @@ jobs:
           cp "${jar_path}" target/app/app.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build application image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.ci
