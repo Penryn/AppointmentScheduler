@@ -209,6 +209,7 @@ npm run test:visual:update
 说明：
 
 - 集成测试通过 Testcontainers 拉起 MySQL，因此需要 Docker
+- `src/test/java/**/ui/**` 下的 Selenium UI 测试通过 Testcontainers 启动浏览器容器，因此同样需要 Docker，并建议为浏览器容器预留足够的 CPU / 内存资源
 - `src/test/java/**/ui/**` 下的 UI 测试默认不会在 `verify` 流程中执行
 - Playwright 测试默认访问 `http://localhost:8080`，可通过 `BASE_URL` 覆盖
 
