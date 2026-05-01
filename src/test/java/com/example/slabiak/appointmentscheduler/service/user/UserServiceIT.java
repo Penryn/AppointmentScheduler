@@ -24,10 +24,13 @@ public class UserServiceIT {
     @Test
     public void shouldSaveNewRetailCustomer() {
         UserForm userForm = UserFactoryTest.prepareSampleUserForm();
+        int customerCountBeforeSave = userService.getAllRetailCustomers().size();
 
         userService.saveNewRetailCustomer(userForm);
 
-        assertThat(userService.getAllRetailCustomers()).hasSize(2);
+        assertThat(userService.getAllRetailCustomers())
+                .hasSize(customerCountBeforeSave + 1)
+                .anyMatch(customer -> customer.getUserName().equals(userForm.getUserName()));
     }
 
 }
