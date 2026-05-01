@@ -267,24 +267,65 @@ mvn clean verify
   - 生成并发布 JaCoCo 报告产物
   - JaCoCo 产物名采用规范格式：`jacoco-report-分支-rRunNumber-短SHA`
   - JaCoCo 产物默认保留 30 天
-- 镜像发布阶段（Publish Docker Image）
-  - 仅在 `master` 分支的 push 且 CI 成功后执行
-  - 通过 Jib 推送 Docker 镜像
-  - 额外推送标签：`latest`、`run_number`、`短SHA`
+- 安全与性能阶段
+  - `master` push、手动触发或定时任务会运行 OWASP Dependency-Check
+  - `master` push 或手动触发会运行 UI 测试与 k6 性能测试
+  - k6 会上传 JSON、HTML 报告和应用日志产物
 
 
 ### 如何启用这条 GitHub Actions 流水线
 
 1. 将 [.github/workflows/ci.yml](.github/workflows/ci.yml) 提交到仓库默认分支。
-2. 在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中新增以下仓库级 Secrets：
-   - `DOCKERHUB_USERNAME`
-   - `DOCKERHUB_PASSWORD`
+2. 可选：在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中新增 `NVD_API_KEY`，用于提高 OWASP Dependency-Check 的 NVD 同步稳定性。
 3. 在 Actions 页面确认工作流已启用。
 4. 提交一次 `develop` 或 `master` 变更，或手动触发 workflow_dispatch 验证。
 
+## 本地 breakpoint 压测
+
+本项目使用 k6 做本地 breakpoint 压测。相比 JMeter，k6 可以直接复用当前仓库里的登录、浏览、预约写入和清理流程，更适合这个项目继续扩展。
+
+默认运行方式：
+
+```bash
+scripts/run-k6-breakpoint.sh
+```
+
+脚本会启动 `docker compose`、等待 `/actuator/health` 变为 `UP`，然后运行 `performance/k6/appointmentscheduler-breakpoint.js`。默认按 RPS 逐级升压：
+
+```text
+10,20,40,60,80,100,125,150 requests/s
+```
+
+常用参数：
+
+```bash
+K6_BREAKPOINT_RATES=20,40,80,120,160 \
+K6_STAGE_DURATION=3m \
+K6_PRE_ALLOCATED_VUS=80 \
+K6_MAX_VUS=300 \
+scripts/run-k6-breakpoint.sh
+```
+
+如果已有本地服务在运行：
+
+```bash
+START_STACK=false BASE_URL=http://localhost:8080 scripts/run-k6-breakpoint.sh
+```
+
+结果会保存到 `target/k6-breakpoint/<timestamp>/`，其中包括：
+
+- `summary.json`
+- `metrics.json`
+- `checks.json`
+- `http-status.json`
+- `report.html`
+- `docker-compose.log`
+
+判断临界值时重点看 P95/P99 延迟、失败率、checks 成功率、RPS 是否进入平台期，以及 `docker-compose.log` 中是否出现数据库连接、超时或异常。
+
 ### 部署说明
 
-当前流水线只做 CI 与镜像发布，不包含自动部署到服务器。
+当前流水线只做 CI、安全扫描与性能验证，不包含自动部署到服务器。
 
 ## 说明
 

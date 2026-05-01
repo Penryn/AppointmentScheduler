@@ -97,6 +97,24 @@ public class AjaxControllerIT {
     }
 
     @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectAppointmentCalendarRequestsWithInvalidWindowParameters() throws Exception {
+        mockMvc.perform(get("/api/user/3/appointments")
+                        .param("start", "not-a-date")
+                        .param("end", "2030-01-31T23:59:00Z"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectCustomerCalendarAccessForAnotherCustomer() throws Exception {
+        mockMvc.perform(get("/api/user/1001/appointments")
+                        .param("start", "2030-01-01T00:00:00Z")
+                        .param("end", "2030-01-31T23:59:00Z"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @Transactional
     @WithUserDetails("customer_r")
     public void shouldReturnUnreadNotificationCountWithoutLoadingNotificationList() throws Exception {

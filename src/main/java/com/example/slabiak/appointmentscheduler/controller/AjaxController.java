@@ -73,7 +73,11 @@ public class AjaxController {
         try {
             return OffsetDateTime.parse(value).toLocalDateTime();
         } catch (DateTimeParseException ignored) {
-            return LocalDateTime.parse(value);
+            try {
+                return LocalDateTime.parse(value);
+            } catch (DateTimeParseException exception) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid calendar date-time parameter", exception);
+            }
         }
     }
 

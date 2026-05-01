@@ -62,6 +62,41 @@ public class SecurityAndActuatorIT {
     }
 
     @Test
+    public void shouldRedirectAnonymousUsersFromAppointmentPagesToLogin() throws Exception {
+        mockMvc.perform(get("/appointments/new"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldDenyCustomerAccessToAdminCustomerList() throws Exception {
+        mockMvc.perform(get("/customers/all"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("provider")
+    public void shouldDenyProviderAccessToCustomerPages() throws Exception {
+        mockMvc.perform(get("/customers/3"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("provider")
+    public void shouldDenyProviderAccessToCustomerAppointmentBookingFlow() throws Exception {
+        mockMvc.perform(get("/appointments/new"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("load_customer_01")
+    public void shouldDenyCustomerAccessToAnotherCustomerProfile() throws Exception {
+        mockMvc.perform(get("/customers/3"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithUserDetails("customer_r")
     public void shouldAcceptStateChangingRequestWithCsrfToken() throws Exception {
         mockMvc.perform(post("/notifications/markAllAsRead").with(csrf()))
