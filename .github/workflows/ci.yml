@@ -75,7 +75,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   JAVA_VERSION: '17'
   JACOCO_RETENTION_DAYS: '30'
   TEST_REPORT_RETENTION_DAYS: '14'
@@ -358,6 +357,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -475,6 +476,8 @@ jobs:
       contents: read
       security-events: write
       actions: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -563,6 +566,8 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
