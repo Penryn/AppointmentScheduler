@@ -70,7 +70,7 @@ public class UserForm {
     /*
      * Provider only:
      * */
-    @NotNull(groups = {CreateProvider.class, UpdateProvider.class})
+    @NotEmpty(groups = {CreateProvider.class, UpdateProvider.class})
     private List<Work> works;
 
 

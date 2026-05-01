@@ -89,6 +89,28 @@ public class LoginPageIT {
         assertEquals(1, rowCount);
     }
 
+    @Test
+    public void shouldLoginAsAdminAndOpenCoreManagementLists() {
+        RemoteWebDriver driver = chrome.getWebDriver();
+        driver.manage().window().setSize(new Dimension(1280, 800));
+        String url = "http://host.testcontainers.internal:" + port + "/";
+
+        driver.get(url);
+
+        driver.findElement(By.id("username")).sendKeys("admin");
+        driver.findElement(By.id("password")).sendKeys("qwerty123");
+        driver.findElement(By.tagName("button")).click();
+
+        waitForClickable(driver, By.cssSelector("a[href='/customers/all']")).click();
+        assertNotNull(waitForElement(driver, By.id("customers")));
+
+        driver.get("http://host.testcontainers.internal:" + port + "/providers/all");
+        assertNotNull(waitForElement(driver, By.id("providers")));
+
+        driver.get("http://host.testcontainers.internal:" + port + "/works/all");
+        assertNotNull(waitForElement(driver, By.id("works")));
+    }
+
     private WebElement waitForClickable(RemoteWebDriver driver, By locator) {
         Instant deadline = Instant.now().plus(WAIT_TIMEOUT);
         RuntimeException lastError = null;

@@ -130,6 +130,32 @@ public class AppointmentStatusTransitionTest {
         assertThat(finished.getStatus()).isEqualTo(AppointmentStatus.FINISHED);
     }
 
+    @Test
+    public void shouldAllowProviderToAcceptRejectionRequest() {
+        Appointment requested = appointment(AppointmentStatus.REJECTION_REQUESTED, LocalDateTime.now().minusHours(2));
+        requested.setId(13);
+        when(appointmentRepository.findById(requested.getId())).thenReturn(Optional.of(requested));
+
+        boolean accepted = appointmentService.acceptRejection(requested.getId(), provider.getId());
+
+        assertThat(accepted).isTrue();
+        assertThat(requested.getStatus()).isEqualTo(AppointmentStatus.REJECTED);
+        verify(notificationService).newAppointmentRejectionAcceptedNotification(requested, true);
+        verify(appointmentRepository).save(requested);
+    }
+
+    @Test
+    public void shouldNotAllowWrongProviderToAcceptRejectionRequest() {
+        Appointment requested = appointment(AppointmentStatus.REJECTION_REQUESTED, LocalDateTime.now().minusHours(2));
+        requested.setId(14);
+        when(appointmentRepository.findById(requested.getId())).thenReturn(Optional.of(requested));
+
+        boolean accepted = appointmentService.acceptRejection(requested.getId(), 999);
+
+        assertThat(accepted).isFalse();
+        assertThat(requested.getStatus()).isEqualTo(AppointmentStatus.REJECTION_REQUESTED);
+    }
+
     private Appointment appointment(AppointmentStatus status, LocalDateTime end) {
         Appointment appointment = new Appointment();
         appointment.setCustomer(customer);

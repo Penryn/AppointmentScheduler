@@ -10,9 +10,11 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import java.util.Collections;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class UpdateProviderValidationTest {
 
@@ -30,5 +32,38 @@ public class UpdateProviderValidationTest {
         UserForm form = new UserForm();
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
         assertEquals(violations.size(), 9);
+    }
+
+    @Test
+    public void shouldRejectProviderWithoutAssignedWorks() {
+        UserForm form = validProviderForm();
+        form.setWorks(Collections.emptyList());
+
+        Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
+
+        assertEquals(1, violations.size());
+    }
+
+    @Test
+    public void shouldAcceptProviderWithAssignedWorks() {
+        UserForm form = validProviderForm();
+
+        Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
+
+        assertTrue(violations.isEmpty());
+    }
+
+    private UserForm validProviderForm() {
+        UserForm form = new UserForm();
+        form.setId(2);
+        form.setFirstName("Provider");
+        form.setLastName("One");
+        form.setEmail("provider@example.com");
+        form.setMobile("13800138000");
+        form.setStreet("北京市朝阳区示例路1号");
+        form.setPostcode("100000");
+        form.setCity("北京");
+        form.setWorks(java.util.List.of(new com.example.slabiak.appointmentscheduler.entity.Work()));
+        return form;
     }
 }
