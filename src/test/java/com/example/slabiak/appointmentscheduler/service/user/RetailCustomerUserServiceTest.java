@@ -6,23 +6,22 @@ import com.example.slabiak.appointmentscheduler.entity.user.Role;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.RetailCustomer;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
 import com.example.slabiak.appointmentscheduler.service.impl.UserServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class RetailCustomerUserServiceTest {
 
     @Mock
@@ -60,9 +59,7 @@ public class RetailCustomerUserServiceTest {
     private Role roleCustomer;
     private Role roleRetailCustomer;
     Collection<Role> retailCustomerRoles;
-
-
-    @Before
+    @BeforeEach
     public void initObjects() {
 
         userId = 1;

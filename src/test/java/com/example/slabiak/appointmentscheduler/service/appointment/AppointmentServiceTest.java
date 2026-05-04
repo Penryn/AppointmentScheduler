@@ -11,28 +11,28 @@ import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
 import com.example.slabiak.appointmentscheduler.service.impl.AppointmentServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class AppointmentServiceTest {
 
     @Mock
@@ -66,8 +66,7 @@ public class AppointmentServiceTest {
     private Work work;
     private Provider provider;
     private Customer customer;
-
-    @Before
+    @BeforeEach
     public void initObjects() {
 
         customerId = 1;
@@ -105,7 +104,7 @@ public class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).save(argumentCaptor.capture());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldNotBookAppointmentWhenAppointmentStartIsNotWithinProviderWorkingHours() {
         LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 5, 59);
 
@@ -113,12 +112,11 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
-        ArgumentCaptor<Appointment> argumentCaptor = ArgumentCaptor.forClass(Appointment.class);
-        appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment);
-        verify(appointmentRepository, times(1)).save(argumentCaptor.capture());
+        assertThrows(RuntimeException.class,
+                () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldNotBookNewAppointmentWhenCollidingWithProviderAlreadyBookedAppointments() {
         LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
 
@@ -135,13 +133,11 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
-        ArgumentCaptor<Appointment> argumentCaptor = ArgumentCaptor.forClass(Appointment.class);
-        appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment);
-
-        verify(appointmentRepository, times(1)).save(argumentCaptor.capture());
+        assertThrows(RuntimeException.class,
+                () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldNotBookNewAppointmentWhenCollidingWithCustomerAlreadyBookedAppointments() {
         LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
 
@@ -158,10 +154,8 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
-        ArgumentCaptor<Appointment> argumentCaptor = ArgumentCaptor.forClass(Appointment.class);
-        appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment);
-
-        verify(appointmentRepository, times(1)).save(argumentCaptor.capture());
+        assertThrows(RuntimeException.class,
+                () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
 
 

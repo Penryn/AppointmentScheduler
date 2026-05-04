@@ -4,10 +4,9 @@ import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
 import com.example.slabiak.appointmentscheduler.security.CustomUserDetails;
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +25,6 @@ import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("integration-test")
@@ -48,8 +45,8 @@ public class AppointmentConcurrentBookingIT {
     @Autowired
     private UserDetailsService userDetailsService;
 
-    @Before
-    @After
+    @BeforeEach
+    @AfterEach
     public void cleanConcurrentSlot() {
         findAppointmentsAtConcurrentSlot().forEach(appointmentRepository::delete);
     }

@@ -8,12 +8,11 @@ import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.RetailCustomer;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.impl.WorkServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class WorkCustomerEligibilityTest {
 
     @Mock
@@ -35,8 +34,7 @@ public class WorkCustomerEligibilityTest {
 
     private RetailCustomer retailCustomer;
     private CorporateCustomer corporateCustomer;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         retailCustomer = new RetailCustomer();
         retailCustomer.setId(1);

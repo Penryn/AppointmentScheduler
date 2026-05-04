@@ -1,12 +1,11 @@
 package com.example.slabiak.appointmentscheduler.ui;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.TestWatcher;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -24,7 +23,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 
@@ -34,9 +32,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ContextConfiguration(initializers = LoginPageIT.Initializer.class)
@@ -48,18 +45,26 @@ public class LoginPageIT {
     @LocalServerPort
     private int port;
 
-    public BrowserWebDriverContainer chrome = new BrowserWebDriverContainer()
+    private static final BrowserWebDriverContainer chrome = new BrowserWebDriverContainer()
             .withCapabilities(new ChromeOptions());
 
+    @RegisterExtension
     private final TestWatcher screenshotOnFailure = new TestWatcher() {
         @Override
-        protected void failed(Throwable e, Description description) {
-            captureScreenshot(description);
+        public void testFailed(ExtensionContext context, Throwable cause) {
+            captureScreenshot(context);
         }
     };
 
-    @Rule
-    public TestRule uiFailureArtifacts = RuleChain.outerRule(chrome).around(screenshotOnFailure);
+    @BeforeAll
+    public static void startBrowser() {
+        chrome.start();
+    }
+
+    @AfterAll
+    public static void stopBrowser() {
+        chrome.stop();
+    }
 
     @Test
     public void shouldShowLoginPageAndSuccessfullyLoginToAdminAccountUsingAdminCredentials() {
@@ -230,20 +235,20 @@ public class LoginPageIT {
         }
     }
 
-    private void captureScreenshot(Description description) {
+    private void captureScreenshot(ExtensionContext context) {
         try {
             RemoteWebDriver driver = chrome.getWebDriver();
             byte[] screenshot = driver.getScreenshotAs(OutputType.BYTES);
             Path screenshotDirectory = Path.of("target", "screenshots");
             Files.createDirectories(screenshotDirectory);
-            Files.write(screenshotDirectory.resolve(screenshotFileName(description)), screenshot);
+            Files.write(screenshotDirectory.resolve(screenshotFileName(context)), screenshot);
         } catch (RuntimeException | IOException screenshotError) {
             System.err.println("Unable to capture Selenium failure screenshot: " + screenshotError.getMessage());
         }
     }
 
-    private String screenshotFileName(Description description) {
-        String rawName = description.getClassName() + "-" + description.getMethodName();
+    private String screenshotFileName(ExtensionContext context) {
+        String rawName = context.getRequiredTestClass().getName() + "-" + context.getRequiredTestMethod().getName();
         return rawName.replaceAll("[^A-Za-z0-9._-]", "_") + ".png";
     }
 

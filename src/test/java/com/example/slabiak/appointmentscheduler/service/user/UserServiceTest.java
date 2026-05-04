@@ -4,23 +4,22 @@ import com.example.slabiak.appointmentscheduler.dao.user.UserRepository;
 import com.example.slabiak.appointmentscheduler.entity.user.User;
 import com.example.slabiak.appointmentscheduler.model.ChangePasswordForm;
 import com.example.slabiak.appointmentscheduler.service.impl.UserServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
     @Mock
@@ -39,8 +38,7 @@ public class UserServiceTest {
     private String newPassword;
     private User user;
     private Optional<User> optionalUser;
-
-    @Before
+    @BeforeEach
     public void initObjects() {
         userId = 1;
         passwordEncoded = "encodedpass";
