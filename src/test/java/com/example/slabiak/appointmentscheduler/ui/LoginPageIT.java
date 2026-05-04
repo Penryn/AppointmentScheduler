@@ -1,11 +1,11 @@
 package com.example.slabiak.appointmentscheduler.ui;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -45,30 +45,12 @@ public class LoginPageIT {
     @LocalServerPort
     private int port;
 
-    private static final BrowserWebDriverContainer chrome = new BrowserWebDriverContainer()
-            .withCapabilities(new ChromeOptions());
-
     @RegisterExtension
-    private final TestWatcher screenshotOnFailure = new TestWatcher() {
-        @Override
-        public void testFailed(ExtensionContext context, Throwable cause) {
-            captureScreenshot(context);
-        }
-    };
-
-    @BeforeAll
-    public static void startBrowser() {
-        chrome.start();
-    }
-
-    @AfterAll
-    public static void stopBrowser() {
-        chrome.stop();
-    }
+    private final SeleniumContainerExtension browser = new SeleniumContainerExtension();
 
     @Test
     public void shouldShowLoginPageAndSuccessfullyLoginToAdminAccountUsingAdminCredentials() {
-        RemoteWebDriver driver = chrome.getWebDriver();
+        RemoteWebDriver driver = browser.getDriver();
         driver.manage().window().setSize(new Dimension(1280, 800));
         String url = "http://host.testcontainers.internal:" + port + "/";
         driver.get(url);
@@ -86,7 +68,7 @@ public class LoginPageIT {
 
     @Test
     public void shouldLoginAsRetailCustomerAndSuccessfullyBookNewAppointment() {
-        RemoteWebDriver driver = chrome.getWebDriver();
+        RemoteWebDriver driver = browser.getDriver();
         driver.manage().window().setSize(new Dimension(1280, 800));
         String url = "http://host.testcontainers.internal:" + port + "/";
 
@@ -112,7 +94,7 @@ public class LoginPageIT {
 
     @Test
     public void shouldLoginAsAdminAndOpenCoreManagementLists() {
-        RemoteWebDriver driver = chrome.getWebDriver();
+        RemoteWebDriver driver = browser.getDriver();
         driver.manage().window().setSize(new Dimension(1280, 800));
         String url = "http://host.testcontainers.internal:" + port + "/";
 
@@ -235,9 +217,8 @@ public class LoginPageIT {
         }
     }
 
-    private void captureScreenshot(ExtensionContext context) {
+    private static void captureScreenshot(RemoteWebDriver driver, ExtensionContext context) {
         try {
-            RemoteWebDriver driver = chrome.getWebDriver();
             byte[] screenshot = driver.getScreenshotAs(OutputType.BYTES);
             Path screenshotDirectory = Path.of("target", "screenshots");
             Files.createDirectories(screenshotDirectory);
@@ -247,9 +228,40 @@ public class LoginPageIT {
         }
     }
 
-    private String screenshotFileName(ExtensionContext context) {
+    private static String screenshotFileName(ExtensionContext context) {
         String rawName = context.getRequiredTestClass().getName() + "-" + context.getRequiredTestMethod().getName();
         return rawName.replaceAll("[^A-Za-z0-9._-]", "_") + ".png";
+    }
+
+    private static class SeleniumContainerExtension implements BeforeEachCallback, AfterEachCallback, TestExecutionExceptionHandler {
+
+        private BrowserWebDriverContainer chrome;
+
+        @Override
+        public void beforeEach(ExtensionContext context) {
+            chrome = new BrowserWebDriverContainer()
+                    .withCapabilities(new ChromeOptions());
+            chrome.start();
+        }
+
+        @Override
+        public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+            if (chrome != null && chrome.isRunning()) {
+                captureScreenshot(chrome.getWebDriver(), context);
+            }
+            throw throwable;
+        }
+
+        @Override
+        public void afterEach(ExtensionContext context) {
+            if (chrome != null) {
+                chrome.stop();
+            }
+        }
+
+        private RemoteWebDriver getDriver() {
+            return chrome.getWebDriver();
+        }
     }
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
