@@ -49,7 +49,7 @@ public class AppointmentServiceIT {
     @Transactional
     @WithUserDetails("admin")
     public void shouldSaveNewRetailCustomer() {
-        appointmentService.createNewAppointment(1, 2, 3, LocalDateTime.of(2020, 02, 9, 12, 0, 0));
+        appointmentService.createNewAppointment(1, 2, 3, LocalDateTime.of(2020, 2, 9, 12, 0, 0));
 
         Page<Appointment> appointments = appointmentService.getAllAppointments(null, PageRequest.of(0, 10));
         assertThat(appointments).hasSize(1);

@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,12 +62,12 @@ public class AppointmentConcurrentBookingIT {
             Future<Boolean> firstBooking = executorService.submit(bookConcurrently(FIRST_CUSTOMER_ID, ready, start));
             Future<Boolean> secondBooking = executorService.submit(bookConcurrently(SECOND_CUSTOMER_ID, ready, start));
 
-            ready.await();
+            assertThat(ready.await(5, TimeUnit.SECONDS)).as("both booking tasks are ready").isTrue();
             start.countDown();
 
             int successfulRequests = 0;
-            successfulRequests += firstBooking.get() ? 1 : 0;
-            successfulRequests += secondBooking.get() ? 1 : 0;
+            successfulRequests += firstBooking.get(5, TimeUnit.SECONDS) ? 1 : 0;
+            successfulRequests += secondBooking.get(5, TimeUnit.SECONDS) ? 1 : 0;
 
             assertThat(successfulRequests).isEqualTo(1);
             assertThat(findAppointmentsAtConcurrentSlot()).hasSize(1);
@@ -78,7 +79,7 @@ public class AppointmentConcurrentBookingIT {
     private Callable<Boolean> bookConcurrently(int customerId, CountDownLatch ready, CountDownLatch start) {
         return () -> {
             ready.countDown();
-            start.await();
+            assertThat(start.await(5, TimeUnit.SECONDS)).as("booking task was released").isTrue();
             try {
                 CustomUserDetails admin = (CustomUserDetails) userDetailsService.loadUserByUsername("admin");
                 SecurityContextHolder.getContext().setAuthentication(

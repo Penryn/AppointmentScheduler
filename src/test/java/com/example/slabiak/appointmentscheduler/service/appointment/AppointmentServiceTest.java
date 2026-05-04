@@ -91,7 +91,7 @@ public class AppointmentServiceTest {
 
     @Test
     public void shouldBookAppointmentWhenAllConditionsMet() {
-        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
+        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 1, 1, 6, 0);
 
         when(workService.isWorkForCustomer(workId, customerId)).thenReturn(true);
         when(workService.getWorkById(workId)).thenReturn(work);
@@ -106,7 +106,7 @@ public class AppointmentServiceTest {
 
     @Test
     public void shouldNotBookAppointmentWhenAppointmentStartIsNotWithinProviderWorkingHours() {
-        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 5, 59);
+        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 1, 1, 5, 59);
 
         when(workService.isWorkForCustomer(workId, customerId)).thenReturn(true);
         when(workService.getWorkById(workId)).thenReturn(work);
@@ -118,11 +118,11 @@ public class AppointmentServiceTest {
 
     @Test
     public void shouldNotBookNewAppointmentWhenCollidingWithProviderAlreadyBookedAppointments() {
-        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
+        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 1, 1, 6, 0);
 
         Appointment existingAppointment = new Appointment();
-        LocalDateTime startOfExistingAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
-        LocalDateTime endOfExistingAppointment = LocalDateTime.of(2019, 01, 01, 7, 0);
+        LocalDateTime startOfExistingAppointment = LocalDateTime.of(2019, 1, 1, 6, 0);
+        LocalDateTime endOfExistingAppointment = LocalDateTime.of(2019, 1, 1, 7, 0);
         existingAppointment.setStart(startOfExistingAppointment);
         existingAppointment.setEnd(endOfExistingAppointment);
         List<Appointment> providerBookedAppointments = new ArrayList<>();
@@ -139,11 +139,11 @@ public class AppointmentServiceTest {
 
     @Test
     public void shouldNotBookNewAppointmentWhenCollidingWithCustomerAlreadyBookedAppointments() {
-        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
+        LocalDateTime startOfNewAppointment = LocalDateTime.of(2019, 1, 1, 6, 0);
 
         Appointment existingAppointment = new Appointment();
-        LocalDateTime startOfExistingAppointment = LocalDateTime.of(2019, 01, 01, 6, 0);
-        LocalDateTime endOfExistingAppointment = LocalDateTime.of(2019, 01, 01, 7, 0);
+        LocalDateTime startOfExistingAppointment = LocalDateTime.of(2019, 1, 1, 6, 0);
+        LocalDateTime endOfExistingAppointment = LocalDateTime.of(2019, 1, 1, 7, 0);
         existingAppointment.setStart(startOfExistingAppointment);
         existingAppointment.setEnd(endOfExistingAppointment);
         List<Appointment> customerBookedAppointments = new ArrayList<>();
