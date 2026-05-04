@@ -60,7 +60,7 @@ public class AjaxController {
         if (!currentUser.hasRole("ROLE_CUSTOMER")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only customers can query appointment availability");
         }
-        LocalDate localDate = LocalDate.parse(date);
+        LocalDate localDate = parseDate(date);
         return appointmentService.getAvailableHours(providerId, currentUser.getId(), workId, localDate)
                 .stream()
                 .map(timePeriod -> new AppointmentRegisterForm(workId, providerId, timePeriod.getStart().atDate(localDate), timePeriod.getEnd().atDate(localDate)))
@@ -81,6 +81,14 @@ public class AjaxController {
             } catch (DateTimeParseException exception) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid calendar date-time parameter", exception);
             }
+        }
+    }
+
+    private LocalDate parseDate(String value) {
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid availability date parameter", exception);
         }
     }
 

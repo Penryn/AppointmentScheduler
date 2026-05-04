@@ -127,6 +127,32 @@ public class AppointmentAvailabilityTest {
     }
 
     @Test
+    public void shouldReturnNoSlotsWhenWorkDurationExceedsAvailablePeriod() {
+        Work twoHourWork = new Work();
+        twoHourWork.setDuration(120);
+
+        List<TimePeroid> slots = appointmentService.calculateAvailableHours(
+                List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0))),
+                twoHourWork);
+
+        assertThat(slots).isEmpty();
+    }
+
+    @Test
+    public void shouldKeepSlotStartingExactlyWhenBreakEnds() {
+        DayPlan dayPlan = new DayPlan();
+        dayPlan.setWorkingHours(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(12, 0)));
+        dayPlan.setBreaks(new ArrayList<>(List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0)))));
+
+        List<TimePeroid> periods = dayPlan.timePeroidsWithBreaksExcluded();
+        List<TimePeroid> slots = appointmentService.calculateAvailableHours(periods, oneHourWork);
+
+        assertThat(slots).contains(
+                new TimePeroid(LocalTime.of(9, 0), LocalTime.of(10, 0)),
+                new TimePeroid(LocalTime.of(11, 0), LocalTime.of(12, 0)));
+    }
+
+    @Test
     public void shouldExcludeBreakTimeFromWorkingDay() {
         DayPlan dayPlan = new DayPlan();
         dayPlan.setWorkingHours(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(12, 0)));

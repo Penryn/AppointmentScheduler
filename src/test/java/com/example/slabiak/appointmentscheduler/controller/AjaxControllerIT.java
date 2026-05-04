@@ -116,6 +116,15 @@ public class AjaxControllerIT {
     }
 
     @Test
+    @WithUserDetails("provider")
+    public void shouldRejectProviderCalendarAccessForAnotherProvider() throws Exception {
+        mockMvc.perform(get("/api/user/1101/appointments")
+                        .param("start", "2030-01-01T00:00:00Z")
+                        .param("end", "2030-01-31T23:59:00Z"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @Transactional
     @WithUserDetails("customer_r")
     public void shouldReturnUnreadNotificationCountWithoutLoadingNotificationList() throws Exception {
@@ -162,5 +171,12 @@ public class AjaxControllerIT {
     public void shouldRejectProviderAccessToCustomerAvailableHoursContract() throws Exception {
         mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectAvailableHoursRequestsWithInvalidDate() throws Exception {
+        mockMvc.perform(get("/api/availableHours/2/1/not-a-date"))
+                .andExpect(status().isBadRequest());
     }
 }
