@@ -16,6 +16,7 @@ import com.example.slabiak.appointmentscheduler.validation.groups.UpdateUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -104,6 +105,7 @@ public class ProviderController {
     }
 
     @PostMapping("/delete")
+    @PreAuthorize("hasRole('ADMIN')")
     public String processDeleteProviderRequest(@RequestParam("providerId") int providerId) {
         userService.deleteUserById(providerId);
         return "redirect:/providers/all";

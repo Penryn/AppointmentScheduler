@@ -357,8 +357,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -476,8 +474,6 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -499,16 +495,14 @@ jobs:
           fi
           cp "${jar_path}" target/app/app.jar
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
       - name: Build application image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: Dockerfile.ci
-          load: true
-          tags: appointmentscheduler:local
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            --file Dockerfile.ci \
+            --tag appointmentscheduler:local \
+            .
 
       - name: Prepare Trivy output directory
         shell: bash
@@ -564,8 +558,6 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

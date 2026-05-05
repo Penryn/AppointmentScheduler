@@ -11,12 +11,11 @@ import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
 import com.example.slabiak.appointmentscheduler.service.impl.AppointmentServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
@@ -28,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class AppointmentStatusTransitionTest {
 
     @Mock
@@ -49,8 +48,7 @@ public class AppointmentStatusTransitionTest {
     private Customer customer;
     private Provider provider;
     private Work editableWork;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         customer = new Customer();
         customer.setId(1);

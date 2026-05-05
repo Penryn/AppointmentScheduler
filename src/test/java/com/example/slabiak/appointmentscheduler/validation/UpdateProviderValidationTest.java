@@ -3,8 +3,8 @@ package com.example.slabiak.appointmentscheduler.validation;
 import com.example.slabiak.appointmentscheduler.model.UserForm;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateProvider;
 import com.example.slabiak.appointmentscheduler.validation.groups.UpdateUser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -13,16 +13,16 @@ import jakarta.validation.ValidatorFactory;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UpdateProviderValidationTest {
 
     private ValidatorFactory factory;
     private Validator validator;
 
-    @Before
-    public void stup() {
+    @BeforeEach
+    public void setUp() {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }

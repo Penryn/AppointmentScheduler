@@ -1,7 +1,12 @@
 package com.example.slabiak.appointmentscheduler.security;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
+import com.example.slabiak.appointmentscheduler.entity.Appointment;
+import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
+import com.example.slabiak.appointmentscheduler.entity.Work;
+import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
+import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -11,10 +16,13 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -27,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -44,6 +51,12 @@ public class SecurityAndActuatorIT {
     @Autowired
     @Qualifier("taskScheduler")
     private TaskScheduler taskScheduler;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     public void shouldExposeRegistrationPageWithoutBypassingSecurityFilterChain() throws Exception {
@@ -170,6 +183,24 @@ public class SecurityAndActuatorIT {
     @WithUserDetails("load_customer_01")
     public void shouldDenyCustomerAccessToAnotherCustomerProfile() throws Exception {
         mockMvc.perform(get("/customers/3"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("load_customer_01")
+    public void shouldDenyCustomerAccessToAnotherCustomerAppointmentDetail() throws Exception {
+        Appointment appointment = new Appointment(
+                LocalDateTime.of(2033, 1, 10, 10, 0),
+                LocalDateTime.of(2033, 1, 10, 11, 0),
+                entityManager.getReference(Customer.class, 3),
+                entityManager.getReference(Provider.class, 2),
+                entityManager.getReference(Work.class, 1)
+        );
+        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        appointmentRepository.saveAndFlush(appointment);
+
+        mockMvc.perform(get("/appointments/" + appointment.getId()))
                 .andExpect(status().isForbidden());
     }
 

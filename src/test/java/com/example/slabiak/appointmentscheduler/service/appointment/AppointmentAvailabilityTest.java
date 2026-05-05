@@ -11,12 +11,11 @@ import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
 import com.example.slabiak.appointmentscheduler.service.impl.AppointmentServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -26,7 +25,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
 public class AppointmentAvailabilityTest {
 
     @Mock
@@ -45,8 +44,7 @@ public class AppointmentAvailabilityTest {
     private AppointmentServiceImpl appointmentService;
 
     private Work oneHourWork;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         oneHourWork = new Work();
         oneHourWork.setDuration(60);
@@ -124,6 +122,32 @@ public class AppointmentAvailabilityTest {
                 twoHourWork);
 
         assertThat(slots).containsExactly(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(10, 0)));
+    }
+
+    @Test
+    public void shouldReturnNoSlotsWhenWorkDurationExceedsAvailablePeriod() {
+        Work twoHourWork = new Work();
+        twoHourWork.setDuration(120);
+
+        List<TimePeroid> slots = appointmentService.calculateAvailableHours(
+                List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0))),
+                twoHourWork);
+
+        assertThat(slots).isEmpty();
+    }
+
+    @Test
+    public void shouldKeepSlotStartingExactlyWhenBreakEnds() {
+        DayPlan dayPlan = new DayPlan();
+        dayPlan.setWorkingHours(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(12, 0)));
+        dayPlan.setBreaks(new ArrayList<>(List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0)))));
+
+        List<TimePeroid> periods = dayPlan.timePeroidsWithBreaksExcluded();
+        List<TimePeroid> slots = appointmentService.calculateAvailableHours(periods, oneHourWork);
+
+        assertThat(slots).contains(
+                new TimePeroid(LocalTime.of(9, 0), LocalTime.of(10, 0)),
+                new TimePeroid(LocalTime.of(11, 0), LocalTime.of(12, 0)));
     }
 
     @Test

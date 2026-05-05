@@ -4,8 +4,8 @@ import com.example.slabiak.appointmentscheduler.entity.Appointment;
 import com.example.slabiak.appointmentscheduler.entity.user.customer.Customer;
 import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
 import com.example.slabiak.appointmentscheduler.service.impl.JwtTokenServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -14,8 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JwtTokenServiceTest {
 
     private JwtTokenServiceImpl jwtTokenService;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         jwtTokenService = new JwtTokenServiceImpl("QXBwb2ludG1lbnRTY2hlZHVsZXItQm9vdDMtSmFrYXJ0YS1IUzUxMi1TaWduaW5nLUtleS0yMDI2LTA0LTIzLURvLU5vdC1Vc2UtSW4tUHJvZHVjdGlvbg==");
     }

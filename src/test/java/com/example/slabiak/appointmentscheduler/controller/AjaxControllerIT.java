@@ -6,15 +6,13 @@ import com.example.slabiak.appointmentscheduler.entity.AppointmentStatus;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -116,6 +113,15 @@ public class AjaxControllerIT {
     }
 
     @Test
+    @WithUserDetails("provider")
+    public void shouldRejectProviderCalendarAccessForAnotherProvider() throws Exception {
+        mockMvc.perform(get("/api/user/1101/appointments")
+                        .param("start", "2030-01-01T00:00:00Z")
+                        .param("end", "2030-01-31T23:59:00Z"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @Transactional
     @WithUserDetails("customer_r")
     public void shouldReturnUnreadNotificationCountWithoutLoadingNotificationList() throws Exception {
@@ -162,5 +168,12 @@ public class AjaxControllerIT {
     public void shouldRejectProviderAccessToCustomerAvailableHoursContract() throws Exception {
         mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithUserDetails("customer_r")
+    public void shouldRejectAvailableHoursRequestsWithInvalidDate() throws Exception {
+        mockMvc.perform(get("/api/availableHours/2/1/not-a-date"))
+                .andExpect(status().isBadRequest());
     }
 }
