@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 test.describe('visual regression', () => {
   test('anonymous login page stays visually stable', async ({ page }) => {
@@ -28,10 +28,10 @@ test.describe('visual regression', () => {
   });
 });
 
-async function login(page, username: string) {
+async function login(page: Page, username: string) {
   await page.goto('/login');
   await page.locator('#username').fill(username);
   await page.locator('#password').fill(process.env.E2E_PASSWORD || 'qwerty123');
   await page.locator('button[type="submit"]').click();
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10_000 });
+  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 10_000 });
 }

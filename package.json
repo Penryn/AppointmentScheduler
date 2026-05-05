@@ -6,6 +6,8 @@
     "test:visual:update": "playwright test -c playwright.config.ts --update-snapshots"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0"
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
   }
 }
