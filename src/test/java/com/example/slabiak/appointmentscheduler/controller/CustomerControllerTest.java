@@ -16,12 +16,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -171,7 +173,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    void shouldHandlePasswordUpdateAndDeleteCustomer() {
+    void shouldHandlePasswordUpdate() {
         ChangePasswordForm form = new ChangePasswordForm(3);
         when(bindingResult.hasErrors()).thenReturn(true, false);
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
@@ -184,9 +186,14 @@ class CustomerControllerTest {
 
         assertThat(controller.processCustomerPasswordUpate(form, bindingResult, currentUser, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/customers/3");
-        assertThat(controller.processDeleteCustomerRequest(3)).isEqualTo("redirect:/customers/all");
         verify(userService).updateUserPassword(form);
-        verify(userService).deleteUserById(3);
+    }
+
+    @Test
+    void shouldRestrictCustomerDeletionToAdmins() throws Exception {
+        Method method = CustomerController.class.getMethod("processDeleteCustomerRequest", int.class);
+
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
     @Test

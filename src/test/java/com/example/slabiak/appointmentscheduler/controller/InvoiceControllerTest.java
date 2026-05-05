@@ -11,11 +11,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -35,18 +36,23 @@ class InvoiceControllerTest {
     }
 
     @Test
-    void shouldShowAllInvoicesAndChangeStatus() {
+    void shouldShowAllInvoicesAndIssueInvoicesManually() {
         PageRequest pageable = PageRequest.of(0, 20);
         when(invoiceService.getInvoiceList(pageable)).thenReturn(Page.empty(pageable));
         Model model = new ExtendedModelMap();
 
         assertThat(controller.showAllInvoices(model, pageable)).isEqualTo("invoices/listInvoices");
         assertThat(model.getAttribute("invoices")).isEqualTo(Page.empty(pageable));
-        assertThat(controller.changeStatusToPaid(7)).isEqualTo("redirect:/invoices/all");
         assertThat(controller.issueInvoicesManually(new ExtendedModelMap())).isEqualTo("redirect:/invoices/all");
 
-        verify(invoiceService).changeInvoiceStatusToPaid(7);
         verify(invoiceService).issueInvoicesForConfirmedAppointments();
+    }
+
+    @Test
+    void shouldRestrictPaidStatusChangesToAdmins() throws Exception {
+        Method method = InvoiceController.class.getMethod("changeStatusToPaid", int.class);
+
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
     @Test

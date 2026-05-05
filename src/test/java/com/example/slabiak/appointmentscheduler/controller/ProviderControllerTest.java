@@ -19,12 +19,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,25 +139,30 @@ class ProviderControllerTest {
     }
 
     @Test
-    void shouldDeleteProviderAndManageAvailability() {
+    void shouldManageProviderAvailability() {
         WorkingPlan plan = new WorkingPlan();
         plan.setId(7);
         TimePeroid timePeroid = new TimePeroid();
         when(workingPlanService.getWorkingPlanByProviderId(2)).thenReturn(plan);
         Model model = new ExtendedModelMap();
 
-        assertThat(controller.processDeleteProviderRequest(2)).isEqualTo("redirect:/providers/all");
         assertThat(controller.showProviderAvailability(model, user(2, "ROLE_PROVIDER"))).isEqualTo("users/showOrUpdateProviderAvailability");
         assertThat(controller.processProviderWorkingPlanUpdate(plan)).isEqualTo("redirect:/providers/availability");
         assertThat(controller.processProviderAddBreak(timePeroid, 7, "MONDAY")).isEqualTo("redirect:/providers/availability");
         assertThat(controller.processProviderDeleteBreak(timePeroid, 7, "MONDAY")).isEqualTo("redirect:/providers/availability");
 
-        verify(userService).deleteUserById(2);
         verify(workingPlanService).updateWorkingPlan(plan);
         verify(workingPlanService).addBreakToWorkingPlan(timePeroid, 7, "MONDAY");
         verify(workingPlanService).deleteBreakFromWorkingPlan(timePeroid, 7, "MONDAY");
         assertThat(model.getAttribute("plan")).isSameAs(plan);
         assertThat(model.getAttribute("breakModel")).isInstanceOf(TimePeroid.class);
+    }
+
+    @Test
+    void shouldRestrictProviderDeletionToAdmins() throws Exception {
+        Method method = ProviderController.class.getMethod("processDeleteProviderRequest", int.class);
+
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
     @Test

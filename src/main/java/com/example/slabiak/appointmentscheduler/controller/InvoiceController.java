@@ -42,6 +42,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/paid/{invoiceId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String changeStatusToPaid(@PathVariable("invoiceId") int invoiceId) {
         invoiceService.changeInvoiceStatusToPaid(invoiceId);
         return "redirect:/invoices/all";
