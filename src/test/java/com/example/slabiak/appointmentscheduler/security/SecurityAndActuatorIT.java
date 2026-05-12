@@ -9,9 +9,11 @@ import com.example.slabiak.appointmentscheduler.entity.user.provider.Provider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.test.context.support.WithUserDetails;
@@ -28,8 +30,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,6 +62,9 @@ public class SecurityAndActuatorIT {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private ServerProperties serverProperties;
+
     @Test
     public void shouldExposeRegistrationPageWithoutBypassingSecurityFilterChain() throws Exception {
         MvcResult result = mockMvc.perform(get("/customers/new/retail"))
@@ -66,6 +73,62 @@ public class SecurityAndActuatorIT {
 
         assertThat(StringUtils.countOccurrencesOf(result.getResponse().getContentAsString(), "<body")).isEqualTo(1);
         assertThat(result.getResponse().getContentAsString()).contains("_csrf");
+    }
+
+    @Test
+    public void shouldSendSecurityHeadersOnPublicPages() throws Exception {
+        MvcResult result = mockMvc.perform(get("/login").secure(true))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(result.getResponse().getHeader("Content-Security-Policy"))
+                .contains("default-src 'self'", "script-src 'self'", "frame-ancestors 'none'", "object-src 'none'");
+        assertThat(result.getResponse().getHeader("X-Frame-Options")).isEqualTo("DENY");
+        assertThat(result.getResponse().getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
+        assertThat(result.getResponse().getHeader("Referrer-Policy")).isEqualTo("same-origin");
+        assertThat(result.getResponse().getHeader("Strict-Transport-Security"))
+                .contains("max-age=31536000", "includeSubDomains", "preload");
+        assertThat(result.getResponse().getHeader("X-Powered-By")).isNull();
+    }
+
+    @Test
+    public void shouldConfigureSecureSessionCookieAttributes() {
+        Session.Cookie cookie = serverProperties.getServlet().getSession().getCookie();
+
+        assertThat(cookie.getHttpOnly()).isTrue();
+        assertThat(cookie.getSecure()).isTrue();
+        assertThat(cookie.getSameSite().attributeValue()).isEqualTo("Lax");
+    }
+
+    @Test
+    public void shouldRenderSubresourceIntegrityAttributesForScriptsAndStyles() throws Exception {
+        MvcResult result = mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsString())
+                .contains("integrity=\"sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB\"")
+                .contains("integrity=\"sha384-YeVtiIqcef2Ks3IUSYAUM4bZgQB2GgJ6VHlr0vNn7PsVi5y8RiXJs7l809uRA3EB\"")
+                .contains("integrity=\"sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI\"")
+                .contains("integrity=\"sha384-0loZMPILj/5xSk6XhuECab09NImwZHCThKrb77qWVgVEuL0W/Cz3Mt1zSTYdhgSe\"")
+                .doesNotContain("onclick=")
+                .doesNotContain("<script th:inline");
+    }
+
+    @Test
+    public void shouldAllowOnlyConfiguredCorsOrigins() throws Exception {
+        mockMvc.perform(options("/api/user/notifications")
+                        .header("Origin", "http://localhost:8080")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:8080"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+
+        mockMvc.perform(options("/api/user/notifications")
+                        .header("Origin", "https://evil.example")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
     @Test
@@ -229,10 +292,24 @@ public class SecurityAndActuatorIT {
     }
 
     @Test
-    public void shouldExposeActuatorPrometheusEndpoint() throws Exception {
+    public void shouldNotExposeSensitiveActuatorEndpointsToAnonymousUsers() throws Exception {
         mockMvc.perform(get("/actuator/prometheus"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("# HELP")));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    @WithUserDetails("admin")
+    public void shouldDisableSensitiveActuatorEndpointMappings() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

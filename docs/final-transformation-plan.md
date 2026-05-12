@@ -146,7 +146,7 @@
 方案要点：
 
 - 在 Spring Security 过滤链内显式放行静态资源、注册页和 Actuator 基础端点，不再通过 `WebSecurity#ignoring` 绕开过滤链。
-- 暴露 `health`、`info`、`metrics` 和 `prometheus` 端点，为监控系统接入提供标准出口。
+- Web 层仅公开 `health` 端点；`info`、`metrics` 和 `prometheus` 不对公网暴露，避免运行信息泄露。
 - 增加 Micrometer Prometheus 依赖。
 - 启用响应压缩，降低 HTML、CSS、JS、JSON 传输成本。
 - 为静态资源启用长期缓存和内容哈希策略，改善浏览器缓存命中率。
@@ -214,7 +214,7 @@
 - 邮件发送方法统一绑定到 `mailExecutor`。
 - 定时任务通过独立 `taskScheduler` 执行，且异常可记录到日志。
 - `/customers/new/**` 在安全过滤链内可访问。
-- `/actuator/health` 与 `/actuator/prometheus` 可访问。
+- `/actuator/health` 可匿名访问，`/actuator/prometheus` 不再默认暴露到 Web 层。
 - 静态资源具备缓存与压缩配置。
 - 关键查询具备对应组合索引。
 - 集成测试可以覆盖上述关键路径。
@@ -226,7 +226,7 @@
 | 线程池参数过小 | 邮件堆积导致发送延迟 | 参数配置化，按环境压测后调整 |
 | 批量更新绕过实体回调 | 与逐条 `save` 的行为存在差异 | 将影响范围限定在简单状态位更新，并用集成测试校验 |
 | 日历接口兼容性 | 老页面和新页面可能共用同一接口 | 保留无 `start/end` 参数时的原行为 |
-| Actuator 暴露面扩大 | 需要控制暴露范围 | 仅开放 `health/info/metrics/prometheus`，不开放敏感写操作端点 |
+| Actuator 暴露面扩大 | 需要控制暴露范围 | Web 层仅开放 `health`，指标端点放到受控网络或认证通道 |
 | 静态缓存过长 | 旧资源可能被浏览器缓存 | 启用内容哈希策略，避免缓存脏读 |
 
 ## 8. 本轮改造后的状态定义

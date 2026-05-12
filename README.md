@@ -26,11 +26,9 @@ AppointmentScheduler 是一个基于 Spring Boot 的预约管理系统，用于�
 - 预约列表支持按状态过滤
 - 静态资源启用了内容哈希和长缓存配置
 - HTTP 压缩已开启
-- 对外开放的 actuator 端点：
+- 对外开放的 actuator 端点仅保留健康检查：
   - `/actuator/health`
-  - `/actuator/info`
-  - `/actuator/metrics/**`
-  - `/actuator/prometheus`
+- `/actuator/info`、`/actuator/metrics/**`、`/actuator/prometheus` 默认不暴露到 Web 层，避免运行信息泄露。
 
 ## 环境要求
 
