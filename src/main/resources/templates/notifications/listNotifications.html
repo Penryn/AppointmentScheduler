@@ -11,8 +11,7 @@
         <p>查看系统通知并标记已读。</p>
     </div>
             <form th:action="@{/notifications/markAllAsRead}" id="markAllAsRead" method="POST">
-                <a class="btn btn-success" href="#"
-                   onclick="document.getElementById('markAllAsRead').submit(); return false;">全部标记为已读</a>
+                <button type="submit" class="btn btn-success">全部标记为已读</button>
             </form>
 </div>
 <div class="content-panel">

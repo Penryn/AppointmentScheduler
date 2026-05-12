@@ -9,12 +9,17 @@
     <link rel="icon" type="image/jpeg" th:href="@{/img/logo.jpg}">
 
     <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"/>
     <!-- Site CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"
+          integrity="sha384-YeVtiIqcef2Ks3IUSYAUM4bZgQB2GgJ6VHlr0vNn7PsVi5y8RiXJs7l809uRA3EB"/>
 
     <!-- Bootstrap core JavaScript -->
-    <script defer th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+    <script defer th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"></script>
+    <script defer th:src="@{/js/notifications.js}"
+            integrity="sha384-0loZMPILj/5xSk6XhuECab09NImwZHCThKrb77qWVgVEuL0W/Cz3Mt1zSTYdhgSe"></script>
 
 </head>
 
@@ -64,8 +69,7 @@
                     </li>
                     <li>
                         <form th:action="@{/perform_logout}" id="logout" method="POST">
-                            <a class="nav-link" href="#"
-                               onclick="document.getElementById('logout').submit(); return false;">退出登录</a>
+                            <button type="submit" class="btn btn-link nav-link">退出登录</button>
                         </form>
                     </li>
                 </ul>
@@ -81,66 +85,6 @@
         <p>AppointmentScheduler v<span th:text="${currentVersion}">1.0</span></p>
     </div>
 </div>
-
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        var notificationIndicator = document.getElementById('notifications-count');
-        if (!notificationIndicator) {
-            return;
-        }
-
-        var pollDelayMs = 30000;
-        var pollHandle = null;
-
-        function updateIndicator(count) {
-            notificationIndicator.setAttribute('data-count', count);
-            notificationIndicator.className = count > 0 ? 'notification-bell notification-icon' : 'notification-bell';
-        }
-
-        function scheduleNextPoll() {
-            window.clearTimeout(pollHandle);
-            if (document.hidden) {
-                return;
-            }
-            pollHandle = window.setTimeout(fetchUnreadNotifications, pollDelayMs);
-        }
-
-        function fetchUnreadNotifications() {
-            if (document.hidden) {
-                return;
-            }
-
-            fetch('/api/user/notifications', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error('通知轮询失败，状态码：' + response.status);
-                    }
-                    return response.text();
-                })
-                .then(function (body) {
-                    updateIndicator(Number(body) || 0);
-                })
-                .catch(function () {
-                    updateIndicator(0);
-                })
-                .finally(scheduleNextPoll);
-        }
-
-        document.addEventListener('visibilitychange', function () {
-            if (document.hidden) {
-                window.clearTimeout(pollHandle);
-                return;
-            }
-            fetchUnreadNotifications();
-        });
-
-        fetchUnreadNotifications();
-    });
-</script>
 
 </body>
 

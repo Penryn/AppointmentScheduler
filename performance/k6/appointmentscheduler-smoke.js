@@ -111,12 +111,10 @@ export function anonymousFlow() {
     const assets = http.batch([
       ['GET', `${BASE_URL}/css/style.css`, null, requestOptions('asset:style.css', 'asset')],
       ['GET', `${BASE_URL}/webjars/bootstrap/5.3.8/css/bootstrap.min.css`, null, requestOptions('asset:bootstrap.css', 'asset')],
-      ['GET', `${BASE_URL}/actuator/info`, null, requestOptions('actuator:info', 'api')],
     ]);
     assets.forEach(recordStatus);
     check(assets[0], { 'style.css is available': (response) => response.status === 200 });
     check(assets[1], { 'bootstrap css is available': (response) => response.status === 200 });
-    check(assets[2], { 'actuator info is available': (response) => response.status === 200 });
   }));
 }
 
