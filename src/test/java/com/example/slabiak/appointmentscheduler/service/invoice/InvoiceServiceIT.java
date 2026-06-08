@@ -11,21 +11,28 @@ import com.example.slabiak.appointmentscheduler.service.InvoiceService;
 import com.example.slabiak.appointmentscheduler.service.NotificationService;
 import com.example.slabiak.appointmentscheduler.service.UserService;
 import com.example.slabiak.appointmentscheduler.service.WorkService;
+import com.example.slabiak.appointmentscheduler.util.PdfGeneratorUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -49,6 +56,9 @@ public class InvoiceServiceIT {
 
     @Autowired
     private WorkService workService;
+
+    @MockBean
+    private PdfGeneratorUtil pdfGeneratorUtil;
 
     @Test
     @Transactional
@@ -122,6 +132,26 @@ public class InvoiceServiceIT {
         // 检查点：验证该测试用例的预期结果。
         assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(3, "ROLE_CUSTOMER"), invoice)).isTrue();
         assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(2, "ROLE_PROVIDER"), invoice)).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @WithUserDetails("customer_r")
+    public void shouldGenerateInvoicePdfWithMockedPdfGeneratorWhenRendererIsUnavailable() throws IOException {
+        Appointment appointment = appointment(2032, 1, 19, 10, 0, 3);
+        appointmentRepository.saveAndFlush(appointment);
+        Invoice invoice = invoiceRepository.saveAndFlush(
+                new Invoice("FV/test/pdf", "issued", LocalDateTime.now(), List.of(appointment)));
+        File mockedPdf = File.createTempFile("mocked-invoice-", ".pdf");
+        mockedPdf.deleteOnExit();
+        when(pdfGeneratorUtil.generatePdfFromInvoice(any(Invoice.class))).thenReturn(mockedPdf);
+
+        File generatedPdf = invoiceService.generatePdfForInvoice(invoice.getId());
+
+        // 检查点：PDF 渲染组件假设不可用时，由 mock 返回可下载文件。
+        assertThat(generatedPdf).isSameAs(mockedPdf);
+        // 检查点：发票服务仍然完成真实授权和发票查询后才调用 PDF 生成器。
+        verify(pdfGeneratorUtil).generatePdfFromInvoice(any(Invoice.class));
     }
 
     @Test
