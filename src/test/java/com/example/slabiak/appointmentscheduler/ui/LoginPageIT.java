@@ -25,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,6 +44,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LoginPageIT {
 
     private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(30);
+    private static final DockerImageName SELENIUM_CHROMIUM_IMAGE = DockerImageName
+            .parse("selenium/standalone-chromium:4.44.0-20260505")
+            .asCompatibleSubstituteFor("selenium/standalone-chrome");
 
     @LocalServerPort
     private int port;
@@ -241,7 +245,7 @@ public class LoginPageIT {
 
         @Override
         public void beforeEach(ExtensionContext context) {
-            chrome = new BrowserWebDriverContainer()
+            chrome = new BrowserWebDriverContainer(SELENIUM_CHROMIUM_IMAGE)
                     .withCapabilities(new ChromeOptions());
             chrome.start();
         }
