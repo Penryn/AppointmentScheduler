@@ -1,3 +1,4 @@
+// 测试说明：验证服务提供者控制器的资料维护、排班管理和访问限制行为。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Work;
@@ -68,6 +69,7 @@ class ProviderControllerTest {
 
         String view = controller.showAllProviders(model, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("users/listProviders");
         assertThat(model.getAttribute("providers")).isEqualTo(Page.empty(pageable));
     }
@@ -84,10 +86,12 @@ class ProviderControllerTest {
 
         String view = controller.showProviderDetails(2, model, user(2, "ROLE_PROVIDER"));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("users/updateUserForm");
         assertThat(model.getAttribute("user")).isInstanceOf(UserForm.class);
         assertThat(model.getAttribute("passwordChange")).isInstanceOf(ChangePasswordForm.class);
         assertThat(model.getAttribute("account_type")).isEqualTo("provider");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(model.getAttribute("allWorks")).isEqualTo(List.of(work));
         assertThat(model.getAttribute("numberOfScheduledAppointments")).isEqualTo(3);
         assertThat(model.getAttribute("numberOfCanceledAppointments")).isEqualTo(1);
@@ -95,6 +99,7 @@ class ProviderControllerTest {
 
     @Test
     void shouldDenyProviderDetailsForDifferentNonAdminUser() {
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> controller.showProviderDetails(2, new ExtendedModelMap(), user(3, "ROLE_PROVIDER")))
                 .isInstanceOf(AccessDeniedException.class);
     }
@@ -105,11 +110,13 @@ class ProviderControllerTest {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         when(bindingResult.hasErrors()).thenReturn(true, false);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processProviderUpdate(form, bindingResult, redirectAttributes))
                 .isEqualTo("redirect:/providers/2");
         assertThat(redirectAttributes.getFlashAttributes()).containsKey("user");
         verify(userService, never()).updateProviderProfile(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processProviderUpdate(form, bindingResult, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/providers/2");
         verify(userService).updateProviderProfile(form);
@@ -122,6 +129,7 @@ class ProviderControllerTest {
         when(workService.getAllWorks()).thenReturn(List.of(work));
         Model model = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showProviderRegistrationForm(model)).isEqualTo("users/createUserForm");
         assertThat(model.getAttribute("account_type")).isEqualTo("provider");
         assertThat(model.getAttribute("registerAction")).isEqualTo("/providers/new");
@@ -129,12 +137,14 @@ class ProviderControllerTest {
 
         when(bindingResult.hasErrors()).thenReturn(true, false);
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processProviderRegistrationForm(form, bindingResult, redirectAttributes))
                 .isEqualTo("redirect:/providers/new");
         assertThat(redirectAttributes.getFlashAttributes()).containsKey("user");
 
         assertThat(controller.processProviderRegistrationForm(form, bindingResult, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/providers/all");
+        // 检查点：验证该测试用例的预期结果。
         verify(userService).saveNewProvider(form);
     }
 
@@ -146,15 +156,18 @@ class ProviderControllerTest {
         when(workingPlanService.getWorkingPlanByProviderId(2)).thenReturn(plan);
         Model model = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showProviderAvailability(model, user(2, "ROLE_PROVIDER"))).isEqualTo("users/showOrUpdateProviderAvailability");
         assertThat(controller.processProviderWorkingPlanUpdate(plan)).isEqualTo("redirect:/providers/availability");
         assertThat(controller.processProviderAddBreak(timePeroid, 7, "MONDAY")).isEqualTo("redirect:/providers/availability");
         assertThat(controller.processProviderDeleteBreak(timePeroid, 7, "MONDAY")).isEqualTo("redirect:/providers/availability");
 
+        // 检查点：验证该测试用例的预期结果。
         verify(workingPlanService).updateWorkingPlan(plan);
         verify(workingPlanService).addBreakToWorkingPlan(timePeroid, 7, "MONDAY");
         verify(workingPlanService).deleteBreakFromWorkingPlan(timePeroid, 7, "MONDAY");
         assertThat(model.getAttribute("plan")).isSameAs(plan);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(model.getAttribute("breakModel")).isInstanceOf(TimePeroid.class);
     }
 
@@ -162,6 +175,7 @@ class ProviderControllerTest {
     void shouldRestrictProviderDeletionToAdmins() throws Exception {
         Method method = ProviderController.class.getMethod("processDeleteProviderRequest", int.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
@@ -171,11 +185,13 @@ class ProviderControllerTest {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         when(bindingResult.hasErrors()).thenReturn(true, false);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processProviderPasswordUpate(form, bindingResult, redirectAttributes))
                 .isEqualTo("redirect:/providers/2");
         assertThat(redirectAttributes.getFlashAttributes()).containsKey("passwordChange");
         verify(userService, never()).updateUserPassword(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processProviderPasswordUpate(form, bindingResult, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/providers/2");
         verify(userService).updateUserPassword(form);

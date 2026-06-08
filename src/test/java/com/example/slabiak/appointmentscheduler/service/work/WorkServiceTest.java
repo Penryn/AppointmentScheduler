@@ -1,3 +1,4 @@
+// 测试说明：验证服务项目服务的查询、保存、删除和客户适配判断行为。
 package com.example.slabiak.appointmentscheduler.service.work;
 
 import com.example.slabiak.appointmentscheduler.dao.WorkRepository;
@@ -53,12 +54,14 @@ public class WorkServiceTest {
     @Test
     public void shouldSaveWork() {
         workService.createNewWork(work);
+        // 检查点：验证该测试用例的预期结果。
         verify(workRepository, times(1)).save(work);
     }
 
     @Test
     public void shouldFindWorkById() {
         when(workRepository.findById(1)).thenReturn(workOptional);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(workOptional.get(), workService.getWorkById(1));
         verify(workRepository, times(1)).findById(1);
     }
@@ -66,6 +69,7 @@ public class WorkServiceTest {
     @Test
     public void shouldFindAllWorks() {
         when(workRepository.findAll()).thenReturn(works);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(works, workService.getAllWorks());
         verify(workRepository, times(1)).findAll();
     }
@@ -73,6 +77,7 @@ public class WorkServiceTest {
     @Test
     public void shouldDeleteWorkById() {
         workService.deleteWorkById(1);
+        // 检查点：验证该测试用例的预期结果。
         verify(workRepository).deleteById(1);
     }
 
@@ -84,10 +89,12 @@ public class WorkServiceTest {
 
         workService.updateWork(update);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals("New", existing.getName());
         assertEquals("new", existing.getDescription());
         assertEquals(250, existing.getPrice());
         assertEquals(45, existing.getDuration());
+        // 检查点：验证该测试用例的预期结果。
         assertFalse(existing.getEditable());
         assertEquals("corporate", existing.getTargetCustomer());
         verify(workRepository).save(existing);
@@ -97,6 +104,7 @@ public class WorkServiceTest {
     public void shouldThrowWhenWorkDoesNotExist() {
         when(workRepository.findById(99)).thenReturn(Optional.empty());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(WorkNotFoundException.class, () -> workService.getWorkById(99));
     }
 
@@ -112,10 +120,12 @@ public class WorkServiceTest {
         when(workRepository.findByTargetCustomerAndProviderId("retail", 2)).thenReturn(workList);
         when(workRepository.findByTargetCustomerAndProviderId("corporate", 2)).thenReturn(workList);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(page, workService.getWorkList(pageable));
         assertEquals(workList, workService.getWorksByProviderId(2));
         assertEquals(workList, workService.getRetailCustomerWorks());
         assertEquals(workList, workService.getCorporateCustomerWorks());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(workList, workService.getWorksForRetailCustomerByProviderId(2));
         assertEquals(workList, workService.getWorksForCorporateCustomerByProviderId(2));
     }
@@ -131,6 +141,7 @@ public class WorkServiceTest {
         when(workRepository.findById(1)).thenReturn(Optional.of(retailWork));
         when(workRepository.findById(2)).thenReturn(Optional.of(corporateWork));
 
+        // 检查点：验证该测试用例的预期结果。
         assertTrue(workService.isWorkForCustomer(1, 3));
         assertFalse(workService.isWorkForCustomer(2, 3));
         assertTrue(workService.isWorkForCustomer(2, 4));

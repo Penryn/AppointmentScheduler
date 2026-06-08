@@ -1,3 +1,4 @@
+// 测试说明：验证预约控制器的页面跳转、表单处理和权限相关行为。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
@@ -62,6 +63,7 @@ public class AppointmentControllerTest {
 
         String view = controller.showAllAppointments(model, user(3, "ROLE_CUSTOMER"), AppointmentStatus.SCHEDULED, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("appointments/listAppointments");
         assertThat(model.getAttribute("appointments")).isEqualTo(page);
         assertThat(model.getAttribute("paginationQuery")).isEqualTo("status=SCHEDULED");
@@ -77,6 +79,7 @@ public class AppointmentControllerTest {
         String providerView = controller.showAllAppointments(new ExtendedModelMap(), user(2, "ROLE_PROVIDER"), null, pageable);
         String adminView = controller.showAllAppointments(new ExtendedModelMap(), user(1, "ROLE_ADMIN"), null, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(providerView).isEqualTo("appointments/listAppointments");
         assertThat(adminView).isEqualTo("appointments/listAppointments");
     }
@@ -94,10 +97,12 @@ public class AppointmentControllerTest {
 
         String view = controller.showAppointmentDetail(10, model, user(3, "ROLE_CUSTOMER"));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("appointments/appointmentDetail");
         assertThat(model.getAttribute("allowedToRequestRejection")).isEqualTo(true);
         assertThat(model.getAttribute("allowedToExchange")).isEqualTo(true);
         assertThat(model.getAttribute("allowedToCancel")).isEqualTo(true);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(model.getAttribute("remainingTime")).isNotNull();
     }
 
@@ -109,11 +114,13 @@ public class AppointmentControllerTest {
         when(appointmentService.acceptRejection(10, 2)).thenReturn(true);
         when(appointmentService.acceptRejection("accept-token")).thenReturn(true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processAppointmentRejectionRequest(10, user(3, "ROLE_CUSTOMER"), model)).isEqualTo("appointments/rejectionConfirmation");
         assertThat(controller.processAppointmentRejectionRequest("token", new ExtendedModelMap())).isEqualTo("appointments/rejectionConfirmation");
         assertThat(controller.acceptAppointmentRejectionRequest(10, user(2, "ROLE_PROVIDER"), new ExtendedModelMap())).isEqualTo("appointments/rejectionConfirmation");
         assertThat(controller.acceptAppointmentRejectionRequest("accept-token", new ExtendedModelMap())).isEqualTo("appointments/rejectionConfirmation");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.addNewChatMessage(new com.example.slabiak.appointmentscheduler.entity.ChatMessage(), 10, user(3, "ROLE_CUSTOMER")))
                 .isEqualTo("redirect:/appointments/10");
         verify(appointmentService).addMessageToAppointmentChat(anyInt(), anyInt(), any());
@@ -133,11 +140,13 @@ public class AppointmentControllerTest {
         provider.setLastName("One");
         when(userService.getProviderById(2)).thenReturn(provider);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.selectProvider(model, retailCustomer)).isEqualTo("appointments/selectProvider");
         assertThat(controller.selectService(2, model, retailCustomer)).isEqualTo("appointments/selectService");
         assertThat(controller.selectDate(1, 2, model, retailCustomer)).isEqualTo("appointments/selectDate");
         assertThat(controller.showNewAppointmentSummary(1, 2, "2032-01-20T10:00", model, retailCustomer))
                 .isEqualTo("appointments/newAppointmentSummary");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.bookAppointment(1, 2, "2032-01-20T10:00", retailCustomer)).isEqualTo("redirect:/appointments/all");
 
         verify(appointmentService).createNewAppointment(1, 2, 3, LocalDateTime.parse("2032-01-20T10:00"));
@@ -149,6 +158,7 @@ public class AppointmentControllerTest {
         when(workService.isWorkForCustomer(1, 3)).thenReturn(false);
         when(appointmentService.isAvailable(1, 2, 3, LocalDateTime.parse("2032-01-20T10:00"))).thenReturn(false);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.selectDate(1, 2, new ExtendedModelMap(), customer)).isEqualTo("redirect:/appointments/new");
         assertThat(controller.showNewAppointmentSummary(1, 2, "2032-01-20T10:00", new ExtendedModelMap(), customer))
                 .isEqualTo("redirect:/appointments/new");
@@ -158,6 +168,7 @@ public class AppointmentControllerTest {
     public void shouldCancelAppointmentAndFormatDuration() {
         CustomUserDetails customer = user(3, "ROLE_CUSTOMER");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.cancelAppointment(10, customer)).isEqualTo("redirect:/appointments/all");
         assertThat(AppointmentController.formatDuration(Duration.ofMinutes(125))).isEqualTo("2h05m");
         verify(appointmentService).cancelUserAppointmentById(10, 3);

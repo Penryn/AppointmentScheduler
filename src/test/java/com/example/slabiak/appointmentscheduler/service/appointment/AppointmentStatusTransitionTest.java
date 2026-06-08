@@ -1,3 +1,4 @@
+// 测试说明：验证预约状态在完成、确认、取消和拒绝场景下的转换。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -68,6 +69,7 @@ public class AppointmentStatusTransitionTest {
 
         appointmentService.updateUserAppointmentsStatuses(customer.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(scheduled.getStatus()).isEqualTo(AppointmentStatus.FINISHED);
         verify(appointmentRepository).save(scheduled);
     }
@@ -82,6 +84,7 @@ public class AppointmentStatusTransitionTest {
 
         appointmentService.updateUserAppointmentsStatuses(customer.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(finished.getStatus()).isEqualTo(AppointmentStatus.INVOICED);
         verify(appointmentRepository).save(finished);
     }
@@ -97,10 +100,12 @@ public class AppointmentStatusTransitionTest {
 
         appointmentService.cancelUserAppointmentById(scheduled.getId(), customer.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(scheduled.getStatus()).isEqualTo(AppointmentStatus.CANCELED);
         assertThat(scheduled.getCanceler()).isEqualTo(canceler);
         assertThat(scheduled.getCanceledAt()).isNotNull();
         verify(appointmentRepository).save(scheduled);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService).newAppointmentCanceledByCustomerNotification(scheduled, true);
     }
 
@@ -115,6 +120,7 @@ public class AppointmentStatusTransitionTest {
 
         appointmentService.cancelUserAppointmentById(scheduled.getId(), provider.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(scheduled.getStatus()).isEqualTo(AppointmentStatus.CANCELED);
         assertThat(scheduled.getCanceler()).isEqualTo(canceler);
         verify(appointmentRepository).save(scheduled);
@@ -127,6 +133,7 @@ public class AppointmentStatusTransitionTest {
         scheduled.setId(16);
         when(appointmentRepository.findById(scheduled.getId())).thenReturn(Optional.of(scheduled));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> appointmentService.cancelUserAppointmentById(scheduled.getId(), 999))
                 .isInstanceOf(AccessDeniedException.class);
     }
@@ -139,6 +146,7 @@ public class AppointmentStatusTransitionTest {
 
         String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), scheduled.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(reason).isEqualTo("距离开始不足 24 小时的预约不能取消。");
     }
 
@@ -152,6 +160,7 @@ public class AppointmentStatusTransitionTest {
 
         String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), scheduled.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(reason).isEqualTo("本月取消次数已达上限，无法取消该预约。");
     }
 
@@ -163,6 +172,7 @@ public class AppointmentStatusTransitionTest {
 
         String reason = appointmentService.getCancelNotAllowedReason(customer.getId(), finished.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(reason).isEqualTo("只有已预约状态的预约可以取消。");
     }
 
@@ -174,6 +184,7 @@ public class AppointmentStatusTransitionTest {
 
         boolean requested = appointmentService.requestAppointmentRejection(finished.getId(), customer.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested).isTrue();
         assertThat(finished.getStatus()).isEqualTo(AppointmentStatus.REJECTION_REQUESTED);
         verify(notificationService).newAppointmentRejectionRequestedNotification(finished, true);
@@ -188,6 +199,7 @@ public class AppointmentStatusTransitionTest {
 
         boolean requested = appointmentService.requestAppointmentRejection(finished.getId(), customer.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested).isFalse();
         assertThat(finished.getStatus()).isEqualTo(AppointmentStatus.FINISHED);
     }
@@ -200,6 +212,7 @@ public class AppointmentStatusTransitionTest {
 
         boolean accepted = appointmentService.acceptRejection(requested.getId(), provider.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(accepted).isTrue();
         assertThat(requested.getStatus()).isEqualTo(AppointmentStatus.REJECTED);
         verify(notificationService).newAppointmentRejectionAcceptedNotification(requested, true);
@@ -214,6 +227,7 @@ public class AppointmentStatusTransitionTest {
 
         boolean accepted = appointmentService.acceptRejection(requested.getId(), 999);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(accepted).isFalse();
         assertThat(requested.getStatus()).isEqualTo(AppointmentStatus.REJECTION_REQUESTED);
     }

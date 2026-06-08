@@ -1,3 +1,4 @@
+// 测试说明：验证核心领域模型的默认值、关联关系和简单状态行为。
 package com.example.slabiak.appointmentscheduler.model;
 
 import com.example.slabiak.appointmentscheduler.entity.Work;
@@ -32,6 +33,7 @@ class DomainModelTest {
         dayPlan.addBreak(new TimePeroid(LocalTime.of(12, 0), LocalTime.of(13, 0)));
         dayPlan.addBreak(new TimePeroid(LocalTime.of(16, 0), LocalTime.of(18, 0)));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(dayPlan.timePeroidsWithBreaksExcluded())
                 .containsExactly(
                         new TimePeroid(LocalTime.of(10, 0), LocalTime.of(12, 0)),
@@ -39,6 +41,7 @@ class DomainModelTest {
                 );
 
         dayPlan.removeBreak(new TimePeroid(LocalTime.of(12, 0), LocalTime.of(13, 0)));
+        // 检查点：验证该测试用例的预期结果。
         assertThat(dayPlan.getBreaks()).hasSize(2);
     }
 
@@ -46,14 +49,17 @@ class DomainModelTest {
     void shouldResolveWorkingPlanDaysAndDefaults() {
         WorkingPlan workingPlan = WorkingPlan.generateDefaultWorkingPlan();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(workingPlan.getDay("monday")).isSameAs(workingPlan.getMonday());
         assertThat(workingPlan.getDay("tuesday")).isSameAs(workingPlan.getTuesday());
         assertThat(workingPlan.getDay("wednesday")).isSameAs(workingPlan.getWednesday());
         assertThat(workingPlan.getDay("thursday")).isSameAs(workingPlan.getThursday());
+        // 检查点：验证该测试用例的预期结果。
         assertThat(workingPlan.getDay("friday")).isSameAs(workingPlan.getFriday());
         assertThat(workingPlan.getDay("saturday")).isSameAs(workingPlan.getSaturday());
         assertThat(workingPlan.getDay("sunday")).isSameAs(workingPlan.getSunday());
         assertThat(workingPlan.getDay("unknown")).isNull();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(workingPlan.getMonday().getWorkingHours())
                 .isEqualTo(new TimePeroid(LocalTime.of(6, 0), LocalTime.of(18, 0)));
     }
@@ -67,10 +73,12 @@ class DomainModelTest {
         Provider provider = new Provider(form, "encoded", List.of(new Role("ROLE_PROVIDER")), workingPlan);
         provider.setId(7);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(provider.getUserName()).isEqualTo("provider");
         assertThat(provider.getPassword()).isEqualTo("encoded");
         assertThat(provider.getWorkingPlan()).isSameAs(workingPlan);
         assertThat(workingPlan.getProvider()).isSameAs(provider);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(provider.getRetailWorks()).containsExactly(retail);
         assertThat(provider.getCorporateWorks()).containsExactly(corporate);
 
@@ -79,12 +87,14 @@ class DomainModelTest {
         update.setFirstName("Updated");
         provider.update(update);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(provider.getFirstName()).isEqualTo("Updated");
         assertThat(provider.getWorks()).containsExactly(updatedRetail);
         assertThat(provider).isEqualTo(provider);
         assertThat(provider).isNotEqualTo(new User());
         Provider sameId = new Provider();
         sameId.setId(7);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(provider).isEqualTo(sameId);
     }
 
@@ -100,10 +110,12 @@ class DomainModelTest {
         form.setStart(start.plusDays(1));
         form.setEnd(end.plusDays(1));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(form.getCustomerId()).isEqualTo(3);
         assertThat(form.getWorkId()).isEqualTo(4);
         assertThat(form.getProviderId()).isEqualTo(5);
         assertThat(form.getStart()).isEqualTo(start.plusDays(1));
+        // 检查点：验证该测试用例的预期结果。
         assertThat(form.getEnd()).isEqualTo(end.plusDays(1));
     }
 
@@ -129,18 +141,22 @@ class DomainModelTest {
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(details.getId()).isEqualTo(3);
         assertThat(details.getFirstName()).isEqualTo("Ada");
         assertThat(details.getLastName()).isEqualTo("Lovelace");
         assertThat(details.getUsername()).isEqualTo("ada");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(details.getEmail()).isEqualTo("ada@example.com");
         assertThat(details.getPassword()).isEqualTo("secret");
         assertThat(details.hasRole("ROLE_ADMIN")).isTrue();
         assertThat(details.hasRole("ROLE_PROVIDER")).isFalse();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(details.isAccountNonExpired()).isTrue();
         assertThat(details.isAccountNonLocked()).isTrue();
         assertThat(details.isCredentialsNonExpired()).isTrue();
         assertThat(details.isEnabled()).isTrue();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(details).isEqualTo(sameId);
         assertThat(details).isNotEqualTo(null);
     }
@@ -165,14 +181,17 @@ class DomainModelTest {
         appointment.setChatMessages(new java.util.ArrayList<>(List.of(later, earlier)));
         appointment.setExchangeRequest(exchangeRequest);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(appointment.getStart()).isEqualTo(start);
         assertThat(appointment.getEnd()).isEqualTo(start.plusHours(1));
         assertThat(appointment.getCustomer()).isSameAs(customer);
         assertThat(appointment.getProvider()).isSameAs(provider);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(appointment.getWork()).isSameAs(work);
         assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.SCHEDULED);
         assertThat(appointment.getCanceler()).isSameAs(customer);
         assertThat(appointment.getCanceledAt()).isEqualTo(start.minusHours(1));
+        // 检查点：验证该测试用例的预期结果。
         assertThat(appointment.getInvoice()).isSameAs(invoice);
         assertThat(appointment.getExchangeRequest()).isSameAs(exchangeRequest);
         assertThat(appointment.getChatMessages()).containsExactly(earlier, later);
@@ -180,24 +199,29 @@ class DomainModelTest {
                 .isNegative();
 
         later.setMessage("hello");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(later.getMessage()).isEqualTo("hello");
         assertThat(later.getAuthor()).isSameAs(customer);
         assertThat(later.getAppointment()).isSameAs(appointment);
         assertThat(later.compareTo(earlier)).isPositive();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getNumber()).isEqualTo("FV/test");
         assertThat(invoice.getStatus()).isEqualTo("issued");
         assertThat(invoice.getIssued()).isEqualTo(start);
         assertThat(invoice.getAppointments()).containsExactly(appointment);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getTotalAmount()).isEqualTo(0);
         invoice.setNumber("FV/updated");
         invoice.setStatus("paid");
         invoice.setIssued(start.plusDays(1));
         invoice.setTotalAmount(123);
         invoice.setAppointments(List.of());
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getNumber()).isEqualTo("FV/updated");
         assertThat(invoice.getStatus()).isEqualTo("paid");
         assertThat(invoice.getIssued()).isEqualTo(start.plusDays(1));
         assertThat(invoice.getTotalAmount()).isEqualTo(123);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getAppointments()).isEmpty();
     }
 
@@ -214,14 +238,17 @@ class DomainModelTest {
         Work sameId = work(1, "retail");
         Work different = work(2, "corporate");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(work.getName()).isEqualTo("retail");
         assertThat(work.getDescription()).isEqualTo("description");
         assertThat(work.getPrice()).isEqualTo(10);
         assertThat(work.getDuration()).isEqualTo(30);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(work.getEditable()).isTrue();
         assertThat(work.getTargetCustomer()).isEqualTo("retail");
         assertThat(work.getProviders()).containsExactly(provider);
         assertThat(work).isEqualTo(sameId);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(work).isNotEqualTo(different);
         assertThat(work.hashCode()).isEqualTo(sameId.hashCode());
 
@@ -231,6 +258,7 @@ class DomainModelTest {
         retail.setRoles(List.of(new Role("ROLE_CUSTOMER_RETAIL")));
         Customer unknown = new Customer();
         unknown.setRoles(List.of(new Role("ROLE_OTHER")));
+        // 检查点：验证该测试用例的预期结果。
         assertThat(corporate.getType()).isEqualTo("corporate");
         assertThat(retail.getType()).isEqualTo("retail");
         assertThat(unknown.getType()).isEmpty();
@@ -243,11 +271,13 @@ class DomainModelTest {
         form.setPassword("newpass");
         form.setMatchingPassword("newpass");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(form.getId()).isEqualTo(3);
         assertThat(form.getCurrentPassword()).isEqualTo("old");
         assertThat(form.getPassword()).isEqualTo("newpass");
         assertThat(form.getMatchingPassword()).isEqualTo("newpass");
         form.setId(4);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(form.getId()).isEqualTo(4);
     }
 

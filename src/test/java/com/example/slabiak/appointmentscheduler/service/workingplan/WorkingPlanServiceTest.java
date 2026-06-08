@@ -1,3 +1,4 @@
+// 测试说明：验证工作计划服务的排班、休息时间和可用性规则。
 package com.example.slabiak.appointmentscheduler.service.workingplan;
 
 import com.example.slabiak.appointmentscheduler.dao.WorkingPlanRepository;
@@ -64,14 +65,17 @@ class WorkingPlanServiceTest {
         service.updateWorkingPlan(update);
 
         ArgumentCaptor<WorkingPlan> captor = ArgumentCaptor.forClass(WorkingPlan.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(workingPlanRepository).save(captor.capture());
         WorkingPlan saved = captor.getValue();
         assertThat(saved.getMonday().getWorkingHours()).isEqualTo(update.getMonday().getWorkingHours());
         assertThat(saved.getTuesday().getWorkingHours()).isEqualTo(update.getTuesday().getWorkingHours());
+        // 检查点：验证该测试用例的预期结果。
         assertThat(saved.getWednesday().getWorkingHours()).isEqualTo(update.getWednesday().getWorkingHours());
         assertThat(saved.getThursday().getWorkingHours()).isEqualTo(update.getThursday().getWorkingHours());
         assertThat(saved.getFriday().getWorkingHours()).isEqualTo(update.getFriday().getWorkingHours());
         assertThat(saved.getSaturday().getWorkingHours()).isEqualTo(update.getSaturday().getWorkingHours());
+        // 检查点：验证该测试用例的预期结果。
         assertThat(saved.getSunday().getWorkingHours()).isEqualTo(update.getSunday().getWorkingHours());
     }
 
@@ -83,6 +87,7 @@ class WorkingPlanServiceTest {
         when(workingPlanRepository.findById(2)).thenReturn(Optional.of(plan));
 
         service.addBreakToWorkingPlan(breakTime, 2, "monday");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(plan.getMonday().getBreaks()).containsExactly(breakTime);
 
         service.deleteBreakFromWorkingPlan(breakTime, 2, "monday");
@@ -97,10 +102,12 @@ class WorkingPlanServiceTest {
         TimePeroid breakTime = new TimePeroid(LocalTime.of(12, 0), LocalTime.of(12, 30));
         when(workingPlanRepository.findById(2)).thenReturn(Optional.of(plan));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> service.addBreakToWorkingPlan(breakTime, 2, "monday"))
                 .isInstanceOf(AccessDeniedException.class);
         assertThatThrownBy(() -> service.deleteBreakFromWorkingPlan(breakTime, 2, "monday"))
                 .isInstanceOf(AccessDeniedException.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(workingPlanRepository, never()).save(plan);
     }
 
@@ -110,6 +117,7 @@ class WorkingPlanServiceTest {
         when(workingPlanRepository.getWorkingPlanByProviderId(2)).thenReturn(plan);
         when(workingPlanRepository.findById(99)).thenReturn(Optional.empty());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(service.getWorkingPlanByProviderId(2)).isSameAs(plan);
         assertThatThrownBy(() -> service.updateWorkingPlan(missingUpdate(99)))
                 .isInstanceOf(EntityNotFoundException.class)

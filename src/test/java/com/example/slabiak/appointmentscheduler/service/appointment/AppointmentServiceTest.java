@@ -1,3 +1,4 @@
+// 测试说明：验证预约服务的创建、查询、聊天、通知和状态更新行为。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -124,6 +125,7 @@ public class AppointmentServiceTest {
         ArgumentCaptor<Appointment> argumentCaptor = ArgumentCaptor.forClass(Appointment.class);
         appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentRepository, times(1)).save(argumentCaptor.capture());
     }
 
@@ -135,6 +137,7 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
@@ -156,6 +159,7 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
@@ -177,6 +181,7 @@ public class AppointmentServiceTest {
         when(workService.getWorkById(workId)).thenReturn(work);
         when(userService.getProviderById(providerId)).thenReturn(provider);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, startOfNewAppointment));
     }
@@ -185,6 +190,7 @@ public class AppointmentServiceTest {
     @Test
     public void shouldFindAppointmentById() {
         when(appointmentRepository.findById(1)).thenReturn(optionalAppointment);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(optionalAppointment.get().getId(), appointmentService.getAppointmentByIdWithAuthorization(1).getId());
         verify(appointmentRepository, times(1)).findById(1);
     }
@@ -195,6 +201,7 @@ public class AppointmentServiceTest {
         Page<Appointment> appointmentPage = new PageImpl<>(appointments, pageable, appointments.size());
         when(appointmentRepository.findListPage(null, pageable)).thenReturn(appointmentPage);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(appointmentPage, appointmentService.getAllAppointments(null, pageable));
         verify(appointmentRepository).findListPage(null, pageable);
     }
@@ -202,6 +209,7 @@ public class AppointmentServiceTest {
     @Test
     public void shouldDeleteAppointmentById() {
         appointmentService.deleteAppointmentById(1);
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentRepository).deleteById(1);
     }
 
@@ -209,6 +217,7 @@ public class AppointmentServiceTest {
     public void shouldThrowWhenAppointmentDoesNotExist() {
         when(appointmentRepository.findById(99)).thenReturn(Optional.empty());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(AppointmentNotFoundException.class, () -> appointmentService.getAppointmentById(99));
     }
 
@@ -230,14 +239,17 @@ public class AppointmentServiceTest {
         when(appointmentRepository.findCanceledByUser(customerId)).thenReturn(appointments);
         when(appointmentRepository.findScheduledByUserId(customerId)).thenReturn(appointments);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(appointmentPage, appointmentService.getAppointmentByCustomerId(customerId, AppointmentStatus.SCHEDULED, pageable));
         assertEquals(appointmentPage, appointmentService.getAppointmentByProviderId(providerId, null, pageable));
         assertEquals(appointments, appointmentService.getAppointmentCalendarByCustomerId(customerId, start, end));
         assertEquals(appointments, appointmentService.getAppointmentCalendarByProviderId(providerId, start, end));
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(appointments, appointmentService.getAppointmentCalendar(start, end));
         assertEquals(appointments, appointmentService.getAppointmentsByProviderAtDay(providerId, day));
         assertEquals(appointments, appointmentService.getAppointmentsByCustomerAtDay(customerId, day));
         assertEquals(appointments, appointmentService.getCanceledAppointmentsByCustomerIdForCurrentMonth(customerId));
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(1, appointmentService.getNumberOfCanceledAppointmentsForUser(customerId));
         assertEquals(1, appointmentService.getNumberOfScheduledAppointmentsForUser(customerId));
     }
@@ -250,10 +262,12 @@ public class AppointmentServiceTest {
 
         appointmentService.addMessageToAppointmentChat(appointmentId, customerId, chatMessage);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(chatMessage.getAuthor()).isSameAs(customer);
         Assertions.assertThat(chatMessage.getAppointment()).isSameAs(appointment);
         Assertions.assertThat(chatMessage.getCreatedAt()).isNotNull();
         verify(chatMessageRepository).save(chatMessage);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService).newChatMessageNotification(chatMessage, true);
     }
 
@@ -261,6 +275,7 @@ public class AppointmentServiceTest {
     public void shouldRejectChatMessageFromNonAppointmentParty() {
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(AccessDeniedException.class,
                 () -> appointmentService.addMessageToAppointmentChat(appointmentId, 77, new ChatMessage()));
 
@@ -282,10 +297,12 @@ public class AppointmentServiceTest {
         appointmentService.updateUserAppointmentsStatuses(customerId);
         appointmentService.updateAllAppointmentsStatuses();
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(scheduled.getStatus()).isEqualTo(AppointmentStatus.FINISHED);
         Assertions.assertThat(finished.getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
         Assertions.assertThat(recentFinished.getStatus()).isEqualTo(AppointmentStatus.FINISHED);
         verify(appointmentRepository, times(4)).save(any(Appointment.class));
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService).newAppointmentFinishedNotification(recentFinished, true);
     }
 
@@ -296,6 +313,7 @@ public class AppointmentServiceTest {
 
         appointmentService.updateAppointmentsStatusesWithExpiredExchangeRequest();
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(exchangeRequested.getStatus()).isEqualTo(AppointmentStatus.SCHEDULED);
         verify(appointmentRepository).save(exchangeRequested);
     }
@@ -307,6 +325,7 @@ public class AppointmentServiceTest {
 
         appointmentService.cancelUserAppointmentById(appointmentId, customerId);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.CANCELED);
         Assertions.assertThat(appointment.getCanceler()).isSameAs(customer);
         Assertions.assertThat(appointment.getCanceledAt()).isNotNull();
@@ -317,6 +336,7 @@ public class AppointmentServiceTest {
     public void shouldRejectCancellationByNonAppointmentParty() {
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(AccessDeniedException.class,
                 () -> appointmentService.cancelUserAppointmentById(appointmentId, 77));
 
@@ -328,11 +348,13 @@ public class AppointmentServiceTest {
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
         work.setEditable(true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(null, appointmentService.getCancelNotAllowedReason(providerId, appointmentId));
         assertEquals(null, appointmentService.getCancelNotAllowedReason(customerId, appointmentId));
 
         appointment.setStatus(AppointmentStatus.FINISHED);
         assertEquals("只有已预约状态的预约可以取消。", appointmentService.getCancelNotAllowedReason(providerId, appointmentId));
+        // 检查点：验证该测试用例的预期结果。
         assertEquals("只有已预约状态的预约可以取消。", appointmentService.getCancelNotAllowedReason(customerId, appointmentId));
 
         appointment.setStatus(AppointmentStatus.SCHEDULED);
@@ -341,11 +363,13 @@ public class AppointmentServiceTest {
 
         appointment.setStart(LocalDateTime.now().plusDays(3));
         work.setEditable(false);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals("该类型预约只能由服务人员取消。", appointmentService.getCancelNotAllowedReason(customerId, appointmentId));
 
         work.setEditable(true);
         when(appointmentRepository.findByCustomerIdCanceledAfterDate(org.mockito.ArgumentMatchers.eq(customerId), any(LocalDateTime.class)))
                 .thenReturn(List.of(new Appointment()));
+        // 检查点：验证该测试用例的预期结果。
         assertEquals("本月取消次数已达上限，无法取消该预约。", appointmentService.getCancelNotAllowedReason(customerId, appointmentId));
         assertEquals("只有客户或服务人员可以取消预约", appointmentService.getCancelNotAllowedReason(77, appointmentId));
     }
@@ -356,11 +380,13 @@ public class AppointmentServiceTest {
         appointment.setStatus(AppointmentStatus.FINISHED);
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointmentService.isCustomerAllowedToRejectAppointment(customerId, appointmentId)).isTrue();
         Assertions.assertThat(appointmentService.requestAppointmentRejection(appointmentId, customerId)).isTrue();
         Assertions.assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.REJECTION_REQUESTED);
         verify(notificationService).newAppointmentRejectionRequestedNotification(appointment, true);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointmentService.isProviderAllowedToAcceptRejection(providerId, appointmentId)).isTrue();
         Assertions.assertThat(appointmentService.acceptRejection(appointmentId, providerId)).isTrue();
         Assertions.assertThat(appointment.getStatus()).isEqualTo(AppointmentStatus.REJECTED);
@@ -372,6 +398,7 @@ public class AppointmentServiceTest {
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointmentService.requestAppointmentRejection(appointmentId, customerId)).isFalse();
         Assertions.assertThat(appointmentService.acceptRejection(appointmentId, providerId)).isFalse();
     }
@@ -389,10 +416,12 @@ public class AppointmentServiceTest {
         appointment.setStatus(AppointmentStatus.FINISHED);
         when(appointmentRepository.findById(appointmentId)).thenReturn(optionalAppointment);
 
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointmentService.requestAppointmentRejection("request")).isTrue();
         appointment.setStatus(AppointmentStatus.REJECTION_REQUESTED);
         Assertions.assertThat(appointmentService.acceptRejection("accept")).isTrue();
         Assertions.assertThat(appointmentService.requestAppointmentRejection("bad")).isFalse();
+        // 检查点：验证该测试用例的预期结果。
         Assertions.assertThat(appointmentService.acceptRejection("bad")).isFalse();
     }
 

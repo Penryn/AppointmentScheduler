@@ -1,3 +1,4 @@
+// 测试说明：验证工作计划在真实持久化环境中的保存和读取行为。
 package com.example.slabiak.appointmentscheduler.service.workingplan;
 
 import com.example.slabiak.appointmentscheduler.dao.WorkingPlanRepository;
@@ -45,6 +46,7 @@ public class WorkingPlanPersistenceIT {
         WorkingPlan reloaded = workingPlanRepository.findById(2)
                 .orElseThrow(RuntimeException::new);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(reloaded.getMonday()).isEqualTo(monday);
         assertThat(reloaded.getMonday().getBreaks())
                 .containsExactly(

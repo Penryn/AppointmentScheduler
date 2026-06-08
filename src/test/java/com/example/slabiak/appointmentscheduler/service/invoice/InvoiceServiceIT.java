@@ -1,3 +1,4 @@
+// 测试说明：验证发票服务在真实持久化环境中的创建和查询行为。
 package com.example.slabiak.appointmentscheduler.service.invoice;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -62,14 +63,17 @@ public class InvoiceServiceIT {
         Appointment reloadedAppointment = appointmentRepository.findById(confirmed.getId()).orElseThrow();
         Invoice invoice = invoiceRepository.findByAppointmentId(confirmed.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(reloadedAppointment.getStatus()).isEqualTo(AppointmentStatus.INVOICED);
         assertThat(invoice).isNotNull();
         assertThat(invoice.getStatus()).isEqualTo("issued");
         assertThat(invoice.getNumber()).startsWith("FV/");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getTotalAmount()).isEqualTo(100.00);
         assertThat(notificationService.getAll(3))
                 .anySatisfy(notification -> {
                     assertThat(notification.getTitle()).isEqualTo("新发票");
+                    // 检查点：验证该测试用例的预期结果。
                     assertThat(notification.getUrl()).isEqualTo("/invoices/" + invoice.getId());
                 });
     }
@@ -82,6 +86,7 @@ public class InvoiceServiceIT {
 
         invoiceService.changeInvoiceStatusToPaid(invoice.getId());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoiceRepository.findById(invoice.getId()).orElseThrow().getStatus()).isEqualTo("paid");
     }
 
@@ -91,6 +96,7 @@ public class InvoiceServiceIT {
     public void shouldDenyCustomerFromMarkingInvoiceAsPaid() {
         Invoice invoice = invoiceRepository.saveAndFlush(new Invoice("FV/test/2", "issued", LocalDateTime.now(), java.util.List.of(appointment(2032, 1, 17, 10, 0, 3))));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> invoiceService.changeInvoiceStatusToPaid(invoice.getId()))
                 .isInstanceOf(AccessDeniedException.class);
     }
@@ -103,6 +109,7 @@ public class InvoiceServiceIT {
 
         boolean allowed = invoiceService.isUserAllowedToDownloadInvoice(user(1, "ROLE_ADMIN"), invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(allowed).isTrue();
     }
 
@@ -112,6 +119,7 @@ public class InvoiceServiceIT {
     public void shouldAllowInvoiceCustomerAndProviderToDownloadInvoice() {
         Invoice invoice = invoiceWithAppointment(3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(3, "ROLE_CUSTOMER"), invoice)).isTrue();
         assertThat(invoiceService.isUserAllowedToDownloadInvoice(user(2, "ROLE_PROVIDER"), invoice)).isTrue();
     }
@@ -124,6 +132,7 @@ public class InvoiceServiceIT {
 
         boolean allowed = invoiceService.isUserAllowedToDownloadInvoice(user(1001, "ROLE_CUSTOMER"), invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(allowed).isFalse();
     }
 

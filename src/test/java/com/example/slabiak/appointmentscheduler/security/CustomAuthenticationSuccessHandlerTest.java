@@ -1,3 +1,4 @@
+// 测试说明：验证登录成功处理器会按用户角色跳转到正确页面。
 package com.example.slabiak.appointmentscheduler.security;
 
 import com.example.slabiak.appointmentscheduler.service.AppointmentService;
@@ -42,6 +43,7 @@ class CustomAuthenticationSuccessHandlerTest {
 
         handler.onAuthenticationSuccess(request, response, authentication(user(1, "ROLE_ADMIN")));
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentService).updateAllAppointmentsStatuses();
         verify(appointmentService, never()).updateUserAppointmentsStatuses(1);
         verify(response).sendRedirect("/app/");
@@ -53,6 +55,7 @@ class CustomAuthenticationSuccessHandlerTest {
 
         handler.onAuthenticationSuccess(request, response, authentication(user(3, "ROLE_CUSTOMER")));
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentService).updateUserAppointmentsStatuses(3);
         verify(appointmentService, never()).updateAllAppointmentsStatuses();
         verify(response).sendRedirect("/");

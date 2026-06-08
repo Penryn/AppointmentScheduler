@@ -1,3 +1,4 @@
+// 测试说明：验证用户服务的注册、查询、资料更新、密码修改和角色相关行为。
 package com.example.slabiak.appointmentscheduler.service.user;
 
 import com.example.slabiak.appointmentscheduler.dao.RoleRepository;
@@ -86,6 +87,7 @@ public class UserServiceTest {
     @Test
     public void shouldFindUserById() {
         when(userRepository.findById(userId)).thenReturn(optionalUser);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(optionalUser.get(), userService.getUserById(userId));
         verify(userRepository, times(1)).findById(userId);
     }
@@ -96,6 +98,7 @@ public class UserServiceTest {
         ChangePasswordForm changePasswordForm = new ChangePasswordForm(userId);
         userService.updateUserPassword(changePasswordForm);
         ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).save(argumentCaptor.capture());
     }
@@ -112,6 +115,7 @@ public class UserServiceTest {
 
         userService.updateUserPassword(changePasswordForm);
         ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(passwordEncoder, times(1)).encode(newPassword);
         verify(userRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getPassword(), passwordEncoded);
@@ -123,6 +127,7 @@ public class UserServiceTest {
         user.setId(userId);
         Optional<User> optionalUser = Optional.of(user);
         when(userRepository.findByUserName(userName)).thenReturn(optionalUser);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(optionalUser.get(), userService.getUserByUsername(userName));
         verify(userRepository, times(1)).findByUserName(userName);
     }
@@ -136,6 +141,7 @@ public class UserServiceTest {
         users.add(user);
         when(userRepository.findAll()).thenReturn(users);
         List<User> fetchedUsers = userService.getAllUsers();
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(fetchedUsers, users);
         assertEquals(fetchedUsers.size(), 2);
         verify(userRepository, times(1)).findAll();
@@ -144,6 +150,7 @@ public class UserServiceTest {
     @Test
     public void shouldDeleteUserById() {
         userService.deleteUserById(userId);
+        // 检查点：验证该测试用例的预期结果。
         verify(userRepository).deleteById(userId);
     }
 
@@ -154,6 +161,7 @@ public class UserServiceTest {
         Assertions.assertTrue(userService.userExists(userName));
         Assertions.assertFalse(userService.userExists(userName));
 
+        // 检查点：验证该测试用例的预期结果。
         verify(userRepository, times(2)).findByUserName(userName);
     }
 
@@ -193,14 +201,17 @@ public class UserServiceTest {
         when(providerRepository.findAllWithCorporateWorks()).thenReturn(List.of(provider));
         when(providerRepository.findByWorks(work)).thenReturn(List.of(provider));
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(List.of(provider), userService.getAllProviders());
         assertEquals(0, userService.getProviderList(pageable).getTotalElements());
         assertEquals(List.of(customer), userService.getAllCustomers());
         assertEquals(0, userService.getCustomerList(pageable).getTotalElements());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(List.of(retailCustomer), userService.getAllRetailCustomers());
         assertEquals(users, userService.getUsersByRoleName("ROLE_PROVIDER"));
         assertEquals(List.of(provider), userService.getProvidersWithRetailWorks());
         assertEquals(List.of(provider), userService.getProvidersWithCorporateWorks());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(List.of(provider), userService.getProvidersByWork(work));
     }
 
@@ -218,10 +229,12 @@ public class UserServiceTest {
         userService.updateRetailCustomerProfile(form);
         userService.updateCorporateCustomerProfile(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(form.getFirstName(), provider.getFirstName());
         assertEquals(form.getEmail(), retailCustomer.getEmail());
         assertEquals(form.getCompanyName(), corporateCustomer.getCompanyName());
         verify(providerRepository).save(provider);
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository).save(retailCustomer);
         verify(corporateCustomerRepository).save(corporateCustomer);
     }
@@ -248,11 +261,13 @@ public class UserServiceTest {
         ArgumentCaptor<RetailCustomer> retailCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         ArgumentCaptor<CorporateCustomer> corporateCaptor = ArgumentCaptor.forClass(CorporateCustomer.class);
         ArgumentCaptor<Provider> providerCaptor = ArgumentCaptor.forClass(Provider.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository).save(retailCaptor.capture());
         verify(corporateCustomerRepository).save(corporateCaptor.capture());
         verify(providerRepository).save(providerCaptor.capture());
         assertEquals(passwordEncoded, retailCaptor.getValue().getPassword());
         Assertions.assertTrue(retailCaptor.getValue().getRoles().containsAll(List.of(retailRole, customerRole)));
+        // 检查点：验证该测试用例的预期结果。
         assertEquals("Acme", corporateCaptor.getValue().getCompanyName());
         Assertions.assertTrue(corporateCaptor.getValue().getRoles().containsAll(List.of(corporateRole, customerRole)));
         assertEquals(List.of(work), providerCaptor.getValue().getWorks());

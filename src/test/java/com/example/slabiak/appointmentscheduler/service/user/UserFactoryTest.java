@@ -1,3 +1,4 @@
+// 测试工具说明：提供用户相关测试所需的样本表单数据。
 package com.example.slabiak.appointmentscheduler.service.user;
 
 import com.example.slabiak.appointmentscheduler.model.UserForm;

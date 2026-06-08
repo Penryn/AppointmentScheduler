@@ -1,3 +1,4 @@
+// 测试说明：验证定时任务服务会触发预约状态更新。
 package com.example.slabiak.appointmentscheduler.service;
 
 import com.example.slabiak.appointmentscheduler.service.impl.ScheduledTasksServiceImpl;
@@ -31,6 +32,7 @@ class ScheduledTasksServiceTest {
     void shouldUpdateExpiredExchangesAndAppointmentStatuses() {
         service.updateAllAppointmentsStatuses();
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentService).updateAppointmentsStatusesWithExpiredExchangeRequest();
         verify(appointmentService).updateAllAppointmentsStatuses();
     }
@@ -40,12 +42,14 @@ class ScheduledTasksServiceTest {
         RuntimeException failure = new RuntimeException("status failure");
         doThrow(failure).when(appointmentService).updateAppointmentsStatusesWithExpiredExchangeRequest();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> service.updateAllAppointmentsStatuses()).isSameAs(failure);
     }
 
     @Test
     void shouldIssueInvoicesAndRethrowFailures() {
         service.issueInvoicesForCurrentMonth();
+        // 检查点：验证该测试用例的预期结果。
         verify(invoiceService).issueInvoicesForConfirmedAppointments();
 
         RuntimeException failure = new RuntimeException("invoice failure");

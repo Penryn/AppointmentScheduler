@@ -1,3 +1,4 @@
+// 测试说明：验证客户控制器的注册、资料维护、密码修改和访问限制行为。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.user.Role;
@@ -59,6 +60,7 @@ class CustomerControllerTest {
 
         String view = controller.showAllCustomers(model, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("users/listCustomers");
         assertThat(model.getAttribute("customers")).isEqualTo(Page.empty(pageable));
     }
@@ -74,10 +76,12 @@ class CustomerControllerTest {
 
         String view = controller.showCustomerDetails(4, model);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("users/updateUserForm");
         assertThat(model.getAttribute("user")).isInstanceOf(UserForm.class);
         assertThat(model.getAttribute("passwordChange")).isInstanceOf(ChangePasswordForm.class);
         assertThat(model.getAttribute("account_type")).isEqualTo("customer_corporate");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(model.getAttribute("formActionProfile")).isEqualTo("/customers/corporate/update/profile");
         assertThat(model.getAttribute("numberOfScheduledAppointments")).isEqualTo(2);
         assertThat(model.getAttribute("numberOfCanceledAppointments")).isEqualTo(1);
@@ -92,6 +96,7 @@ class CustomerControllerTest {
 
         String view = controller.showCustomerDetails(3, model);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("users/updateUserForm");
         assertThat(model.getAttribute("account_type")).isEqualTo("customer_retail");
         assertThat(model.getAttribute("formActionProfile")).isEqualTo("/customers/retail/update/profile");
@@ -103,21 +108,25 @@ class CustomerControllerTest {
         when(bindingResult.hasErrors()).thenReturn(true, false, true, false);
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processCorporateCustomerProfileUpdate(form, bindingResult, redirectAttributes))
                 .isEqualTo("redirect:/customers/3");
         assertThat(redirectAttributes.getFlashAttributes()).containsKey("user");
         verify(userService, never()).updateCorporateCustomerProfile(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processCorporateCustomerProfileUpdate(form, bindingResult, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/customers/3");
         verify(userService).updateCorporateCustomerProfile(form);
 
         RedirectAttributesModelMap retailRedirectAttributes = new RedirectAttributesModelMap();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processRetailCustomerProfileUpdate(form, bindingResult, retailRedirectAttributes))
                 .isEqualTo("redirect:/customers/3");
         assertThat(retailRedirectAttributes.getFlashAttributes()).containsKey("user");
         verify(userService, never()).updateRetailCustomerProfile(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processRetailCustomerProfileUpdate(form, bindingResult, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/customers/3");
         verify(userService).updateRetailCustomerProfile(form);
@@ -128,16 +137,19 @@ class CustomerControllerTest {
         Model corporateModel = new ExtendedModelMap();
         Model retailModel = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showCustomerRegistrationForm("corporate", corporateModel, null))
                 .isEqualTo("users/createUserForm");
         assertThat(corporateModel.getAttribute("account_type")).isEqualTo("customer_corporate");
         assertThat(corporateModel.getAttribute("registerAction")).isEqualTo("/customers/new/corporate");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showCustomerRegistrationForm("retail", retailModel, null))
                 .isEqualTo("users/createUserForm");
         assertThat(retailModel.getAttribute("account_type")).isEqualTo("customer_retail");
         assertThat(retailModel.getAttribute("registerAction")).isEqualTo("/customers/new/retail");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showCustomerRegistrationForm("retail", new ExtendedModelMap(), user(3, "ROLE_CUSTOMER")))
                 .isEqualTo("redirect:/");
         assertThatThrownBy(() -> controller.showCustomerRegistrationForm("unknown", new ExtendedModelMap(), null))
@@ -151,23 +163,27 @@ class CustomerControllerTest {
         Model retailModel = new ExtendedModelMap();
         Model corporateModel = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processReatilCustomerRegistration(form, bindingResult, retailModel))
                 .isEqualTo("users/createUserForm");
         assertThat(retailModel.getAttribute("account_type")).isEqualTo("customer_retail");
         verify(userService, never()).saveNewRetailCustomer(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processReatilCustomerRegistration(form, bindingResult, new ExtendedModelMap()))
                 .isEqualTo("users/login");
         verify(userService).saveNewRetailCustomer(form);
 
         assertThat(controller.processCorporateCustomerRegistration(form, bindingResult, corporateModel))
                 .isEqualTo("users/createUserForm");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(corporateModel.getAttribute("account_type")).isEqualTo("customer_corporate");
         verify(userService, never()).saveNewCorporateCustomer(form);
 
         Model successModel = new ExtendedModelMap();
         assertThat(controller.processCorporateCustomerRegistration(form, bindingResult, successModel))
                 .isEqualTo("users/login");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(successModel.getAttribute("createdUserName")).isEqualTo(form.getUserName());
         verify(userService).saveNewCorporateCustomer(form);
     }
@@ -179,11 +195,13 @@ class CustomerControllerTest {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         CustomUserDetails currentUser = user(3, "ROLE_CUSTOMER");
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processCustomerPasswordUpate(form, bindingResult, currentUser, redirectAttributes))
                 .isEqualTo("redirect:/customers/3");
         assertThat(redirectAttributes.getFlashAttributes()).containsKey("passwordChange");
         verify(userService, never()).updateUserPassword(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processCustomerPasswordUpate(form, bindingResult, currentUser, new RedirectAttributesModelMap()))
                 .isEqualTo("redirect:/customers/3");
         verify(userService).updateUserPassword(form);
@@ -193,6 +211,7 @@ class CustomerControllerTest {
     void shouldRestrictCustomerDeletionToAdmins() throws Exception {
         Method method = CustomerController.class.getMethod("processDeleteCustomerRequest", int.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
@@ -201,6 +220,7 @@ class CustomerControllerTest {
         Model model = new ExtendedModelMap();
         UserForm form = userForm();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.populateModel(model, form, "customer_retail", "/customers/new/retail", "error"))
                 .isSameAs(model);
         assertThat(model.getAttribute("user")).isSameAs(form);

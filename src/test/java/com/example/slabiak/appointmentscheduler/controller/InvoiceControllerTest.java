@@ -1,3 +1,4 @@
+// 测试说明：验证发票控制器的列表、详情、开票和下载相关行为。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.service.InvoiceService;
@@ -41,6 +42,7 @@ class InvoiceControllerTest {
         when(invoiceService.getInvoiceList(pageable)).thenReturn(Page.empty(pageable));
         Model model = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showAllInvoices(model, pageable)).isEqualTo("invoices/listInvoices");
         assertThat(model.getAttribute("invoices")).isEqualTo(Page.empty(pageable));
         assertThat(controller.issueInvoicesManually(new ExtendedModelMap())).isEqualTo("redirect:/invoices/all");
@@ -52,6 +54,7 @@ class InvoiceControllerTest {
     void shouldRestrictPaidStatusChangesToAdmins() throws Exception {
         Method method = InvoiceController.class.getMethod("changeStatusToPaid", int.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("hasRole('ADMIN')");
     }
 
@@ -63,10 +66,12 @@ class InvoiceControllerTest {
 
         ResponseEntity<InputStreamResource> response = controller.downloadInvoice(7, null);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
         assertThat(response.getHeaders().getContentLength()).isEqualTo(pdf.length());
         assertThat(response.getHeaders().getContentDisposition().getFilename()).isEqualTo(pdf.getName());
+        // 检查点：验证该测试用例的预期结果。
         assertThat(response.getBody()).isNotNull();
     }
 
@@ -77,6 +82,7 @@ class InvoiceControllerTest {
 
         ResponseEntity<InputStreamResource> response = controller.downloadInvoice(7, null);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

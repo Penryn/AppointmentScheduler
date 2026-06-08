@@ -1,3 +1,4 @@
+// 测试说明：验证发票服务的开票、下载数据准备和异常处理行为。
 package com.example.slabiak.appointmentscheduler.service.invoice;
 
 import com.example.slabiak.appointmentscheduler.dao.InvoiceRepository;
@@ -80,6 +81,7 @@ class InvoiceServiceTest {
 
         String number = service.generateInvoiceNumber();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(number).matches("FV/\\d{4}/\\d{1,2}/3");
     }
 
@@ -95,10 +97,12 @@ class InvoiceServiceTest {
 
         service.createNewInvoice(invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(service.getInvoiceByAppointmentId(7)).isSameAs(invoice);
         assertThat(service.getInvoiceById(11)).isSameAs(invoice);
         assertThat(service.getAllInvoices()).containsExactly(invoice);
         assertThat(service.getInvoiceList(pageable)).isSameAs(page);
+        // 检查点：验证该测试用例的预期结果。
         verify(invoiceRepository).save(invoice);
     }
 
@@ -107,6 +111,7 @@ class InvoiceServiceTest {
         when(invoiceRepository.findById(99)).thenReturn(Optional.empty());
         authenticate(user(1, "ROLE_ADMIN"));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> service.generatePdfForInvoice(99))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Invoice not found");
@@ -122,6 +127,7 @@ class InvoiceServiceTest {
 
         service.changeInvoiceStatusToPaid(11);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(invoice.getStatus()).isEqualTo("paid");
         verify(invoiceRepository).save(invoice);
     }
@@ -135,6 +141,7 @@ class InvoiceServiceTest {
         when(pdfGeneratorUtil.generatePdfFromInvoice(invoice)).thenReturn(pdf);
         authenticate(user(3, "ROLE_CUSTOMER"));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(service.generatePdfForInvoice(11)).isSameAs(pdf);
 
         authenticate(user(4, "ROLE_CUSTOMER"));
@@ -146,6 +153,7 @@ class InvoiceServiceTest {
     void shouldEvaluateInvoiceDownloadAuthorization() {
         Invoice invoice = invoice(11, appointment(3, 2));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(service.isUserAllowedToDownloadInvoice(user(1, "ROLE_ADMIN"), invoice)).isTrue();
         assertThat(service.isUserAllowedToDownloadInvoice(user(3, "ROLE_CUSTOMER"), invoice)).isTrue();
         assertThat(service.isUserAllowedToDownloadInvoice(user(2, "ROLE_PROVIDER"), invoice)).isTrue();
@@ -165,15 +173,18 @@ class InvoiceServiceTest {
 
         service.issueInvoicesForConfirmedAppointments();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(confirmed.getStatus()).isEqualTo(AppointmentStatus.INVOICED);
         verify(appointmentService).updateAppointment(confirmed);
         ArgumentCaptor<Invoice> captor = ArgumentCaptor.forClass(Invoice.class);
         verify(invoiceRepository).save(captor.capture());
         Invoice saved = captor.getValue();
+        // 检查点：验证该测试用例的预期结果。
         assertThat(saved.getStatus()).isEqualTo("issued");
         assertThat(saved.getAppointments()).containsExactly(confirmed);
         assertThat(saved.getTotalAmount()).isEqualTo(100);
         verify(notificationService).newInvoice(saved, true);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService, never()).newInvoice(any(), org.mockito.ArgumentMatchers.eq(false));
     }
 

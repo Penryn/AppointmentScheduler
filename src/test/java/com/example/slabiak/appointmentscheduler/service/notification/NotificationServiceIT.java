@@ -1,3 +1,4 @@
+// 测试说明：验证通知服务在真实持久化环境中的未读计数和通知创建行为。
 package com.example.slabiak.appointmentscheduler.service.notification;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -43,6 +44,7 @@ public class NotificationServiceIT {
         notificationService.newNotification("n1", "m1", "/appointments/1", userService.getUserById(3));
         notificationService.newNotification("n2", "m2", "/appointments/1", userService.getUserById(3));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.countUnreadNotifications(3)).isEqualTo(2);
 
         notificationService.markAllAsRead(3);
@@ -58,6 +60,7 @@ public class NotificationServiceIT {
         notificationService.newNotification("provider", "m", "/appointments/1", userService.getProviderById(2));
         Notification providerNotification = notificationService.getAll(2).get(0);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> notificationService.markAsRead(providerNotification.getId(), 3))
                 .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
         assertThat(notificationService.getNotificationById(providerNotification.getId()).isRead()).isFalse();
@@ -72,6 +75,7 @@ public class NotificationServiceIT {
 
         notificationService.markAllAsRead(3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.countUnreadNotifications(3)).isZero();
         assertThat(notificationService.countUnreadNotifications(2)).isEqualTo(1);
     }
@@ -85,10 +89,12 @@ public class NotificationServiceIT {
 
         notificationService.newNewAppointmentScheduledNotification(appointment, true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.getAll(2))
                 .anySatisfy(notification -> {
                     assertThat(notification.getTitle()).isEqualTo("新的预约");
                     assertThat(notification.getUrl()).isEqualTo("/appointments/" + appointment.getId());
+                    // 检查点：验证该测试用例的预期结果。
                     assertThat(notification.isRead()).isFalse();
                 });
     }
@@ -102,10 +108,12 @@ public class NotificationServiceIT {
 
         notificationService.newAppointmentCanceledByProviderNotification(appointment, true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.getAll(3))
                 .anySatisfy(notification -> {
                     assertThat(notification.getTitle()).isEqualTo("预约已取消");
                     assertThat(notification.getUrl()).isEqualTo("/appointments/" + appointment.getId());
+                    // 检查点：验证该测试用例的预期结果。
                     assertThat(notification.isRead()).isFalse();
                 });
     }
@@ -123,11 +131,13 @@ public class NotificationServiceIT {
 
         notificationService.newChatMessageNotification(chatMessage, true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.getAll(2))
                 .anySatisfy(notification -> {
                     assertThat(notification.getTitle()).isEqualTo("新的预约消息");
                     assertThat(notification.getUrl()).isEqualTo("/appointments/" + appointment.getId());
                 });
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notificationService.getAll(3))
                 .noneMatch(notification -> notification.getTitle().equals("新的预约消息")
                         && notification.getUrl().equals("/appointments/" + appointment.getId()));

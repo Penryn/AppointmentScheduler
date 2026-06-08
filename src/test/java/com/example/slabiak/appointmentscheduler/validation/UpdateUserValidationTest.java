@@ -1,3 +1,4 @@
+// 测试说明：验证普通用户资料更新表单的 Bean Validation 规则。
 package com.example.slabiak.appointmentscheduler.validation;
 
 import com.example.slabiak.appointmentscheduler.model.UserForm;
@@ -29,6 +30,7 @@ public class UpdateUserValidationTest {
     public void shouldHave8ViolationsForEmptyFormWhenUpdateUser() {
         UserForm form = new UserForm();
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(violations.size(), 8);
     }
 
@@ -38,6 +40,7 @@ public class UpdateUserValidationTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertTrue(violations.isEmpty());
     }
 
@@ -49,6 +52,7 @@ public class UpdateUserValidationTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(2, violations.size());
     }
 
