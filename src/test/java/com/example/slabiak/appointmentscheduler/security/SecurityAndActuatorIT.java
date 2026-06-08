@@ -1,3 +1,4 @@
+// 测试说明：验证安全配置、CSRF、CORS、响应头和 Actuator 暴露策略。
 package com.example.slabiak.appointmentscheduler.security;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -68,6 +69,7 @@ public class SecurityAndActuatorIT {
     @Test
     public void shouldExposeRegistrationPageWithoutBypassingSecurityFilterChain() throws Exception {
         MvcResult result = mockMvc.perform(get("/customers/new/retail"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -78,16 +80,19 @@ public class SecurityAndActuatorIT {
     @Test
     public void shouldSendSecurityHeadersOnPublicPages() throws Exception {
         MvcResult result = mockMvc.perform(get("/login").secure(true))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isOk())
                 .andReturn();
 
         assertThat(result.getResponse().getHeader("Content-Security-Policy"))
                 .contains("default-src 'self'", "script-src 'self'", "frame-ancestors 'none'", "object-src 'none'");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(result.getResponse().getHeader("X-Frame-Options")).isEqualTo("DENY");
         assertThat(result.getResponse().getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
         assertThat(result.getResponse().getHeader("Referrer-Policy")).isEqualTo("same-origin");
         assertThat(result.getResponse().getHeader("Strict-Transport-Security"))
                 .contains("max-age=31536000", "includeSubDomains", "preload");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(result.getResponse().getHeader("X-Powered-By")).isNull();
     }
 
@@ -95,6 +100,7 @@ public class SecurityAndActuatorIT {
     public void shouldConfigureSecureSessionCookieAttributes() {
         Session.Cookie cookie = serverProperties.getServlet().getSession().getCookie();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(cookie.getHttpOnly()).isTrue();
         assertThat(cookie.getSecure()).isTrue();
         assertThat(cookie.getSameSite().attributeValue()).isEqualTo("Lax");
@@ -103,6 +109,7 @@ public class SecurityAndActuatorIT {
     @Test
     public void shouldRenderSubresourceIntegrityAttributesForScriptsAndStyles() throws Exception {
         MvcResult result = mockMvc.perform(get("/login"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -117,22 +124,26 @@ public class SecurityAndActuatorIT {
 
     @Test
     public void shouldAllowOnlyConfiguredCorsOrigins() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(options("/api/user/notifications")
                         .header("Origin", "http://localhost:8080")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:8080"))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
 
         mockMvc.perform(options("/api/user/notifications")
                         .header("Origin", "https://evil.example")
                         .header("Access-Control-Request-Method", "GET"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isForbidden())
                 .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
     @Test
     public void shouldReturnRegistrationFormWithValidationErrorsForInvalidRetailCustomer() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/customers/new/retail")
                         .with(csrf())
                         .param("userName", "")
@@ -145,6 +156,7 @@ public class SecurityAndActuatorIT {
                         .param("street", "x")
                         .param("postcode", "abc")
                         .param("city", ""))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isOk())
                 .andExpect(view().name("users/createUserForm"))
                 .andExpect(content().string(containsString("用户名不能为空")))
@@ -155,6 +167,7 @@ public class SecurityAndActuatorIT {
     public void shouldCreateRetailCustomerFromValidRegistrationForm() throws Exception {
         String username = "ci" + Math.abs(System.nanoTime() % 1_000_000_000L);
 
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/customers/new/retail")
                         .with(csrf())
                         .param("userName", username)
@@ -167,6 +180,7 @@ public class SecurityAndActuatorIT {
                         .param("street", "Test Street")
                         .param("postcode", "100000")
                         .param("city", "Shanghai"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isOk())
                 .andExpect(view().name("users/login"))
                 .andExpect(content().string(containsString(username)));
@@ -175,12 +189,14 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldRejectStateChangingRequestWithoutCsrfToken() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/notifications/markAllAsRead"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     public void shouldRedirectAnonymousUsersFromAppointmentPagesToLogin() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/appointments/new"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
@@ -189,6 +205,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldDenyCustomerAccessToAdminCustomerList() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/customers/all"))
                 .andExpect(status().isForbidden());
     }
@@ -196,6 +213,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("provider")
     public void shouldDenyProviderAccessToCustomerPages() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/customers/3"))
                 .andExpect(status().isForbidden());
     }
@@ -203,6 +221,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("provider")
     public void shouldDenyProviderAccessToCustomerAppointmentBookingFlow() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/appointments/new"))
                 .andExpect(status().isForbidden());
     }
@@ -210,6 +229,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldDenyCustomerAccessToInvoiceAdministration() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/invoices/all"))
                 .andExpect(status().isForbidden());
     }
@@ -217,6 +237,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldDenyCustomerFromIssuingInvoices() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/invoices/issue").with(csrf()))
                 .andExpect(status().isForbidden());
     }
@@ -224,18 +245,21 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("provider")
     public void shouldDenyProviderAccessToAnotherProviderAvailability() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/providers/availability/breakes/add")
                         .with(csrf())
                         .param("planId", "1101")
                         .param("dayOfWeek", "monday")
                         .param("start", "10:00")
                         .param("end", "11:00"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithUserDetails("customer_r")
     public void shouldDenyCustomerFromDeletingWorks() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/works/delete")
                         .with(csrf())
                         .param("workId", "1"))
@@ -245,6 +269,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("load_customer_01")
     public void shouldDenyCustomerAccessToAnotherCustomerProfile() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/customers/3"))
                 .andExpect(status().isForbidden());
     }
@@ -263,6 +288,7 @@ public class SecurityAndActuatorIT {
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointmentRepository.saveAndFlush(appointment);
 
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/appointments/" + appointment.getId()))
                 .andExpect(status().isForbidden());
     }
@@ -270,6 +296,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldAcceptStateChangingRequestWithCsrfToken() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(post("/notifications/markAllAsRead").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/notifications*"));
@@ -278,6 +305,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("admin")
     public void shouldRenderServerPaginationForAdminLists() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/customers/all").param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("分页")))
@@ -286,6 +314,7 @@ public class SecurityAndActuatorIT {
 
     @Test
     public void shouldExposeActuatorHealthEndpoint() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"));
@@ -293,11 +322,13 @@ public class SecurityAndActuatorIT {
 
     @Test
     public void shouldNotExposeSensitiveActuatorEndpointsToAnonymousUsers() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/actuator/prometheus"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
 
         mockMvc.perform(get("/actuator/info"))
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }
@@ -305,6 +336,7 @@ public class SecurityAndActuatorIT {
     @Test
     @WithUserDetails("admin")
     public void shouldDisableSensitiveActuatorEndpointMappings() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/actuator/prometheus"))
                 .andExpect(status().isNotFound());
 
@@ -314,6 +346,7 @@ public class SecurityAndActuatorIT {
 
     @Test
     public void shouldRegisterAsyncInfrastructureBeans() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(mailExecutor).isNotNull();
         assertThat(taskScheduler).isNotNull();
     }

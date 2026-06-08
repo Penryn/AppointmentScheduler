@@ -1,3 +1,4 @@
+// 测试说明：验证服务项目控制器的列表、创建、更新和删除流程。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Work;
@@ -37,6 +38,7 @@ class WorkControllerTest {
 
         String view = controller.showAllWorks(model, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(view).isEqualTo("works/list");
         assertThat(model.getAttribute("works")).isEqualTo(Page.empty(pageable));
     }
@@ -48,6 +50,7 @@ class WorkControllerTest {
         Model updateModel = new ExtendedModelMap();
         Model createModel = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showFormForUpdateWork(7, updateModel)).isEqualTo("works/createOrUpdateWorkForm");
         assertThat(updateModel.getAttribute("work")).isSameAs(existing);
         assertThat(controller.showFormForAddWork(createModel)).isEqualTo("works/createOrUpdateWorkForm");
@@ -59,11 +62,13 @@ class WorkControllerTest {
         Work newWork = work(null);
         Work existing = work(7);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.saveWork(newWork)).isEqualTo("redirect:/works/all");
         assertThat(controller.saveWork(existing)).isEqualTo("redirect:/works/all");
         assertThat(controller.deleteWork(7)).isEqualTo("redirect:/works/all");
 
         verify(workService).createNewWork(newWork);
+        // 检查点：验证该测试用例的预期结果。
         verify(workService).updateWork(existing);
         verify(workService).deleteWorkById(7);
     }

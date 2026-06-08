@@ -1,3 +1,4 @@
+// 测试说明：验证服务项目面向不同客户类型的可预约资格规则。
 package com.example.slabiak.appointmentscheduler.service.work;
 
 import com.example.slabiak.appointmentscheduler.dao.WorkRepository;
@@ -47,21 +48,25 @@ public class WorkCustomerEligibilityTest {
 
     @Test
     public void shouldAllowRetailCustomerToUseRetailWork() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(isWorkForCustomer(retailWork(), retailCustomer)).isTrue();
     }
 
     @Test
     public void shouldRejectRetailCustomerForCorporateWork() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(isWorkForCustomer(corporateWork(), retailCustomer)).isFalse();
     }
 
     @Test
     public void shouldAllowCorporateCustomerToUseCorporateWork() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(isWorkForCustomer(corporateWork(), corporateCustomer)).isTrue();
     }
 
     @Test
     public void shouldRejectCorporateCustomerForRetailWork() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(isWorkForCustomer(retailWork(), corporateCustomer)).isFalse();
     }
 

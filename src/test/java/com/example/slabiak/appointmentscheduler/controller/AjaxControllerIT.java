@@ -1,3 +1,4 @@
+// 测试说明：验证 Ajax 接口在真实应用上下文中的可用时间段查询行为。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -70,6 +71,7 @@ public class AjaxControllerIT {
         outOfWindow.setStatus(AppointmentStatus.SCHEDULED);
         appointmentRepository.save(outOfWindow);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(Persistence.getPersistenceUtil().isLoaded(
                 appointmentRepository.findCalendarByCustomerId(
                         3,
@@ -79,10 +81,12 @@ public class AjaxControllerIT {
                         .getWork()))
                 .isTrue();
 
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/3/appointments")
                         .param("start", "2030-01-01T00:00:00Z")
                         .param("end", "2030-01-31T23:59:00Z"))
                 .andExpect(status().isOk())
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].title").value("English lesson"));
     }
@@ -90,6 +94,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldRejectAppointmentCalendarRequestsWithoutWindowParameters() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/3/appointments"))
                 .andExpect(status().isBadRequest());
     }
@@ -97,6 +102,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldRejectAppointmentCalendarRequestsWithInvalidWindowParameters() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/3/appointments")
                         .param("start", "not-a-date")
                         .param("end", "2030-01-31T23:59:00Z"))
@@ -106,6 +112,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldRejectCustomerCalendarAccessForAnotherCustomer() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/1001/appointments")
                         .param("start", "2030-01-01T00:00:00Z")
                         .param("end", "2030-01-31T23:59:00Z"))
@@ -115,6 +122,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("provider")
     public void shouldRejectProviderCalendarAccessForAnotherProvider() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/1101/appointments")
                         .param("start", "2030-01-01T00:00:00Z")
                         .param("end", "2030-01-31T23:59:00Z"))
@@ -128,6 +136,7 @@ public class AjaxControllerIT {
         notificationService.newNotification("n1", "m1", "/appointments/1", userService.getUserById(3));
         notificationService.newNotification("n2", "m2", "/appointments/1", userService.getUserById(3));
 
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/notifications"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(2));
@@ -136,10 +145,12 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldKeepAvailableHoursApiContractStable() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$").isArray())
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(jsonPath("$[0].workId").value(1))
                 .andExpect(jsonPath("$[0].providerId").value(2))
                 .andExpect(jsonPath("$[0].start").exists())
@@ -149,16 +160,19 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldKeepCalendarApiContractStable() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/3/appointments")
                         .param("start", "2030-01-01T00:00:00Z")
                         .param("end", "2030-01-31T23:59:00Z"))
                 .andExpect(status().isOk())
+                // 检查点：验证该测试用例的预期结果。
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     public void shouldRequireAuthenticationForApiEndpoints() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/user/notifications"))
                 .andExpect(status().is3xxRedirection());
     }
@@ -166,6 +180,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("provider")
     public void shouldRejectProviderAccessToCustomerAvailableHoursContract() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/availableHours/2/1/2032-01-20"))
                 .andExpect(status().isForbidden());
     }
@@ -173,6 +188,7 @@ public class AjaxControllerIT {
     @Test
     @WithUserDetails("customer_r")
     public void shouldRejectAvailableHoursRequestsWithInvalidDate() throws Exception {
+        // 检查点：验证该测试用例的预期结果。
         mockMvc.perform(get("/api/availableHours/2/1/not-a-date"))
                 .andExpect(status().isBadRequest());
     }

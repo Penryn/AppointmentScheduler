@@ -1,3 +1,4 @@
+// 测试说明：验证当前密码校验器在密码正确和错误时的约束行为。
 package com.example.slabiak.appointmentscheduler.validation;
 
 import com.example.slabiak.appointmentscheduler.entity.user.User;
@@ -51,6 +52,7 @@ class CurrentPasswordMatchesValidatorTest {
         when(userService.getUserById(3)).thenReturn(user);
         when(passwordEncoder.matches("current", "encoded")).thenReturn(true);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(validator.isValid(form, context)).isTrue();
 
         verify(context, never()).disableDefaultConstraintViolation();
@@ -66,11 +68,13 @@ class CurrentPasswordMatchesValidatorTest {
         when(context.buildConstraintViolationWithTemplate("当前密码不正确")).thenReturn(violationBuilder);
         when(violationBuilder.addPropertyNode("currentPassword")).thenReturn(nodeBuilder);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(validator.isValid(form, context)).isFalse();
 
         verify(context).disableDefaultConstraintViolation();
         verify(context).buildConstraintViolationWithTemplate("当前密码不正确");
         verify(violationBuilder).addPropertyNode("currentPassword");
+        // 检查点：验证该测试用例的预期结果。
         verify(nodeBuilder).addConstraintViolation();
     }
 

@@ -1,3 +1,4 @@
+// 测试说明：验证预约服务的取消、拒绝和状态流转业务规则。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -93,6 +94,7 @@ class AppointmentServiceRulesTest {
 
         appointmentService.createNewAppointment(workId, providerId, customerId, time);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
         verify(notificationService, times(1)).newNewAppointmentScheduledNotification(any(Appointment.class), eq(true));
     }
@@ -102,6 +104,7 @@ class AppointmentServiceRulesTest {
         LocalDateTime time = LocalDateTime.of(2019, 1, 1, 5, 59);
         mockAvailableAppointmentInputs(time);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, time));
     }
@@ -121,6 +124,7 @@ class AppointmentServiceRulesTest {
                 eq(customerId), any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(emptyAppointments());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, time));
     }
@@ -140,6 +144,7 @@ class AppointmentServiceRulesTest {
                 eq(customerId), any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(appointments(existing));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThrows(RuntimeException.class,
                 () -> appointmentService.createNewAppointment(workId, providerId, customerId, time));
     }
@@ -150,6 +155,7 @@ class AppointmentServiceRulesTest {
 
         Appointment result = appointmentService.getAppointmentByIdWithAuthorization(1);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(appointment.getId(), result.getId());
         verify(appointmentRepository, times(1)).findById(1);
     }
@@ -162,6 +168,7 @@ class AppointmentServiceRulesTest {
 
         Page<Appointment> result = appointmentService.getAllAppointments(null, pageable);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(page, result);
         verify(appointmentRepository).findListPage(null, pageable);
     }
@@ -170,6 +177,7 @@ class AppointmentServiceRulesTest {
     void R7_shouldDeleteAppointmentById() {
         appointmentService.deleteAppointmentById(1);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentRepository, times(1)).deleteById(1);
     }
 

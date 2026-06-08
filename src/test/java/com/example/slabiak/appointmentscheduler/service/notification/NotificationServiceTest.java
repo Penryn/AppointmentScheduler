@@ -1,3 +1,4 @@
+// 测试说明：验证通知服务的查询、已读处理和不同业务通知生成行为。
 package com.example.slabiak.appointmentscheduler.service.notification;
 
 import com.example.slabiak.appointmentscheduler.dao.NotificationRepository;
@@ -50,10 +51,12 @@ class NotificationServiceTest {
         service.newNotification("Title", "Message", "/target", user);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository).save(captor.capture());
         Notification saved = captor.getValue();
         assertThat(saved.getTitle()).isEqualTo("Title");
         assertThat(saved.getMessage()).isEqualTo("Message");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(saved.getUrl()).isEqualTo("/target");
         assertThat(saved.getUser()).isSameAs(user);
         assertThat(saved.isRead()).isFalse();
@@ -68,6 +71,7 @@ class NotificationServiceTest {
 
         service.markAsRead(11, 3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(notification.isRead()).isTrue();
         verify(notificationRepository).save(notification);
     }
@@ -78,6 +82,7 @@ class NotificationServiceTest {
         Notification notification = notificationFor(customer(4, "Grace", "Hopper"));
         when(notificationRepository.findById(11)).thenReturn(Optional.of(notification));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> service.markAsRead(11, 3))
                 .isInstanceOf(AccessDeniedException.class);
 
@@ -90,6 +95,7 @@ class NotificationServiceTest {
         NotificationServiceImpl service = serviceWithMailing(false);
         when(notificationRepository.findById(99)).thenReturn(Optional.empty());
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> service.getNotificationById(99))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Notification not found");
@@ -105,11 +111,13 @@ class NotificationServiceTest {
         when(notificationRepository.getAllUnreadNotifications(3)).thenReturn(notifications);
         when(notificationRepository.countUnreadByUserId(3)).thenReturn(2L);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(service.getAll(3)).isSameAs(notifications);
         assertThat(service.getAll(3, pageable).getContent()).isEqualTo(notifications);
         assertThat(service.getUnreadNotifications(3)).isSameAs(notifications);
         assertThat(service.countUnreadNotifications(3)).isEqualTo(2);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository).findAllByUserIdOrderByCreatedAtDesc(3);
         verify(notificationRepository).findPageByUserId(3, pageable);
         verify(notificationRepository).getAllUnreadNotifications(3);
@@ -122,6 +130,7 @@ class NotificationServiceTest {
 
         service.markAllAsRead(3);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository).markAllAsReadByUserId(3);
     }
 
@@ -138,6 +147,7 @@ class NotificationServiceTest {
         service.newAppointmentRejectionAcceptedNotification(appointment, true);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository, org.mockito.Mockito.times(6)).save(captor.capture());
         assertThat(captor.getAllValues())
                 .extracting(Notification::getTitle)
@@ -149,10 +159,12 @@ class NotificationServiceTest {
                         "预约已取消",
                         "申诉已确认"
                 );
+        // 检查点：验证该测试用例的预期结果。
         assertThat(captor.getAllValues()).allSatisfy(notification ->
                 assertThat(notification.getUrl()).isEqualTo("/appointments/21"));
         verify(emailService).sendAppointmentFinishedNotification(appointment);
         verify(emailService).sendAppointmentRejectionRequestedNotification(appointment);
+        // 检查点：验证该测试用例的预期结果。
         verify(emailService).sendNewAppointmentScheduledNotification(appointment);
         verify(emailService).sendAppointmentCanceledByCustomerNotification(appointment);
         verify(emailService).sendAppointmentCanceledByProviderNotification(appointment);
@@ -175,10 +187,12 @@ class NotificationServiceTest {
         service.newExchangeRejectedNotification(exchangeRequest, true);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository, org.mockito.Mockito.times(4)).save(captor.capture());
         assertThat(captor.getAllValues())
                 .extracting(Notification::getTitle)
                 .containsExactly("新发票", "换约请求", "换约请求已接受", "换约请求已拒绝");
+        // 检查点：验证该测试用例的预期结果。
         verify(emailService).sendInvoice(invoice);
         verify(emailService).sendNewExchangeRequestedNotification(requestor, requested);
         verify(emailService).sendExchangeRequestAcceptedNotification(exchangeRequest);
@@ -196,10 +210,12 @@ class NotificationServiceTest {
         service.newChatMessageNotification(chatMessage, true);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository).save(captor.capture());
         assertThat(captor.getValue().getTitle()).isEqualTo("新的预约消息");
         assertThat(captor.getValue().getUrl()).isEqualTo("/appointments/21");
         assertThat(captor.getValue().getUser()).isSameAs(appointment.getProvider());
+        // 检查点：验证该测试用例的预期结果。
         verify(emailService).sendNewChatMessageNotification(chatMessage);
     }
 
@@ -211,6 +227,7 @@ class NotificationServiceTest {
         service.newAppointmentFinishedNotification(appointment, true);
         service.newNewAppointmentScheduledNotification(appointment, false);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationRepository, org.mockito.Mockito.times(2)).save(org.mockito.Mockito.any(Notification.class));
         verifyNoInteractions(emailService);
     }

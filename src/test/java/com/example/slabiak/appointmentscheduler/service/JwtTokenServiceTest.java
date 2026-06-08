@@ -1,3 +1,4 @@
+// 测试说明：验证预约相关 JWT 的生成、解析和签名校验行为。
 package com.example.slabiak.appointmentscheduler.service;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
@@ -25,6 +26,7 @@ public class JwtTokenServiceTest {
 
         String token = jwtTokenService.generateAppointmentRejectionToken(appointment);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(jwtTokenService.validateToken(token)).isTrue();
         assertThat(jwtTokenService.getAppointmentIdFromToken(token)).isEqualTo(10);
         assertThat(jwtTokenService.getCustomerIdFromToken(token)).isEqualTo(3);
@@ -36,6 +38,7 @@ public class JwtTokenServiceTest {
 
         String token = jwtTokenService.generateAcceptRejectionToken(appointment);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(jwtTokenService.validateToken(token)).isTrue();
         assertThat(jwtTokenService.getAppointmentIdFromToken(token)).isEqualTo(10);
         assertThat(jwtTokenService.getProviderIdFromToken(token)).isEqualTo(2);
@@ -47,11 +50,13 @@ public class JwtTokenServiceTest {
 
         String token = jwtTokenService.generateAppointmentRejectionToken(appointment);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(jwtTokenService.validateToken(token)).isFalse();
     }
 
     @Test
     public void shouldRejectMalformedToken() {
+        // 检查点：验证该测试用例的预期结果。
         assertThat(jwtTokenService.validateToken("not-a-jwt-token")).isFalse();
     }
 
@@ -60,6 +65,7 @@ public class JwtTokenServiceTest {
         String token = jwtTokenService.generateAppointmentRejectionToken(appointment(LocalDateTime.now().plusDays(2)));
         String tamperedToken = token.substring(0, token.length() - 2) + "xx";
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(jwtTokenService.validateToken(tamperedToken)).isFalse();
     }
 

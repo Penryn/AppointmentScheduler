@@ -1,3 +1,4 @@
+// 测试说明：验证决策表驱动的表单校验规则输出。
 package com.example.slabiak.appointmentscheduler.decisiontable;
 
 import com.example.slabiak.appointmentscheduler.model.UserForm;
@@ -51,6 +52,7 @@ class DecisionTableValidationTest {
         Set<ConstraintViolation<UserForm>> violations =
                 validator.validate(form, UpdateUser.class, UpdateCorporateCustomer.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(expectedViolations, violations.size());
     }
 

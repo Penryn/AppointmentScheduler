@@ -1,3 +1,4 @@
+// 测试说明：验证用户表单在不同决策表场景下的校验结果。
 package com.example.slabiak.appointmentscheduler.decisiontable;
 
 import com.example.slabiak.appointmentscheduler.model.UserForm;
@@ -30,6 +31,7 @@ class UserFormDecisionTableTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(0, violations.size());
     }
 
@@ -39,6 +41,7 @@ class UserFormDecisionTableTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(8, violations.size());
     }
 
@@ -48,6 +51,7 @@ class UserFormDecisionTableTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateProvider.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(1, violations.size());
     }
 
@@ -57,6 +61,7 @@ class UserFormDecisionTableTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(9, violations.size());
     }
 }

@@ -1,3 +1,4 @@
+// 测试说明：验证预约可用时间段计算、冲突过滤和预约规则。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -56,6 +57,7 @@ public class AppointmentAvailabilityTest {
                 List.of(new TimePeroid(LocalTime.of(6, 0), LocalTime.of(9, 0))),
                 oneHourWork);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(slots).containsExactly(
                 new TimePeroid(LocalTime.of(6, 0), LocalTime.of(7, 0)),
                 new TimePeroid(LocalTime.of(7, 0), LocalTime.of(8, 0)),
@@ -71,6 +73,7 @@ public class AppointmentAvailabilityTest {
                 List.of(new TimePeroid(LocalTime.of(6, 0), LocalTime.of(8, 0))),
                 ninetyMinuteWork);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(slots).containsExactly(
                 new TimePeroid(LocalTime.of(6, 0), LocalTime.of(7, 30)));
     }
@@ -83,6 +86,7 @@ public class AppointmentAvailabilityTest {
         List<TimePeroid> result = appointmentService.excludeAppointmentsFromTimePeroids(periods, appointments(
                 appointmentAt(LocalTime.of(6, 0), LocalTime.of(7, 0))));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(result).containsExactly(
                 new TimePeroid(LocalTime.of(7, 0), LocalTime.of(10, 0)));
     }
@@ -95,6 +99,7 @@ public class AppointmentAvailabilityTest {
         List<TimePeroid> result = appointmentService.excludeAppointmentsFromTimePeroids(periods, appointments(
                 appointmentAt(LocalTime.of(8, 0), LocalTime.of(9, 0))));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(result).containsExactly(
                 new TimePeroid(LocalTime.of(6, 0), LocalTime.of(8, 0)),
                 new TimePeroid(LocalTime.of(9, 0), LocalTime.of(10, 0)));
@@ -108,6 +113,7 @@ public class AppointmentAvailabilityTest {
         List<TimePeroid> result = appointmentService.excludeAppointmentsFromTimePeroids(periods, appointments(
                 appointmentAt(LocalTime.of(9, 0), LocalTime.of(10, 0))));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(result).containsExactly(
                 new TimePeroid(LocalTime.of(6, 0), LocalTime.of(9, 0)));
     }
@@ -121,6 +127,7 @@ public class AppointmentAvailabilityTest {
                 List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(10, 0))),
                 twoHourWork);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(slots).containsExactly(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(10, 0)));
     }
 
@@ -133,6 +140,7 @@ public class AppointmentAvailabilityTest {
                 List.of(new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0))),
                 twoHourWork);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(slots).isEmpty();
     }
 
@@ -145,6 +153,7 @@ public class AppointmentAvailabilityTest {
         List<TimePeroid> periods = dayPlan.timePeroidsWithBreaksExcluded();
         List<TimePeroid> slots = appointmentService.calculateAvailableHours(periods, oneHourWork);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(slots).contains(
                 new TimePeroid(LocalTime.of(9, 0), LocalTime.of(10, 0)),
                 new TimePeroid(LocalTime.of(11, 0), LocalTime.of(12, 0)));
@@ -158,6 +167,7 @@ public class AppointmentAvailabilityTest {
 
         List<TimePeroid> periods = dayPlan.timePeroidsWithBreaksExcluded();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(periods).containsExactly(
                 new TimePeroid(LocalTime.of(8, 0), LocalTime.of(9, 0)),
                 new TimePeroid(LocalTime.of(10, 0), LocalTime.of(12, 0)));
@@ -178,6 +188,7 @@ public class AppointmentAvailabilityTest {
 
         boolean available = appointmentService.isAvailable(1, 2, 3, start);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(available).isFalse();
     }
 
@@ -196,6 +207,7 @@ public class AppointmentAvailabilityTest {
 
         boolean available = appointmentService.isAvailable(1, 2, 3, start);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(available).isFalse();
     }
 

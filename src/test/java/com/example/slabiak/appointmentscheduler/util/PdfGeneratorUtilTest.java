@@ -1,3 +1,4 @@
+// 测试说明：验证 PDF 生成工具可以输出包含发票内容的 PDF 数据。
 package com.example.slabiak.appointmentscheduler.util;
 
 import com.example.slabiak.appointmentscheduler.entity.Invoice;
@@ -31,10 +32,12 @@ class PdfGeneratorUtilTest {
 
         File pdf = util.generatePdfFromInvoice(invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(pdf).isNotNull();
         assertThat(pdf).exists();
         assertThat(pdf.length()).isGreaterThan(0);
         pdf.delete();
+        // 检查点：验证该测试用例的预期结果。
         verify(templateEngine).process(eq("email/pdf/invoice"), any(Context.class));
     }
 }

@@ -1,3 +1,4 @@
+// 测试说明：验证预约交换控制器的候选列表、摘要页和交换确认流程。
 package com.example.slabiak.appointmentscheduler.controller;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
@@ -43,12 +44,14 @@ class ExchangeControllerTest {
         when(exchangeService.getEligibleAppointmentsForExchange(10)).thenReturn(eligibleAppointments);
         Model model = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showEligibleAppointmentsToExchange(10, model, user)).isEqualTo("exchange/listProposals");
         assertThat(model.getAttribute("appointmentId")).isEqualTo(10);
         assertThat(model.getAttribute("numberOfEligibleAppointments")).isEqualTo(2);
         assertThat(model.getAttribute("eligibleAppointments")).isEqualTo(eligibleAppointments);
 
         when(exchangeService.checkIfEligibleForExchange(3, 11)).thenReturn(false);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showEligibleAppointmentsToExchange(11, new ExtendedModelMap(), user))
                 .isEqualTo("redirect:/appointments/all");
     }
@@ -63,11 +66,13 @@ class ExchangeControllerTest {
         when(appointmentService.getAppointmentById(20)).thenReturn(newAppointment);
         Model model = new ExtendedModelMap();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showExchangeSummaryScreen(10, 20, model, user)).isEqualTo("exchange/exchangeSummary");
         assertThat(model.getAttribute("oldAppointment")).isSameAs(oldAppointment);
         assertThat(model.getAttribute("newAppointment")).isSameAs(newAppointment);
 
         when(exchangeService.checkIfExchangeIsPossible(10, 21, 3)).thenReturn(false);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.showExchangeSummaryScreen(10, 21, new ExtendedModelMap(), user))
                 .isEqualTo("redirect:/appointments/all");
     }
@@ -80,10 +85,12 @@ class ExchangeControllerTest {
         when(exchangeService.requestExchange(10, 20, 3)).thenReturn(true);
         when(exchangeService.requestExchange(10, 21, 3)).thenReturn(false);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processExchangeRequest(10, 20, successModel, user)).isEqualTo("exchange/requestConfirmation");
         assertThat(successModel.getAttribute("message")).isEqualTo("换约请求已发送。");
         assertThat(controller.processExchangeRequest(10, 21, failureModel, user)).isEqualTo("exchange/requestConfirmation");
         assertThat(failureModel.getAttribute("message")).isEqualTo("换约请求发送失败。");
+        // 检查点：验证该测试用例的预期结果。
         assertThat(controller.processExchangeAcceptation(5, new ExtendedModelMap(), user)).isEqualTo("redirect:/appointments/all");
         assertThat(controller.processExchangeRejection(6, new ExtendedModelMap(), user)).isEqualTo("redirect:/appointments/all");
 

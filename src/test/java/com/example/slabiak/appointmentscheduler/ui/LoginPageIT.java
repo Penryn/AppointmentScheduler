@@ -1,3 +1,4 @@
+// 测试说明：验证登录页面、管理员导航和客户预约流程的真实浏览器交互。
 package com.example.slabiak.appointmentscheduler.ui;
 
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,6 +47,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LoginPageIT {
 
     private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(30);
+    private static final DockerImageName SELENIUM_CHROMIUM_IMAGE = DockerImageName
+            .parse("selenium/standalone-chromium:4.44.0-20260505")
+            .asCompatibleSubstituteFor("selenium/standalone-chrome");
+    private static final File SELENIUM_RECORDINGS_DIRECTORY = Path.of("target", "selenium-recordings").toFile();
 
     @LocalServerPort
     private int port;
@@ -57,11 +65,13 @@ public class LoginPageIT {
         String url = "http://host.testcontainers.internal:" + port + "/";
         driver.get(url);
 
+        // 检查点：登录页渲染了预期的登录表单。
         WebElement elementById = driver.findElement(By.id("login-form"));
         driver.findElement(By.id("username")).sendKeys("admin");
         driver.findElement(By.id("password")).sendKeys("qwerty123");
         driver.findElement(By.tagName("button")).click();
 
+        // 检查点：管理员登录成功后可以看到预约入口。
         WebElement appointments = waitForClickable(driver, By.cssSelector("a[href='/appointments/all']"));
 
         assertNotNull(elementById);
@@ -88,9 +98,11 @@ public class LoginPageIT {
 
         waitForClickable(driver, By.cssSelector("form[action='/appointments/new'] button[type='submit']")).click();
 
-        WebElement table = driver.findElement(By.id("appointments"));
+        // 检查点：客户完成预约后回到预约列表页。
+        WebElement table = waitForElement(driver, By.id("appointments"));
         WebElement tableBody = table.findElement(By.tagName("tbody"));
         int rowCount = tableBody.findElements(By.tagName("tr")).size();
+        // 检查点：列表中只有刚刚创建的一条预约记录。
         assertEquals(1, rowCount);
     }
 
@@ -107,12 +119,15 @@ public class LoginPageIT {
         driver.findElement(By.tagName("button")).click();
 
         waitForClickable(driver, By.cssSelector("a[href='/customers/all']")).click();
+        // 检查点：管理员可以打开客户管理列表。
         assertNotNull(waitForElement(driver, By.id("customers")));
 
         driver.get("http://host.testcontainers.internal:" + port + "/providers/all");
+        // 检查点：管理员可以打开服务提供者管理列表。
         assertNotNull(waitForElement(driver, By.id("providers")));
 
         driver.get("http://host.testcontainers.internal:" + port + "/works/all");
+        // 检查点：管理员可以打开服务项目管理列表。
         assertNotNull(waitForElement(driver, By.id("works")));
     }
 
@@ -238,16 +253,22 @@ public class LoginPageIT {
     private static class SeleniumContainerExtension implements BeforeEachCallback, AfterEachCallback, TestExecutionExceptionHandler {
 
         private BrowserWebDriverContainer chrome;
+        private Throwable testFailure;
 
         @Override
         public void beforeEach(ExtensionContext context) {
-            chrome = new BrowserWebDriverContainer()
-                    .withCapabilities(new ChromeOptions());
+            testFailure = null;
+            ensureRecordingDirectoryExists();
+            chrome = new BrowserWebDriverContainer(SELENIUM_CHROMIUM_IMAGE)
+                    .withCapabilities(new ChromeOptions())
+                    .withRecordingMode(BrowserWebDriverContainer.VncRecordingMode.RECORD_ALL,
+                            SELENIUM_RECORDINGS_DIRECTORY);
             chrome.start();
         }
 
         @Override
         public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+            testFailure = throwable;
             if (chrome != null && chrome.isRunning()) {
                 captureScreenshot(chrome.getWebDriver(), context);
             }
@@ -257,12 +278,37 @@ public class LoginPageIT {
         @Override
         public void afterEach(ExtensionContext context) {
             if (chrome != null) {
+                chrome.afterTest(testDescription(context), Optional.ofNullable(testFailure));
                 chrome.stop();
             }
         }
 
         private RemoteWebDriver getDriver() {
             return chrome.getWebDriver();
+        }
+
+        private org.testcontainers.lifecycle.TestDescription testDescription(ExtensionContext context) {
+            return new org.testcontainers.lifecycle.TestDescription() {
+                @Override
+                public String getTestId() {
+                    return context.getUniqueId();
+                }
+
+                @Override
+                public String getFilesystemFriendlyName() {
+                    String rawName = context.getRequiredTestClass().getName() + "-"
+                            + context.getRequiredTestMethod().getName();
+                    return rawName.replaceAll("[^A-Za-z0-9._-]", "_");
+                }
+            };
+        }
+
+        private void ensureRecordingDirectoryExists() {
+            try {
+                Files.createDirectories(SELENIUM_RECORDINGS_DIRECTORY.toPath());
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to create Selenium recordings directory", e);
+            }
         }
     }
 

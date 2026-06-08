@@ -1,3 +1,4 @@
+// 测试说明：验证预约交换服务的候选筛选、请求创建和交换确认逻辑。
 package com.example.slabiak.appointmentscheduler.service.exchange;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -53,6 +54,7 @@ public class ExchangeServiceTest {
 
         boolean requested = exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested).isTrue();
         assertThat(oldAppointment.getStatus()).isEqualTo(AppointmentStatus.EXCHANGE_REQUESTED);
         verify(appointmentRepository).save(oldAppointment);
@@ -60,6 +62,7 @@ public class ExchangeServiceTest {
                 exchangeRequest.getRequestor() == oldAppointment
                         && exchangeRequest.getRequested() == newAppointment
                         && exchangeRequest.getStatus() == ExchangeStatus.PENDING));
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService).newExchangeRequestedNotification(oldAppointment, newAppointment, true);
     }
 
@@ -73,14 +76,17 @@ public class ExchangeServiceTest {
 
         boolean accepted = exchangeService.acceptExchange(exchangeRequest.getId(), 1001);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(accepted).isTrue();
         assertThat(exchangeRequest.getStatus()).isEqualTo(ExchangeStatus.ACCEPTED);
         assertThat(requestor.getStatus()).isEqualTo(AppointmentStatus.SCHEDULED);
         assertThat(requestor.getCustomer().getId()).isEqualTo(1001);
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested.getCustomer().getId()).isEqualTo(3);
         verify(exchangeRequestRepository).save(exchangeRequest);
         verify(appointmentRepository).save(requested);
         verify(appointmentRepository).save(requestor);
+        // 检查点：验证该测试用例的预期结果。
         verify(notificationService).newExchangeAcceptedNotification(exchangeRequest, true);
     }
 
@@ -95,10 +101,12 @@ public class ExchangeServiceTest {
 
         boolean rejected = exchangeService.rejectExchange(exchangeRequest.getId(), 1001);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(rejected).isTrue();
         assertThat(exchangeRequest.getStatus()).isEqualTo(ExchangeStatus.REJECTED);
         assertThat(requestor.getStatus()).isEqualTo(AppointmentStatus.SCHEDULED);
         verify(exchangeRequestRepository).save(exchangeRequest);
+        // 检查点：验证该测试用例的预期结果。
         verify(appointmentRepository).save(requestor);
         verify(notificationService).newExchangeRejectedNotification(exchangeRequest, true);
     }
@@ -111,6 +119,7 @@ public class ExchangeServiceTest {
         exchangeRequest.setId(20);
         when(exchangeRequestRepository.findById(exchangeRequest.getId())).thenReturn(Optional.of(exchangeRequest));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> exchangeService.acceptExchange(exchangeRequest.getId(), 3))
                 .isInstanceOf(AccessDeniedException.class);
     }
@@ -122,6 +131,7 @@ public class ExchangeServiceTest {
         when(appointmentRepository.findById(oldAppointment.getId())).thenReturn(Optional.of(oldAppointment));
         when(appointmentRepository.findById(newAppointment.getId())).thenReturn(Optional.of(newAppointment));
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 1001))
                 .isInstanceOf(AccessDeniedException.class);
     }
@@ -136,6 +146,7 @@ public class ExchangeServiceTest {
 
         boolean requested = exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested).isFalse();
         verify(exchangeRequestRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
@@ -150,6 +161,7 @@ public class ExchangeServiceTest {
 
         boolean requested = exchangeService.requestExchange(oldAppointment.getId(), newAppointment.getId(), 3);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(requested).isFalse();
         verify(exchangeRequestRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
@@ -164,6 +176,7 @@ public class ExchangeServiceTest {
 
         boolean accepted = exchangeService.acceptExchange(exchangeRequest.getId(), 1001);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(accepted).isFalse();
         assertThat(requestor.getCustomer().getId()).isEqualTo(3);
         assertThat(requested.getCustomer().getId()).isEqualTo(1001);
@@ -180,6 +193,7 @@ public class ExchangeServiceTest {
 
         boolean rejected = exchangeService.rejectExchange(exchangeRequest.getId(), 1001);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(rejected).isFalse();
         assertThat(exchangeRequest.getStatus()).isEqualTo(ExchangeStatus.ACCEPTED);
         verify(notificationService, never()).newExchangeRejectedNotification(exchangeRequest, true);

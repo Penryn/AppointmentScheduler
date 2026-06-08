@@ -1,3 +1,4 @@
+// 测试说明：验证零售客户用户服务的注册、更新和校验相关行为。
 package com.example.slabiak.appointmentscheduler.service.user;
 
 import com.example.slabiak.appointmentscheduler.dao.RoleRepository;
@@ -105,6 +106,7 @@ public class RetailCustomerUserServiceTest {
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.saveNewRetailCustomer(retailUserForm);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
     }
 
@@ -115,6 +117,7 @@ public class RetailCustomerUserServiceTest {
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.saveNewRetailCustomer(retailUserForm);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getPassword(), passwordEncoded);
     }
@@ -125,14 +128,17 @@ public class RetailCustomerUserServiceTest {
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.saveNewRetailCustomer(retailUserForm);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getUserName(), retailUserForm.getUserName());
         assertEquals(argumentCaptor.getValue().getFirstName(), retailUserForm.getFirstName());
         assertEquals(argumentCaptor.getValue().getLastName(), retailUserForm.getLastName());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(argumentCaptor.getValue().getEmail(), retailUserForm.getEmail());
         assertEquals(argumentCaptor.getValue().getMobile(), retailUserForm.getMobile());
         assertEquals(argumentCaptor.getValue().getStreet(), retailUserForm.getStreet());
         assertEquals(argumentCaptor.getValue().getCity(), retailUserForm.getCity());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(argumentCaptor.getValue().getPostcode(), retailUserForm.getPostcode());
     }
 
@@ -144,6 +150,7 @@ public class RetailCustomerUserServiceTest {
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.saveNewRetailCustomer(retailUserForm);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getRoles().size(), 2);
     }
@@ -156,6 +163,7 @@ public class RetailCustomerUserServiceTest {
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.saveNewRetailCustomer(retailUserForm);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().hasRole(roleNameRetailCustomer), true);
         assertEquals(argumentCaptor.getValue().hasRole(roleNameCustomer), true);
@@ -170,10 +178,12 @@ public class RetailCustomerUserServiceTest {
 
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.updateRetailCustomerProfile(retailUserForm);
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getFirstName(), retailUserForm.getFirstName());
         assertEquals(argumentCaptor.getValue().getLastName(), retailUserForm.getLastName());
         assertEquals(argumentCaptor.getValue().getEmail(), retailUserForm.getEmail());
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(argumentCaptor.getValue().getMobile(), retailUserForm.getMobile());
         assertEquals(argumentCaptor.getValue().getStreet(), retailUserForm.getStreet());
         assertEquals(argumentCaptor.getValue().getCity(), retailUserForm.getCity());
@@ -192,6 +202,7 @@ public class RetailCustomerUserServiceTest {
 
         ArgumentCaptor<RetailCustomer> argumentCaptor = ArgumentCaptor.forClass(RetailCustomer.class);
         userService.updateRetailCustomerProfile(retailUserForm);
+        // 检查点：验证该测试用例的预期结果。
         verify(retailCustomerRepository, times(1)).save(argumentCaptor.capture());
         assertEquals(argumentCaptor.getValue().getUserName(), currentUsername);
         assertEquals(argumentCaptor.getValue().getPassword(), currentPassword);
@@ -205,9 +216,9 @@ public class RetailCustomerUserServiceTest {
         retailCustomer.setUserName(userName);
         optionalRetailCustomer = Optional.of(retailCustomer);
         when(retailCustomerRepository.findById(userId)).thenReturn(optionalRetailCustomer);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(optionalRetailCustomer.get(), userService.getRetailCustomerById(userId));
         verify(retailCustomerRepository, times(1)).findById(userId);
     }
 
 }
-

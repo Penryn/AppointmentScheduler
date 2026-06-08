@@ -1,3 +1,4 @@
+// 测试说明：验证服务项目的创建、更新、删除和业务约束规则。
 package com.example.slabiak.appointmentscheduler.service.work;
 
 import com.example.slabiak.appointmentscheduler.dao.WorkRepository;
@@ -44,6 +45,7 @@ class WorkServiceCrudRulesTest {
     void R1_shouldCreateWork() {
         workService.createNewWork(work);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(workRepository, times(1)).save(work);
     }
 
@@ -53,6 +55,7 @@ class WorkServiceCrudRulesTest {
 
         Work result = workService.getWorkById(1);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(work, result);
         verify(workRepository, times(1)).findById(1);
     }
@@ -63,6 +66,7 @@ class WorkServiceCrudRulesTest {
 
         List<Work> result = workService.getAllWorks();
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(workList, result);
         verify(workRepository, times(1)).findAll();
     }
@@ -71,6 +75,7 @@ class WorkServiceCrudRulesTest {
     void R4_shouldDeleteWorkById() {
         workService.deleteWorkById(1);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(workRepository, times(1)).deleteById(1);
     }
 }

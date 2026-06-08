@@ -1,3 +1,4 @@
+// 测试说明：验证 Spring Boot 应用上下文可以正常启动。
 package com.example.slabiak.appointmentscheduler;
 
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ public class AppointmentschedulerApplicationIT {
 
 	@Test
 	public void contextLoads() {
+		// 检查点：验证该测试用例的预期结果。
 		assertNotNull(applicationContext);
 	}
 

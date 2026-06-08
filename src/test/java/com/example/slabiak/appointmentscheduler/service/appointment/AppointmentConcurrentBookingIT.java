@@ -1,3 +1,4 @@
+// 测试说明：验证并发预约时数据库约束只允许一个成功写入。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.dao.AppointmentRepository;
@@ -62,6 +63,7 @@ public class AppointmentConcurrentBookingIT {
             Future<Boolean> firstBooking = executorService.submit(bookConcurrently(FIRST_CUSTOMER_ID, ready, start));
             Future<Boolean> secondBooking = executorService.submit(bookConcurrently(SECOND_CUSTOMER_ID, ready, start));
 
+            // 检查点：验证该测试用例的预期结果。
             assertThat(ready.await(5, TimeUnit.SECONDS)).as("both booking tasks are ready").isTrue();
             start.countDown();
 
@@ -69,6 +71,7 @@ public class AppointmentConcurrentBookingIT {
             successfulRequests += firstBooking.get(5, TimeUnit.SECONDS) ? 1 : 0;
             successfulRequests += secondBooking.get(5, TimeUnit.SECONDS) ? 1 : 0;
 
+            // 检查点：验证该测试用例的预期结果。
             assertThat(successfulRequests).isEqualTo(1);
             assertThat(findAppointmentsAtConcurrentSlot()).hasSize(1);
         } finally {
@@ -79,6 +82,7 @@ public class AppointmentConcurrentBookingIT {
     private Callable<Boolean> bookConcurrently(int customerId, CountDownLatch ready, CountDownLatch start) {
         return () -> {
             ready.countDown();
+            // 检查点：验证该测试用例的预期结果。
             assertThat(start.await(5, TimeUnit.SECONDS)).as("booking task was released").isTrue();
             try {
                 CustomUserDetails admin = (CustomUserDetails) userDetailsService.loadUserByUsername("admin");

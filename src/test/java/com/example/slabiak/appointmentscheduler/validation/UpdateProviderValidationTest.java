@@ -1,3 +1,4 @@
+// 测试说明：验证服务提供者资料更新表单的 Bean Validation 规则。
 package com.example.slabiak.appointmentscheduler.validation;
 
 import com.example.slabiak.appointmentscheduler.model.UserForm;
@@ -31,6 +32,7 @@ public class UpdateProviderValidationTest {
     public void shouldHave9ViolationsForEmptyFormWhenUpdateProvider() {
         UserForm form = new UserForm();
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(violations.size(), 9);
     }
 
@@ -41,6 +43,7 @@ public class UpdateProviderValidationTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertEquals(1, violations.size());
     }
 
@@ -50,6 +53,7 @@ public class UpdateProviderValidationTest {
 
         Set<ConstraintViolation<UserForm>> violations = validator.validate(form, UpdateUser.class, UpdateProvider.class);
 
+        // 检查点：验证该测试用例的预期结果。
         assertTrue(violations.isEmpty());
     }
 

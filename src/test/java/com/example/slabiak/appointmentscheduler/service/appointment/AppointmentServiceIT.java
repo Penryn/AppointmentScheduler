@@ -1,3 +1,4 @@
+// 测试说明：验证预约服务在真实持久化环境中的查询和并发写入行为。
 package com.example.slabiak.appointmentscheduler.service.appointment;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
@@ -52,6 +53,7 @@ public class AppointmentServiceIT {
         appointmentService.createNewAppointment(1, 2, 3, LocalDateTime.of(2020, 2, 9, 12, 0, 0));
 
         Page<Appointment> appointments = appointmentService.getAllAppointments(null, PageRequest.of(0, 10));
+        // 检查点：验证该测试用例的预期结果。
         assertThat(appointments).hasSize(1);
         assertEquals(AppointmentStatus.SCHEDULED, appointments.getContent().get(0).getStatus());
 
@@ -67,6 +69,7 @@ public class AppointmentServiceIT {
 
         appointmentRepository.saveAndFlush(first);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThatThrownBy(() -> appointmentRepository.saveAndFlush(duplicate))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
@@ -102,11 +105,13 @@ public class AppointmentServiceIT {
         firstThread.start();
         secondThread.start();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
         startTogether.countDown();
         firstThread.join(10_000);
         secondThread.join(10_000);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(successfulInserts.get()).isEqualTo(1);
         assertThat(appointmentRepository.findByProviderIdWithStartInPeroid(2, start.toLocalDate().atStartOfDay(), start.toLocalDate().atStartOfDay().plusDays(1)))
                 .filteredOn(appointment -> appointment.getStart().equals(start))
@@ -143,11 +148,13 @@ public class AppointmentServiceIT {
         firstThread.start();
         secondThread.start();
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
         startTogether.countDown();
         firstThread.join(10_000);
         secondThread.join(10_000);
 
+        // 检查点：验证该测试用例的预期结果。
         assertThat(successfulInserts.get()).isEqualTo(1);
         assertThat(appointmentRepository.findByCustomerIdWithStartInPeroid(3, start.toLocalDate().atStartOfDay(), start.toLocalDate().atStartOfDay().plusDays(1)))
                 .filteredOn(appointment -> appointment.getStart().equals(start))

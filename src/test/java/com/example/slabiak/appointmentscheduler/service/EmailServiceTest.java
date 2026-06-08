@@ -1,3 +1,4 @@
+// 测试说明：验证邮件服务的模板渲染、发送调用和异常处理行为。
 package com.example.slabiak.appointmentscheduler.service;
 
 import com.example.slabiak.appointmentscheduler.entity.Appointment;
@@ -68,6 +69,7 @@ public class EmailServiceTest {
 
         emailService.sendEmail("provider@example.com", "新的预约", "newAppointmentScheduled", new Context(), null);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(javaMailSender).send(message);
     }
 
@@ -87,10 +89,12 @@ public class EmailServiceTest {
         spyService.sendAppointmentCanceledByProviderNotification(appointment);
         spyService.sendAppointmentRejectionAcceptedNotification(appointment);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService).sendEmail(eq("customer@example.com"), eq("预约完成摘要"), eq("appointmentFinished"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("provider@example.com"), eq("预约申诉待确认"), eq("appointmentRejectionRequested"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("provider@example.com"), eq("新的预约"), eq("newAppointmentScheduled"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("provider@example.com"), eq("客户取消了预约"), eq("appointmentCanceled"), any(Context.class), eq(null));
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService).sendEmail(eq("customer@example.com"), eq("服务人员取消了预约"), eq("appointmentCanceled"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("customer@example.com"), eq("预约申诉已确认"), eq("appointmentRejectionAccepted"), any(Context.class), eq(null));
     }
@@ -106,6 +110,7 @@ public class EmailServiceTest {
 
         spyService.sendInvoice(invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService).sendEmail(eq("customer@example.com"), eq("预约发票"), eq("appointmentInvoice"), any(Context.class), eq(invoicePdf));
     }
 
@@ -118,6 +123,7 @@ public class EmailServiceTest {
 
         spyService.sendInvoice(invoice);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService, never()).sendEmail(anyString(), anyString(), anyString(), any(Context.class), any());
     }
 
@@ -141,6 +147,7 @@ public class EmailServiceTest {
         spyService.sendExchangeRequestAcceptedNotification(exchangeRequest);
         spyService.sendExchangeRequestRejectedNotification(exchangeRequest);
 
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService).sendEmail(eq("customer@example.com"), eq("新的预约消息"), eq("newChatMessage"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("customer@example.com"), eq("新的换约请求"), eq("newExchangeRequest"), any(Context.class), eq(null));
         verify(spyService).sendEmail(eq("customer@example.com"), eq("换约请求已接受"), eq("exchangeRequestAccepted"), any(Context.class), eq(null));
@@ -159,6 +166,7 @@ public class EmailServiceTest {
         spyService.sendNewChatMessageNotification(message);
 
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
+        // 检查点：验证该测试用例的预期结果。
         verify(spyService).sendEmail(eq("customer@example.com"), eq("新的预约消息"), eq("newChatMessage"), contextCaptor.capture(), eq(null));
         assertThat(contextCaptor.getValue().getVariable("recipent")).isEqualTo(appointment.getCustomer());
     }
